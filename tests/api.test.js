@@ -21,10 +21,16 @@ test.after(() => server.close());
 
 const post = (p, body) => fetch(base + p, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body || {}) });
 
-test('healthz and the main page', async () => {
+test('healthz, main website, tour, and mobile app modules', async () => {
   assert.deepEqual(await (await fetch(base + '/healthz')).json(), { ok: true });
   const html = await (await fetch(base + '/')).text();
   assert.match(html, /Care Taker/);
+  assert.match(html, /#tour/);
+  assert.match(html, /#mobile/);
+  for (const mod of ['/js/screens/home.js', '/js/screens/tour.js', '/js/screens/mobile.js']) {
+    const r = await fetch(base + mod);
+    assert.equal(r.status, 200, mod);
+  }
 });
 
 test('seeded on first start', async () => {

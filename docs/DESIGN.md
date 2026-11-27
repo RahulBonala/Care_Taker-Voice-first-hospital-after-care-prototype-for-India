@@ -187,6 +187,17 @@ The keypad phone on the patient screen: dark ink body, white screen with `--radi
 ### Smaller pieces
 `ct-tag` (for "Language under review"), `ct-quote` (patient's exact words, marigold rule), `ct-notice` (inline information, `--warn`, `--urgent`), `ct-list`, `ct-dl`, `ct-week` (seven-day strip), `ct-footer`, `ct-legal` (legal page column).
 
+### Product website, guided tour, and mobile app shell
+- `ct-primary-nav`: top-bar links for the product website (`#home`), interactive application tour (`#tour`), and mobile app prototype (`#mobile`).
+- `ct-band`, `ct-band--surface`, `ct-hero`, `ct-eyebrow`, `ct-proof-list`: editorial landing page sections alternating warm paper (`--color-bg`) and white (`--color-surface`) separated by 1px sand borders.
+- `ct-split` and `ct-method`: two-column explanation contrasting deterministic clinical rules with optional, off-by-default keyed adapters.
+- `ct-rail`: three-stage workflow rail (`Discharge`, `Voice follow-up`, `Clinical escalation`).
+- `ct-tour`: three-track interactive walkthrough (`For patients and families`, `For doctors and nurses`, `How it works overall`) with numbered step buttons and an interactive stage card.
+- `ct-compare`: side-by-side comparison grid that collapses into stacked cards under 800px.
+- `ct-faq`: accessible `<details>` / `<summary>` accordion with 48px minimum tap rows.
+- `ct-device`, `ct-otp-row`, `ct-stage-pills`, `ct-dots`: mobile application prototype shell showing onboarding tour, sample OTP sign-in, first-time setup, and bottom-tab navigation for both patient/family and doctor/nurse personas.
+- `ct-signature`: full-width inline SVG footer lockup using brand tokens only.
+
 ## Do and don't
 
 | Do | Don't |

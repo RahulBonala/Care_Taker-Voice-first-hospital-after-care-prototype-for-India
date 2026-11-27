@@ -41,9 +41,16 @@ npm test         # unit, acceptance and HTTP API tests
 npm run check    # syntax, pure-JS deps, env vars, secrets, dashes, design tokens, line count and tests
 ```
 
-## Five role screens
+## Product website, interactive tour, mobile app, and role screens
 
-Use the role switcher in the top bar to view the same live state across all five roles (every screen polls every 2 seconds):
+Open `http://localhost:3000` to explore both the public product website and the live clinical application (every screen shares the same live state and polls every 2 seconds):
+
+### Product views (top bar)
+- **Website (`#home`):** Editorial product landing page explaining the problem, deterministic clinical rules vs optional keyed adapters, the 3-stage discharge-to-review rail, an embedded interactive tour, side-by-side comparison table, and FAQ.
+- **Guided tour (`#tour`):** Three-track interactive walkthrough (**For patients and families**, **For doctors and nurses**, and **How it works overall**) with live spoken-phrase and prescription-dictation testers.
+- **Mobile app (`#mobile`):** Dual-persona mobile application prototype (**Patient & family app** and **Doctor & nurse app**) covering **1. Onboarding tour**, **2. Sample OTP / staff PIN login**, **3. First-time setup**, and **4. Live 4-tab mobile workspace** wired to `/api/*`.
+
+### Five clinical role screens (segmented switcher)
 
 1. **Hospital desk (`#desk`):** Register a patient, pick call language and phone type, add family contact and sharing preference, dictate or type the prescription, and record the two required patient consent checks before sending for verification.
 2. **Nurse board (`#nurse`):** Verify new prescriptions (unverified patients never get slots), work through open flags sorted `Urgent > Stopped early > Not reachable > Missed`, close flags with **Called back**, inspect live safety measures (including **Doses logged without a yes: Must be 0**), review misheard phrases, toggle family sharing, or **Reset sample data**.

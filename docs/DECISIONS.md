@@ -37,3 +37,7 @@ Choices made during the build where the specification left room for interpretati
 ## 9. Non-root Docker image with Node `fetch` healthcheck
 - **Context:** `node:20-slim` does not ship with `curl` or `wget`.
 - **Decision:** Use Node's built-in `fetch` in `Dockerfile` `HEALTHCHECK` against `http://127.0.0.1:3000/healthz`, run the server as the unprivileged `node` user with `/app/data` pre-owned by `node:node`, and handle `SIGINT`/`SIGTERM` in `server/index.js` so `docker compose down` exits immediately.
+
+## 10. Product website, 3-track tour, and dual-persona mobile prototype in plain ES modules
+- **Context:** Judges, clinicians, and first-time visitors benefit from a clear landing page, an interactive product tour for both patients and doctors, and a mobile app walkthrough (onboarding, login, setup, and live tabs) without adding a frontend build step or external auth dependencies.
+- **Decision:** Add `#home` (`public/js/screens/home.js`), `#tour` (`public/js/screens/tour.js`), and `#mobile` (`public/js/screens/mobile.js`) on the same token-only `ct-` design system while keeping all five role screens (`#desk`, `#nurse`, `#phone`, `#family`, `#doctor`) one click away in the top bar. Mobile sign-in uses clearly labelled sample codes (`4210` for patients, `1204` for clinicians) so zero SMS keys are needed.

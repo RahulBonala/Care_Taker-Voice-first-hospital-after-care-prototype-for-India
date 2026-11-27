@@ -1,30 +1,53 @@
-// Router, polling and the app bar. Each screen exports mount(el) and refresh().
+// Router, polling and the app bar. Each screen exports mount(el) and optional refresh() / unmount().
 import { api, esc } from './lib.js';
+import * as home from './screens/home.js';
+import * as tour from './screens/tour.js';
+import * as mobile from './screens/mobile.js';
 import * as desk from './screens/desk.js';
 import * as nurse from './screens/nurse.js';
 import * as phone from './screens/phone.js';
 import * as family from './screens/family.js';
 import * as doctor from './screens/doctor.js';
 
-const SCREENS = { desk, nurse, phone, family, doctor };
-const TITLES = { desk: 'Hospital desk', nurse: 'Nurse board', phone: 'Patient phone', family: 'Family', doctor: 'Doctor' };
+const SCREENS = { home, tour, mobile, desk, nurse, phone, family, doctor };
+const TITLES = {
+  home: 'Voice-first hospital after-care for India',
+  tour: 'Interactive application tour',
+  mobile: 'Mobile app prototype',
+  desk: 'Hospital desk',
+  nurse: 'Nurse board',
+  phone: 'Patient phone',
+  family: 'Family',
+  doctor: 'Doctor',
+};
 const POLL_MS = 2000;
 let current = null;
+let currentKey = null;
 let timer = null;
 
+function parseHash() {
+  const raw = (location.hash || '#home').slice(1);
+  const [name, queryStr] = raw.split('?');
+  const key = SCREENS[name] ? name : 'home';
+  const params = new URLSearchParams(queryStr || '');
+  return { key, params };
+}
+
 function route() {
-  const name = (location.hash || '#desk').slice(1);
-  const key = SCREENS[name] ? name : 'desk';
-  for (const a of document.querySelectorAll('.ct-segmented__item')) {
+  const { key, params } = parseHash();
+  for (const a of document.querySelectorAll('.ct-primary-nav__link, .ct-segmented__item')) {
     if (a.getAttribute('href') === `#${key}`) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
   }
   if (current && current.unmount) current.unmount();
   current = SCREENS[key];
-  document.title = `${TITLES[key]} | Care Taker`;
+  currentKey = key;
+  document.title = key === 'home' ? `Care Taker: ${TITLES.home}` : `${TITLES[key]} | Care Taker`;
   const view = document.getElementById('view');
+  view.className = key === 'home' ? '' : 'ct-page';
   view.innerHTML = '';
-  current.mount(view);
+  window.scrollTo(0, 0);
+  current.mount(view, params);
   tick();
 }
 
@@ -44,6 +67,8 @@ export function setLangIndicator(text) {
   const el = document.getElementById('lang-indicator');
   if (el) el.innerHTML = esc(text || 'English UI');
 }
+export function activeRoute() { return currentKey; }
+
 window.addEventListener('ct:lang', (e) => setLangIndicator(e.detail));
 window.addEventListener('hashchange', route);
 window.addEventListener('ct:refresh', tick);
