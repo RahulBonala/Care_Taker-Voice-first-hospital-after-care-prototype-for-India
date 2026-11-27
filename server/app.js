@@ -1,4 +1,5 @@
 'use strict';
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const store = require('./store');
@@ -40,7 +41,16 @@ function createApp() {
 
   app.get('/healthz', (req, res) => res.json({ ok: true }));
 
-  app.get('/api/config', (req, res) => res.json({ keys: keys.status(), langs: lang.publicInfo(), slots: VALID_SLOTS, slotTimes: T.SLOT_TIMES,
+  // Which recorded fallback clips exist, so the browser only asks for files that are there.
+  const audioClips = () => {
+    const out = {};
+    for (const code of lang.codes()) {
+      const dir = path.join(__dirname, '..', 'public', 'audio', code);
+      try { out[code] = fs.readdirSync(dir).filter((f) => f.endsWith('.mp3')).map((f) => f.replace(/\.mp3$/, '')); } catch { out[code] = []; }
+    }
+    return out;
+  };
+  app.get('/api/config', (req, res) => res.json({ keys: keys.status(), langs: lang.publicInfo(), audio: audioClips(), slots: VALID_SLOTS, slotTimes: T.SLOT_TIMES,
     maxRings: flow.MAX_RINGS, retryMinutes: flow.RETRY_MINUTES }));
   app.get('/api/clock', (req, res) => res.json({ clock: db().clock, date: T.dateOf(db().clock), time: T.timeOf(db().clock) }));
 

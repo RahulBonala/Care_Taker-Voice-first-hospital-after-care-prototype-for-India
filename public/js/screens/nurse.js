@@ -1,0 +1,156 @@
+// Nurse board: verify patients, work through flags (most urgent first), watch the measures, review misheard replies.
+import { api, post, esc, icon, toast, busy, config, langTag, empty, flagStatus, when, hm, progress, store } from '../lib.js';
+
+let el;
+let cfg;
+let showClosed = store('ct.nurse.closed') === '1';
+
+export async function mount(root) {
+  el = root;
+  cfg = await config();
+  el.innerHTML = `
+  <div class="ct-stack--lg">
+    <div class="ct-row ct-row--between">
+      <div><h1>Nurse board</h1><p class="muted">Verify new patients and call back anyone who needs a person.</p></div>
+      <button class="ct-btn ct-btn--danger" id="nb-reset" type="button">${icon('refresh')}Reset sample data</button>
+    </div>
+    <section class="ct-card" aria-labelledby="nb-m-title">
+      <div class="ct-card__head"><h2 id="nb-m-title" class="ct-section-title">${icon('chart')}Measures</h2><p>All patients, live</p></div>
+      <div class="ct-metrics" id="nb-metrics"></div>
+    </section>
+    <div class="ct-grid">
+      <section class="ct-card ct-col-7" aria-labelledby="nb-f-title">
+        <div class="ct-card__head"><h2 id="nb-f-title" class="ct-section-title">${icon('flag')}Flags</h2>
+          <label class="ct-check"><input type="checkbox" id="nb-closed" ${showClosed ? 'checked' : ''}><span>Show closed</span></label></div>
+        <p class="small muted">Urgent first, then stopped early, not reachable, missed.</p>
+        <ul class="ct-flag-list" id="nb-flags"></ul>
+      </section>
+      <div class="ct-col-5 ct-stack--lg">
+        <section class="ct-card" aria-labelledby="nb-v-title">
+          <div class="ct-card__head"><h2 id="nb-v-title" class="ct-section-title">${icon('shield')}Waiting for verification</h2></div>
+          <div id="nb-verify"></div>
+        </section>
+        <section class="ct-card" aria-labelledby="nb-h-title">
+          <div class="ct-card__head"><h2 id="nb-h-title" class="ct-section-title">${icon('ear')}Misheard replies</h2><p>Add common ones as keywords</p></div>
+          <ul class="ct-list" id="nb-misheard"></ul>
+        </section>
+      </div>
+    </div>
+    <section class="ct-card" aria-labelledby="nb-p-title">
+      <div class="ct-card__head"><h2 id="nb-p-title" class="ct-section-title">${icon('user')}Patients</h2></div>
+      <div class="ct-table-wrap"><table class="ct-table">
+        <thead><tr><th scope="col">Patient</th><th scope="col">Language</th><th scope="col">Course</th><th scope="col">Next call</th><th scope="col">Open flags</th><th scope="col">Family view</th></tr></thead>
+        <tbody id="nb-patients"></tbody></table></div>
+    </section>
+  </div>`;
+
+  el.querySelector('#nb-closed').addEventListener('change', (e) => { showClosed = e.target.checked; store('ct.nurse.closed', showClosed ? '1' : '0'); refresh(); });
+  el.querySelector('#nb-reset').addEventListener('click', async (e) => {
+    if (!window.confirm('Reset all data to the sample patients? This deletes every change.')) return;
+    await busy(e.currentTarget, () => post('/api/reset'));
+    toast('Sample data restored');
+    window.dispatchEvent(new Event('ct:refresh'));
+  });
+  el.addEventListener('click', onClick);
+  el.addEventListener('change', onChange);
+  refresh();
+}
+
+export function unmount() { el = null; }
+
+async function onClick(e) {
+  const b = e.target.closest('button[data-act]');
+  if (!b) return;
+  const { act, id } = b.dataset;
+  try {
+    if (act === 'close') {
+      await busy(b, () => post(`/api/flags/${id}/close`, { note: 'Called back' }));
+      toast('Flag closed: called back');
+    } else if (act === 'verify') {
+      await busy(b, () => post(`/api/verify/${id}`, { nurse: 'Nurse on duty' }));
+      toast('Verified. Dose calls are scheduled.');
+    } else if (act === 'suggest') {
+      const m = await busy(b, () => post(`/api/misheard/${id}/suggest`));
+      toast(`Suggested: ${m.suggestion}. Check before adding a keyword.`);
+    }
+    refresh();
+  } catch (err) {
+    toast(err.status === 503 ? 'key not set: LLM_API_KEY' : err.message, 'error');
+  }
+}
+
+async function onChange(e) {
+  const t = e.target.closest('input[data-share]');
+  if (!t) return;
+  await api(`/api/patients/${t.dataset.share}`, { method: 'PATCH', body: { shareWithFamily: t.checked } });
+  toast(t.checked ? 'Family view turned on' : 'Family view turned off');
+}
+
+export async function refresh() {
+  if (!el || !el.querySelector('#nb-flags')) return;
+  const [m, flags, patients, misheard] = await Promise.all([
+    api('/api/measures'), api(`/api/flags${showClosed ? '' : '?status=open'}`), api('/api/patients'), api('/api/misheard'),
+  ]);
+  if (!el) return;
+  renderMetrics(m);
+  el.querySelector('#nb-flags').innerHTML = flags.length ? flags.map(flagItem).join('') : `<li>${empty('No open flags. Everyone is on track.')}</li>`;
+
+  const waiting = patients.filter((p) => !p.verified);
+  el.querySelector('#nb-verify').innerHTML = waiting.length ? `<ul class="ct-list">${waiting.map(verifyItem).join('')}</ul>` : empty('Nobody is waiting.', 'shield');
+
+  el.querySelector('#nb-misheard').innerHTML = misheard.length ? misheard.slice(0, 8).map((x) => `<li>
+      <span><span class="ct-quote">${esc(x.text)}</span><br><span class="small muted">${esc(x.patientName || '')}, ${esc(x.lang)}, ${x.confidence !== null && x.confidence !== undefined ? `confidence ${Number(x.confidence).toFixed(2)}, ` : ''}${esc(x.reason || '')}, ${when(x.at)}</span>
+      ${x.suggestion ? `<br><span class="small">Suggested intent: <strong>${esc(x.suggestion)}</strong></span>` : ''}</span>
+      <button class="ct-btn ct-btn--ghost ct-btn--sm" type="button" data-act="suggest" data-id="${esc(x.id)}" ${cfg.keys.llm ? '' : 'title="key not set"'}>Suggest intent${cfg.keys.llm ? '' : ' (key not set)'}</button></li>`).join('')
+    : `<li>${empty('No misheard replies.', 'ear')}</li>`;
+
+  el.querySelector('#nb-patients').innerHTML = patients.filter((p) => p.verified).map((p) => {
+    const l = cfg.langs.find((x) => x.code === p.lang);
+    const rx = p.prescriptions[0];
+    return `<tr>
+      <td data-label="Patient"><strong>${esc(p.name)}</strong>${p.age ? `, ${esc(p.age)}` : ''}<br><span class="small muted">${p.phoneType === 'keypad' ? 'Keypad phone' : 'Smartphone'}</span></td>
+      <td data-label="Language">${esc(l ? l.name : p.lang)} ${langTag(l)}</td>
+      <td data-label="Course">${rx ? progress(rx.day, rx.days, `Day ${rx.day} of ${rx.days}`, `${rx.taken} doses confirmed`) : 'None'}</td>
+      <td data-label="Next call" class="tabular">${p.callsStopped ? 'Calls stopped' : p.nextDue ? esc(hm(p.nextDue)) : 'Course done'}</td>
+      <td data-label="Open flags" class="tabular">${p.openFlags}</td>
+      <td data-label="Family view"><label class="ct-check"><input type="checkbox" data-share="${esc(p.id)}" ${p.shareWithFamily ? 'checked' : ''}><span>Shared</span></label></td></tr>`;
+  }).join('');
+}
+
+function renderMetrics(m) {
+  const tile = (value, label, target = '', state = '') => `<div class="ct-metric ${state}"><span class="ct-metric__value">${esc(value)}</span><span class="ct-metric__label">${esc(label)}</span>${target ? `<span class="ct-metric__target">${target}</span>` : ''}</div>`;
+  el.querySelector('#nb-metrics').innerHTML = [
+    tile(m.logsWithoutYes, 'Doses logged without a yes', `${icon(m.logsWithoutYes ? 'alert' : 'check')}Must be 0`, m.logsWithoutYes ? 'ct-metric--bad' : 'ct-metric--ok'),
+    tile(`${m.takenPct}%`, `Doses confirmed (${m.taken} of ${m.dosesResolved})`),
+    tile(m.missed, 'Not confirmed'),
+    tile(m.openFlags, 'Open flags', m.flagsByType.urgent ? `${icon('alert')}${m.flagsByType.urgent} urgent` : '', m.flagsByType.urgent ? 'ct-metric--bad' : ''),
+    tile(m.answerPct === null ? 'None' : `${m.answerPct}%`, `Calls answered (${m.answered} of ${m.calls})`),
+    tile(m.misheard, 'Misheard replies'),
+    tile(m.activePatients, 'Patients on calls'),
+    tile(m.awaitingVerify, 'Waiting for verification'),
+  ].join('');
+}
+
+function flagItem(f) {
+  const closed = f.status === 'closed';
+  const words = f.words ? `<blockquote class="ct-quote" lang="und">${esc(f.words)}</blockquote>` : '';
+  const why = f.why ? `<p>Reason given: <span class="ct-quote">${esc(f.why)}</span></p>` : '';
+  return `<li class="ct-flag-item ${f.type === 'urgent' && !closed ? 'ct-flag-item--urgent' : ''} ${closed ? 'ct-flag-item--closed' : ''}">
+    <div class="ct-flag-item__head">${flagStatus(f)}<span class="ct-flag-item__name">${esc(f.patientName || '')}</span><span class="small muted">${when(f.createdAt)}</span></div>
+    <div class="ct-flag-item__body"><p>${esc(f.reason)}</p>${words}${why}
+      ${closed ? `<p class="small muted">${esc(f.note || 'Closed')} by ${esc(f.closedBy || 'nurse')}, ${when(f.closedAt)}</p>` : ''}</div>
+    <div class="ct-flag-item__action">${closed ? '' : `<button class="ct-btn ct-btn--secondary" type="button" data-act="close" data-id="${esc(f.id)}">${icon('phone')}Called back</button>`}</div>
+  </li>`;
+}
+
+function verifyItem(p) {
+  const l = cfg.langs.find((x) => x.code === p.lang);
+  const rx = p.prescriptions[0];
+  const consentOk = p.consent && p.consent.calls && p.consent.stopInfo;
+  return `<li><div class="ct-stack">
+      <div><strong>${esc(p.name)}</strong>${p.age ? `, ${esc(p.age)}` : ''}, ${esc(l ? l.name : p.lang)} ${langTag(l)}</div>
+      <div class="small">${rx ? `${esc(rx.medicine)} ${esc(rx.dose)}, ${esc(rx.slots.join(', '))}, ${rx.days} days` : 'No prescription'}</div>
+      <div class="small muted">${consentOk ? `${icon('shield')} Consent recorded by ${esc(p.consent.recordedBy)}, ${when(p.consent.at)}` : 'Consent missing'}</div>
+    </div>
+    <button class="ct-btn ct-btn--primary" type="button" data-act="verify" data-id="${esc(p.id)}" ${consentOk && rx ? '' : 'disabled'}>Verify</button></li>`;
+}
