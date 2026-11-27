@@ -1,0 +1,62 @@
+/* Base: reset, type and layout. Values come only from tokens.css. */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  font-weight: var(--weight-regular);
+}
+h1, h2, h3, h4 { margin: 0; line-height: var(--leading-tight); font-weight: var(--weight-bold); }
+h1 { font-size: var(--text-2xl); }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-lg); }
+p { margin: 0; }
+p + p { margin-top: var(--space-3); }
+a { color: var(--color-primary); text-underline-offset: 0.2em; }
+a:hover { color: var(--color-primary-hover); }
+img, svg { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+ul, ol { margin: 0; padding-left: var(--space-5); }
+:focus { outline: none; }
+:focus-visible { box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+::selection { background: var(--color-primary-soft); }
+
+.tabular, time { font-variant-numeric: tabular-nums; }
+.muted { color: var(--color-ink-muted); }
+.small { font-size: var(--text-sm); }
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.skip-link {
+  position: absolute; left: var(--space-2); top: calc(-1 * var(--space-8));
+  background: var(--color-surface); padding: var(--space-2) var(--space-4); z-index: 20;
+}
+.skip-link:focus { top: var(--space-2); }
+
+/* Layout */
+.ct-page { max-width: var(--content-max); margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-7); }
+.ct-stack > * + * { margin-top: var(--space-4); }
+.ct-stack--lg > * + * { margin-top: var(--space-5); }
+.ct-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.ct-row--between { justify-content: space-between; }
+.ct-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-5); }
+.ct-col-12 { grid-column: span 12; }
+.ct-col-8 { grid-column: span 8; }
+.ct-col-7 { grid-column: span 7; }
+.ct-col-6 { grid-column: span 6; }
+.ct-col-5 { grid-column: span 5; }
+.ct-col-4 { grid-column: span 4; }
+@media (max-width: 719px) {
+  .ct-grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  .ct-grid > * { grid-column: 1 / -1; }
+  .ct-page { padding: var(--space-4) var(--space-4) var(--space-7); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
