@@ -1,5 +1,5 @@
 // Patient phone: a keypad phone that rings at each dose time and talks in the patient's language.
-import { api, post, esc, icon, hm, toast, busy, config, langTag, intentStatus, store } from '../lib.js';
+import { api, post, esc, icon, hm, toast, busy, config, langTag, intentStatus, store, clockTime } from '../lib.js';
 import * as voice from '../voice.js';
 
 const RING_TIMEOUT_MS = 20000;
@@ -186,7 +186,7 @@ function renderPhone() {
   ph.classList.toggle('ct-phone--ringing', phase === 'ringing');
   ph.classList.toggle('ct-phone--keypad', phase === 'waitingKey');
   el.querySelector('#ph-who').textContent = p ? `${p.name}, ${p.phoneType === 'keypad' ? 'keypad phone' : 'smartphone'}` : 'No patient';
-  el.querySelector('#ph-time').textContent = document.getElementById('clock') ? document.getElementById('clock').textContent.split(',')[0] : '';
+  el.querySelector('#ph-time').textContent = clockTime();
 
   const sub = el.querySelector('#ph-sub');
   if (!call || (call.status === 'ended' && phase === 'idle')) sub.textContent = p && p.nextDue ? `Next dose call at ${hm(p.nextDue)}` : 'Waiting for the next dose';
@@ -306,7 +306,8 @@ async function decline(reason) {
     if (t !== token) return;
     call = c;
     if (c.status === 'ringing') {
-      toast(`${reason}. Ringing again at ${document.getElementById('clock').textContent.split(',')[0]}, ring ${c.rings} of ${cfg.maxRings}`);
+      const again = [...c.transcript].reverse().map((x) => /Ringing again at (\d\d:\d\d)/.exec(x.text || '')).find(Boolean);
+      toast(`${reason}. Ringing again at ${again ? again[1] : clockTime()}, ring ${c.rings} of ${cfg.maxRings}`);
       phase = 'idle';
       setTimeout(() => { if (t === token) onRinging(); }, 1200);
     } else {

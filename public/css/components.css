@@ -542,6 +542,12 @@
 .ct-footer__col a:hover { color: var(--color-primary); text-decoration: underline; }
 .ct-footer__plain { gap: var(--space-2) !important; }
 .ct-footer__plain li { padding: var(--space-1) 0; }
+.ct-signature { display: flex; align-items: center; justify-content: center; gap: var(--space-4); margin: var(--space-6) auto var(--space-4); color: var(--color-ink); }
+.ct-signature .ct-logo { width: clamp(3rem, 9vw, 6.5rem); height: clamp(3rem, 9vw, 6.5rem); }
+.ct-signature .ct-logo__heart { transform-origin: 14px 16px; animation: ct-heartbeat 2.4s ease-in-out infinite; }
+.ct-signature__word { font-size: clamp(2.5rem, 9vw, 6.5rem); font-weight: var(--weight-bold); letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
+@keyframes ct-heartbeat { 0%, 60%, 100% { transform: scale(1); } 10% { transform: scale(1.18); } 20% { transform: scale(0.96); } 30% { transform: scale(1.1); } }
+@media (prefers-reduced-motion: reduce) { .ct-signature .ct-logo__heart { animation: none; } }
 .ct-footer__bottom {
   border-top: 1px solid var(--color-border); padding-top: var(--space-4);
   display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); justify-content: space-between; align-items: center;
@@ -549,32 +555,15 @@
 .ct-footer__bottom nav { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
 .ct-footer__bottom a { display: inline-flex; align-items: center; min-height: var(--tap-min); }
 
-.ct-signature { width: 100%; max-width: 960px; margin: 0 auto; color: var(--color-ink); }
-.ct-signature svg { width: 100%; height: auto; overflow: visible; }
-.ct-signature__voice-bar { fill: var(--color-ink); transform-origin: center 60px; animation: ct-sig-bar 2.2s ease-in-out infinite; }
-.ct-signature__voice-bar--1 { animation-delay: 0s; }
-.ct-signature__voice-bar--2 { animation-delay: 0.25s; }
-.ct-signature__voice-bar--3 { animation-delay: 0.5s; }
-.ct-signature__voice-bar--4 { animation-delay: 0.75s; }
-.ct-signature__voice-bar--5 { animation-delay: 1s; }
 @keyframes ct-sig-bar {
   0%, 100% { transform: scaleY(1); }
   50% { transform: scaleY(0.65); }
 }
-.ct-signature__frame { fill: none; stroke: var(--color-primary); stroke-width: 5; }
-.ct-signature__heart { fill: var(--color-primary); transform-origin: 138px 58px; animation: ct-heart-to-tick-heart 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-.ct-signature__tick { fill: none; stroke: var(--status-taken); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 45; stroke-dashoffset: 45; transform-origin: 138px 58px; animation: ct-sig-tick 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 @keyframes ct-sig-tick {
   0%, 35% { opacity: 0; stroke-dashoffset: 45; transform: scale(0.5); }
   45%, 75% { opacity: 1; stroke-dashoffset: 0; transform: scale(1); }
   85%, 100% { opacity: 0; stroke-dashoffset: 45; transform: scale(0.5); }
 }
-.ct-signature__bar { fill: var(--color-primary); }
-.ct-signature__step { fill: var(--color-ink); }
-.ct-signature__step--accent { fill: var(--color-accent); }
-.ct-signature__word-group { position: relative; }
-.ct-signature__word { fill: var(--color-ink); font-family: var(--font-sans); font-size: calc(var(--text-3xl) * 2.1); font-weight: var(--weight-bold); animation: ct-sig-word-reappear 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-.ct-signature__wipe { fill: var(--color-primary); opacity: 0; animation: ct-sig-wipe 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 @keyframes ct-sig-wipe {
   0%, 32% { transform: translateX(-420px) scaleX(0.1); opacity: 0; }
   45% { transform: translateX(0) scaleX(1); opacity: 0.18; }
@@ -598,14 +587,22 @@
    Elevated Voice-First UI Components & Pill Navigation
    ========================================================================== */
 
-/* Floating pill navbar. Every label stays on one line at every width:
-   one row from 1360px, two rows on laptops and tablets, three rows under 900px. */
+/* Logo: a phone with a heart, and two voice waves */
+.ct-logo { width: 1.75em; height: 1.75em; flex: none; overflow: visible; }
+.ct-logo__phone { fill: none; stroke: var(--color-primary); stroke-width: 2.2; }
+.ct-logo__heart { fill: var(--color-primary); }
+.ct-logo__slot { stroke: var(--color-primary); stroke-width: 2.2; stroke-linecap: round; }
+.ct-logo__wave { fill: none; stroke: var(--color-accent); stroke-width: 2.2; stroke-linecap: round; }
+.ct-brand .ct-logo { width: 1.75em; height: 1.75em; }
+
+/* Floating pill navbar: brand, links (Overview, Features menu, Tour, Mobile app, Devices), Call.
+   Under 900px the links fold into a Menu panel. Every label stays on one line. */
 .ct-pill-header {
   position: sticky;
   top: var(--space-3);
   z-index: 100;
   padding: 0 var(--space-4);
-  margin: var(--space-3) 0 var(--space-5);
+  margin: var(--space-3) 0 var(--space-4);
   display: flex;
   justify-content: center;
   pointer-events: none;
@@ -613,13 +610,12 @@
 .ct-pill-navbar {
   pointer-events: auto;
   position: relative;
-  overflow: hidden;
   width: 100%;
-  max-width: min(1360px, 100%);
-  min-height: 64px;
+  max-width: min(1280px, 100%);
+  min-height: 68px;
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
-  grid-template-areas: "brand toggle roles clock cta";
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "brand links actions";
   align-items: center;
   gap: var(--space-2) var(--space-4);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
@@ -628,8 +624,7 @@
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-pill);
 }
-.ct-pill-navbar > * { white-space: nowrap; }
-
+.ct-pill-navbar * { white-space: nowrap; }
 .ct-pill-brand {
   grid-area: brand;
   display: inline-flex;
@@ -642,82 +637,38 @@
   font-size: var(--text-lg);
   letter-spacing: -0.01em;
 }
-.ct-pill-brand__bars { display: inline-flex; align-items: center; gap: 2px; height: 1.1em; }
-.ct-pill-brand__bars span { width: 3px; background: var(--color-primary); border-radius: var(--radius-pill); }
-.ct-pill-brand__bars span:nth-child(1) { height: 60%; }
-.ct-pill-brand__bars span:nth-child(2) { height: 35%; }
-.ct-pill-brand__bars span:nth-child(3) { height: 90%; }
-.ct-pill-brand__bars span:nth-child(4) { height: 45%; }
-.ct-pill-brand__bars span:nth-child(5) { height: 75%; }
-
-.ct-pill-toggle {
-  grid-area: toggle;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  background: var(--color-surface-sunken);
-  border-radius: var(--radius-pill);
-}
-.ct-pill-toggle__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
-  color: var(--color-ink-muted);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  text-decoration: none;
-  white-space: nowrap;
+.ct-nav-links { grid-area: links; display: flex; align-items: center; justify-content: center; gap: var(--space-1); }
+.ct-nav-link {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  min-height: 44px; padding: 0 var(--space-4);
+  border: 0; border-radius: var(--radius-pill); background: transparent; cursor: pointer;
+  color: var(--color-ink-muted); font-size: var(--text-md); font-weight: var(--weight-medium); text-decoration: none;
   transition: color 150ms ease-out, background 150ms ease-out;
 }
-.ct-pill-toggle__btn:hover { color: var(--color-ink); }
-.ct-pill-toggle__btn[aria-current="page"] { background: var(--color-surface); color: var(--color-ink); font-weight: var(--weight-bold); box-shadow: var(--shadow-1); }
-
-.ct-pill-roles {
-  grid-area: roles;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
+.ct-nav-link:hover { color: var(--color-ink); background: var(--color-surface-sunken); }
+.ct-nav-link[aria-current="page"], .ct-nav-dd__btn.is-current { color: var(--color-ink); background: var(--color-surface-sunken); font-weight: var(--weight-bold); }
+.ct-nav-dd { position: relative; }
+.ct-nav-dd__chev { width: 1em; height: 1em; transition: transform 150ms ease-out; }
+.ct-nav-dd__btn[aria-expanded="true"] .ct-nav-dd__chev { transform: rotate(180deg); }
+.ct-nav-dd__panel {
+  position: absolute; top: calc(100% + var(--space-4)); left: 50%; transform: translateX(-50%);
+  width: min(620px, 92vw); padding: var(--space-4);
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-2);
+  animation: ct-dd-in 150ms ease-out;
 }
-.ct-pill-roles::-webkit-scrollbar { display: none; }
-.ct-pill-roles__link {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-pill);
-  color: var(--color-ink-muted);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: color 150ms ease-out, background 150ms ease-out;
-}
-.ct-pill-roles__link:hover { color: var(--color-ink); background: var(--color-surface-sunken); }
-.ct-pill-roles__link[aria-current="page"] { color: var(--color-primary); background: var(--color-primary-soft); font-weight: var(--weight-bold); }
-
-.ct-pill-clock {
-  grid-area: clock;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  color: var(--color-ink);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  font-variant-numeric: tabular-nums;
-}
-.ct-pill-clock .ct-icon { color: var(--color-ink-muted); }
-
+.ct-nav-dd__panel[hidden] { display: none; }
+@keyframes ct-dd-in { from { opacity: 0; transform: translate(-50%, calc(-1 * var(--space-2))); } }
+.ct-nav-dd__title { font-size: var(--text-sm); color: var(--color-ink-muted); padding: 0 var(--space-3) var(--space-2); }
+.ct-nav-dd__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-1); }
+.ct-nav-dd__item { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3); border-radius: var(--radius-md); color: var(--color-ink); text-decoration: none; white-space: normal; }
+.ct-nav-dd__item * { white-space: normal; }
+.ct-nav-dd__item:hover, .ct-nav-dd__item[aria-current="page"] { background: var(--color-surface-sunken); }
+.ct-nav-dd__item > .ct-icon { color: var(--color-primary); margin-top: 2px; width: 1.4em; height: 1.4em; }
+.ct-nav-dd__item strong { display: block; font-size: var(--text-md); }
+.ct-nav-dd__item span span { display: block; font-size: var(--text-sm); color: var(--color-ink-muted); line-height: var(--leading-tight); margin-top: 2px; }
+.ct-nav-dd__more { display: inline-flex; align-items: center; gap: var(--space-1); margin: var(--space-2) var(--space-3) 0; font-weight: var(--weight-medium); text-decoration: none; }
+.ct-pill-actions { grid-area: actions; display: flex; align-items: center; gap: var(--space-2); }
 .ct-btn--pill-cta {
-  grid-area: cta;
   min-height: var(--tap-min);
   padding: 0 var(--space-5);
   border-radius: var(--radius-pill);
@@ -726,62 +677,52 @@
   color: var(--color-ink);
   font-size: var(--text-md);
   font-weight: var(--weight-bold);
-  white-space: nowrap;
 }
 .ct-btn--pill-cta:hover { background: var(--color-cta-lavender-hover); color: var(--color-ink); }
+.ct-nav-menu { display: none; }
 
-/* Scroll progress along the bottom edge, driven by the page scroll itself (no script). */
-.ct-scroll-progress {
-  position: absolute;
-  left: var(--space-6);
-  right: var(--space-6);
-  bottom: 0;
-  height: 2px;
-  background: var(--color-primary);
-  transform-origin: left center;
-  transform: scaleX(0);
-  pointer-events: none;
-}
-@supports (animation-timeline: scroll()) {
-  .ct-scroll-progress { animation: ct-scroll-progress linear both; animation-timeline: scroll(root block); }
-}
-@keyframes ct-scroll-progress { to { transform: scaleX(1); } }
-
-/* Tablets: brand, product tabs, clock and Call on top, role screens below. */
-@media (max-width: 1359px) {
-  .ct-pill-navbar {
-    grid-template-columns: auto auto minmax(0, 1fr) auto auto;
-    grid-template-areas:
-      "brand toggle . clock cta"
-      "roles roles roles roles roles";
-    border-radius: var(--radius-lg);
-    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-  }
-  .ct-pill-roles { border-top: 1px solid var(--color-border); padding-top: var(--space-2); }
+@media (max-width: 1099px) {
+  .ct-nav-link { padding: 0 var(--space-3); font-size: var(--text-sm); }
+  .ct-pill-navbar { gap: var(--space-2); padding-left: var(--space-4); }
 }
 
-/* Phones and small tablets: brand, clock and Call; product tabs; role screens as a swipe row. */
+/* Phones and small tablets: brand, Call and Menu; the links open as a panel. */
 @media (max-width: 899px) {
-  .ct-pill-header { position: static; padding: 0 var(--space-2); margin-top: var(--space-2); }
+  .ct-pill-header { top: var(--space-2); padding: 0 var(--space-2); margin-top: var(--space-2); }
   .ct-pill-navbar {
     grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      "brand clock cta"
-      "toggle toggle toggle"
-      "roles roles roles";
-    gap: var(--space-2);
+    grid-template-areas: "brand . actions" "links links links";
+    border-radius: var(--radius-lg);
+    min-height: 60px;
     padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
   }
-  .ct-pill-brand { font-size: var(--text-md); min-height: 40px; }
-  .ct-pill-clock { justify-self: end; font-size: var(--text-xs); }
-  .ct-pill-clock .ct-icon { display: none; }
-  .ct-btn--pill-cta { min-height: 40px; padding: 0 var(--space-4); font-size: var(--text-sm); }
-  .ct-pill-toggle { width: 100%; }
-  .ct-pill-toggle__btn { flex: 1 1 auto; padding: 0 var(--space-2); font-size: var(--text-xs); }
-  .ct-pill-roles { justify-content: flex-start; }
-  .ct-pill-roles__link { font-size: var(--text-xs); padding: 0 var(--space-3); }
-  .ct-scroll-progress { left: var(--space-4); right: var(--space-4); }
+  .ct-pill-brand { font-size: var(--text-md); }
+  .ct-btn--pill-cta { min-height: 44px; padding: 0 var(--space-4); font-size: var(--text-sm); }
+  .ct-nav-menu {
+    display: inline-flex; align-items: center; gap: var(--space-1);
+    min-height: 44px; padding: 0 var(--space-3);
+    border: 1px solid var(--color-border-strong); border-radius: var(--radius-pill); background: var(--color-surface);
+    color: var(--color-ink); font-size: var(--text-sm); font-weight: var(--weight-medium); cursor: pointer;
+  }
+  .ct-nav-links { display: none; }
+  .ct-pill-navbar.is-open .ct-nav-links {
+    display: flex; flex-direction: column; align-items: stretch; gap: 2px;
+    padding-top: var(--space-2); border-top: 1px solid var(--color-border);
+    max-height: calc(100dvh - 120px); overflow-y: auto;
+  }
+  .ct-nav-link { justify-content: space-between; font-size: var(--text-md); min-height: var(--tap-min); }
+  .ct-nav-dd__panel { position: static; transform: none; width: 100%; padding: 0 0 var(--space-2); border: 0; box-shadow: none; animation: none; }
+  .ct-nav-dd__grid { grid-template-columns: minmax(0, 1fr); }
+  .ct-nav-dd__title { display: none; }
 }
+@media (max-width: 380px) {
+  .ct-btn--pill-cta span { display: none; }
+  .ct-btn--pill-cta { padding: 0 var(--space-3); }
+}
+
+/* Simulated clock on role screens */
+.ct-simclock { display: inline-flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-4); padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill); background: var(--color-surface-sunken); font-size: var(--text-sm); color: var(--color-ink-muted); font-variant-numeric: tabular-nums; }
+.ct-simclock strong { color: var(--color-ink); font-weight: var(--weight-medium); }
 
 /* Editorial Hero Typography */
 .ct-voice-badge {
@@ -2066,3 +2007,4 @@ html.lenis, html.lenis body { height: auto; }
 .ct-metric--hint { background: var(--color-surface); border: 1px dashed var(--color-border-strong); justify-content: center; }
 .ct-form-grid--3 { grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr)); }
 .ct-dr-patient { max-width: 320px; }
+@media (max-width: 899px) { .ct-nav-dd__btn { width: 100%; } }

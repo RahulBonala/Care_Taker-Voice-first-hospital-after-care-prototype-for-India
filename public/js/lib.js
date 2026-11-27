@@ -114,3 +114,9 @@ export function store(key, value) {
   } catch { return null; }
   return value;
 }
+
+// Simulated clock, set by app.js on every poll.
+let clock = { time: '--:--', date: '' };
+export function setClock(c) { clock = c; }
+export const clockTime = () => clock.time;
+export const clockLabel = () => (clock.date ? `${clock.time}, ${new Date(clock.date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })}` : clock.time);

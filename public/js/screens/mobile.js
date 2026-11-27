@@ -1,7 +1,7 @@
 // Mobile application prototype (#mobile) for both Patients/Families and Doctors/Nurses.
 // Covers the complete mobile flow: 1. Onboarding tour -> 2. Login -> 3. First-time setup -> 4. Live 4-tab app,
 // wired directly to the live Express REST API and shared data/db.json store.
-import { api, post, esc, icon, hm, when, dayName, toast, busy, config, status, slotStatus, intentStatus, flagStatus, progress, empty, SLOT_LABEL, store } from '../lib.js';
+import { api, post, esc, icon, hm, when, dayName, toast, busy, config, status, slotStatus, intentStatus, flagStatus, progress, empty, SLOT_LABEL, store, clockTime } from '../lib.js';
 import * as voice from '../voice.js';
 
 let el = null;
@@ -250,9 +250,8 @@ async function loadData(t = token) {
 
 export async function refresh() {
   if (!el) return;
-  const clk = document.getElementById('clock');
   const mbClk = el.querySelector('#mb-clock');
-  if (clk && mbClk) mbClk.textContent = clk.textContent.split(',')[0] || '--:--';
+  if (mbClk) mbClk.textContent = clockTime();
 
   // Do not overwrite form inputs while the user is typing or on static onboarding steps.
   if (stage !== 'app' || speakingCall) return;
@@ -290,8 +289,7 @@ function renderAll() {
 
 function renderDevice() {
   if (!el) return;
-  const clk = document.getElementById('clock');
-  el.querySelector('#mb-clock').textContent = (clk && clk.textContent.split(',')[0]) || '08:55';
+  el.querySelector('#mb-clock').textContent = clockTime();
 
   const p = patients.find((x) => x.id === pid);
   const pLang = cfg && p ? cfg.langs.find((l) => l.code === p.lang) : null;
