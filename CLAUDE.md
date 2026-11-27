@@ -7,6 +7,7 @@ Voice-first hospital after-care prototype for India (Scaler x Wispr Flow hackath
 - `npm test`                   intent and API tests (must pass before every commit)
 - `npm run dev`                local run without Docker
 - `npm run check`              lint, tests, line count, banned-character check
+- `npm run smoke`              starts the app and checks pages, assets, modules, keys and one dose call (pass or fail)
 
 ## Hard rules (a submission fails if any break)
 1. `docker compose up` on a fresh clone shows the main screen on port 3000. No default server page.
@@ -26,6 +27,12 @@ Voice-first hospital after-care prototype for India (Scaler x Wispr Flow hackath
 - `data/db.json`    created and seeded on first start, git-ignored
 - `docs/`           DESIGN, DECISIONS, DEMO_SCRIPT, PITCH_DECK, SUBMISSION_CHECKLIST, legal sources
 - `tests/`          node:test files
+
+## How to work (always)
+1. **Plan first.** Sessions start in plan mode (`.claude/settings.json`). Write the plan, get it approved, then edit. A wrong turn is cheaper to catch in a plan than in code.
+2. **Subagents for independent jobs.** Split work that does not depend on each other (for example a language file and a UI fix) across subagents so they run side by side.
+3. **Use the project agents** in `.claude/agents/`: `ui-verifier` (browser check at 360, 768, 1024, 1280), `intent-tester` (reply understanding, test first), `language-builder` (add or fix a language), `submission-checker` (ready or not ready). Claude picks them automatically from their descriptions.
+4. **Finish on pass or fail.** A task is done only when `npm test`, `npm run check` and `npm run smoke` all pass. If one fails, fix it and run again; do not hand failures back to the user.
 
 ## Conventions
 - Commit messages: `feat:`, `fix:`, `style:`, `docs:`, `test:`, `chore:`. Small commits, push to main.

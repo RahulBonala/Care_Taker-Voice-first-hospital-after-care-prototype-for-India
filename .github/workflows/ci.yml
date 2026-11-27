@@ -25,6 +25,9 @@ jobs:
       - name: Run tests and repo checks
         run: npm run check
 
+      - name: Smoke test the running app
+        run: npm run smoke
+
       - name: Build Docker image
         run: docker compose build
 

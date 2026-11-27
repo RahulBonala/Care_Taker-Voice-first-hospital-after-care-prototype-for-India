@@ -1,5 +1,9 @@
 {
   "permissions": {
-    "deny": ["Read(./.env)", "Read(./data/**)"]
+    "deny": [
+      "Read(./.env)",
+      "Read(./data/**)"
+    ],
+    "defaultMode": "plan"
   }
 }
