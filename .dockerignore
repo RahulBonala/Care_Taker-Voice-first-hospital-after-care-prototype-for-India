@@ -3,3 +3,4 @@ data
 .env
 .git
 public/fonts
+public/vendor

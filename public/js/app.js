@@ -1,5 +1,6 @@
 // Router, polling and the app bar. Each screen exports mount(el) and optional refresh() / unmount().
-import { api, esc } from './lib.js';
+import { api } from './lib.js';
+import { initMotion, resetScroll } from './motion.js';
 import * as home from './screens/home.js';
 import * as tour from './screens/tour.js';
 import * as mobile from './screens/mobile.js';
@@ -35,7 +36,7 @@ function parseHash() {
 
 function route() {
   const { key, params } = parseHash();
-  for (const a of document.querySelectorAll('.ct-primary-nav__link, .ct-segmented__item')) {
+  for (const a of document.querySelectorAll('.ct-pill-toggle__btn, .ct-pill-roles__link')) {
     if (a.getAttribute('href') === `#${key}`) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
   }
@@ -46,7 +47,7 @@ function route() {
   const view = document.getElementById('view');
   view.className = key === 'home' ? '' : 'ct-page';
   view.innerHTML = '';
-  window.scrollTo(0, 0);
+  resetScroll();
   current.mount(view, params);
   tick();
 }
@@ -63,29 +64,9 @@ async function tick() {
   timer = setTimeout(tick, POLL_MS);
 }
 
-export function setLangIndicator(text) {
-  const el = document.getElementById('lang-indicator');
-  if (el) el.innerHTML = esc(text || 'English UI');
-}
 export function activeRoute() { return currentKey; }
 
-function onScroll() {
-  const bar = document.querySelector('.ct-pill-navbar');
-  const y = window.scrollY || document.documentElement.scrollTop || 0;
-  if (bar) {
-    if (y > 20) bar.classList.add('ct-pill-navbar--scrolled');
-    else bar.classList.remove('ct-pill-navbar--scrolled');
-  }
-  const prog = document.getElementById('scroll-progress-bar');
-  if (prog) {
-    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const pct = Math.min(100, Math.max(0, (y / max) * 100));
-    prog.style.transform = `scaleX(${(pct / 100).toFixed(4)})`;
-  }
-}
-
-window.addEventListener('scroll', onScroll, { passive: true });
-window.addEventListener('ct:lang', (e) => setLangIndicator(e.detail));
+initMotion();
 window.addEventListener('hashchange', route);
 window.addEventListener('ct:refresh', tick);
 route();

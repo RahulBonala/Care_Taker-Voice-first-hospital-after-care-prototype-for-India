@@ -12,7 +12,7 @@ Choices made during the build where the specification left room for interpretati
 
 ## 3. Self-hosted Noto Sans copied at install and start
 - **Context:** Indic scripts (Telugu, Devanagari, Tamil) render inconsistently across minimal OSes, and offline runs cannot depend on Google Fonts CDNs.
-- **Decision:** Install `@fontsource/noto-sans`, `@fontsource/noto-sans-telugu`, `@fontsource/noto-sans-devanagari`, and `@fontsource/noto-sans-tamil` (weights 400, 500, 700) and copy the `.woff2` files into `public/fonts` via `scripts/copy-fonts.js` on `postinstall`, `npm start`, and `docker build`.
+- **Decision:** Install `@fontsource/noto-sans`, `@fontsource/noto-sans-telugu`, `@fontsource/noto-sans-devanagari`, and `@fontsource/noto-sans-tamil` (weights 400, 500, 700) and copy the `.woff2` files into `public/fonts` via `scripts/copy-assets.js` on `postinstall`, `npm start`, and `docker build`.
 
 ## 4. Audio fallback discovery without 404 console noise
 - **Context:** Browsers on macOS/Linux often lack built-in `te-IN` or `ta-IN` `speechSynthesis` voices, and pre-recorded human `.mp3` clips are optional until a native speaker records them.

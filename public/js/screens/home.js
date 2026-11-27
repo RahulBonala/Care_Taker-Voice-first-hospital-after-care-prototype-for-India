@@ -5,6 +5,7 @@
 // 4. Scrollytelling 3-Stage Lifecycle Rail & Smooth Scroll Animations
 // 5. Deterministic Rules vs Optional Adapters -> Interactive Tour -> Mobile Prototypes -> Comparison -> FAQ.
 
+import { markup as ribbonMarkup, mountRibbon, stopRibbon } from '../voice-ribbon.js';
 import { api, esc, icon } from '../lib.js';
 import { renderTourWidget } from './tour.js';
 
@@ -216,6 +217,16 @@ const RAIL = [
   },
 ];
 
+const PROMISES = [
+  ['A nurse verifies first', 'No call goes out until a nurse checks the prescription and the recorded consent.'],
+  ['The patient\'s own language', 'Telugu, Hindi, Tamil or English, on a keypad phone or a smartphone.'],
+  ['Read back before logging', 'Care Taker repeats the dose and the time. Only a spoken yes or a pressed 1 logs it.'],
+  ['Unclear is never taken', 'Low confidence or eight seconds of silence asks again, then offers the keypad.'],
+  ['Health questions go to a person', 'Feeling unwell or asking for someone raises an urgent flag for the nurse.'],
+  ['Stop at any time', 'Saying "stop calls" or pressing 9 ends the calls and tells the care team.'],
+  ['One record for everyone', 'Nurse, doctor and family, if shared, see the same confirmed record in the patient\'s words.'],
+];
+
 const COMPARISON = [
   [
     'Phone needed by the patient',
@@ -298,32 +309,32 @@ export async function mount(root) {
       <div class="ct-hero ct-reveal ct-revealed">
         <div class="ct-voice-badge">
           <span class="ct-voice-badge__pulse" aria-hidden="true"></span>
-          <span>VOICE-FIRST HOSPITAL AFTER-CARE FOR INDIA</span>
+          <span>Voice-first after-care for India</span>
         </div>
 
         <h1 id="home-title" class="ct-hero__title">
-          <span class="ct-hero__serif-line">Don't type, <em class="ct-hero__serif-italic">just speak.</em></span>
-          <span class="ct-hero__serif-line ct-hero__serif-line--sub">Don't miss, <em class="ct-hero__serif-italic">just answer.</em></span>
+          <span class="ct-hero__sentence">Don't type, <em class="ct-hero__serif-italic">just speak.</em></span>
+          <span class="ct-hero__sentence">Don't miss, <em class="ct-hero__serif-italic">just answer.</em></span>
         </h1>
 
-        <p class="ct-hero__subtitle-one-liner">Every metric is tracked, analyzed, and defined. Everything covered.</p>
+        <p class="ct-hero__subtitle-one-liner"><span>Every metric is tracked, analyzed, and defined.</span> <span>Everything covered.</span></p>
 
         <p class="ct-hero__lead">
-          The voice-first after-care system that captures patient phone replies in their mother tongue, confirms a mandatory read-back, and converts every call into visual clinical reports.
+          Patients answer dose calls in their own language. Care Taker reads every dose back, logs it only after a yes, and turns each call into a report for the nurse, doctor and family.
         </p>
 
         <div class="ct-hero__ctas">
           <a class="ct-btn ct-btn--hero-cta" href="#phone">
             <svg class="ct-icon" aria-hidden="true"><use href="#i-phone"/></svg>
-            <span>Call Simulator</span>
+            <span>Try a call</span>
             <span class="ct-btn__pill-badge">Live</span>
           </a>
           <a class="ct-btn ct-btn--secondary" href="#tour-band">
             <svg class="ct-icon" aria-hidden="true"><use href="#i-compass"/></svg>
-            <span>Interactive Tour</span>
+            <span>Take the tour</span>
           </a>
           <a class="ct-btn ct-btn--ghost" href="#mobile">
-            <span>Mobile App</span>
+            <span>Mobile app</span>
             <svg class="ct-icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
           </a>
         </div>
@@ -333,64 +344,7 @@ export async function mount(root) {
         </div>
       </div>
 
-      <!-- 2. Curved Voice-to-Report Ribbon: Spoken Words (Left Loop) -> Processing Waveform Pill (Center) -> Clean Clinical Report Line (Right) -->
-      <div class="ct-voice-ribbon-wrap" aria-label="Voice to clinical report transformation stream">
-        <svg class="ct-voice-ribbon-svg" viewBox="0 0 1440 270" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <!-- Left loop path for incoming spoken patient words -->
-            <path id="ct-ribbon-left-path" d="M -60,185 C 95,185 265,165 280,88 C 292,22 175,14 148,82 C 122,148 235,222 480,224 L 650,224" />
-            <!-- Curved text path above the center waveform pill -->
-            <path id="ct-ribbon-arc-path" d="M 650,152 C 690,132 750,132 790,152" />
-            <!-- Right solid dark ribbon sweeping up to the right -->
-            <path id="ct-ribbon-right-path" d="M 780,224 C 980,220 1195,182 1500,118" />
-          </defs>
-
-          <!-- Faint grey guide curve on left -->
-          <use href="#ct-ribbon-left-path" class="ct-voice-ribbon-left-guide" />
-
-          <!-- Raw spoken patient words flowing into the center pill -->
-          <text class="ct-voice-ribbon-raw-text">
-            <textPath href="#ct-ribbon-left-path" id="ribbon-raw-textpath" startOffset="0%">
-              ${esc(sc.rawStream)}
-              <animate attributeName="startOffset" from="-35%" to="15%" dur="13s" repeatCount="indefinite" />
-            </textPath>
-          </text>
-
-          <!-- Right solid dark band -->
-          <use href="#ct-ribbon-right-path" class="ct-voice-ribbon-band" />
-
-          <!-- Clean structured clinical report flowing out on the right -->
-          <text class="ct-voice-ribbon-clean-text" dy="5">
-            <textPath href="#ct-ribbon-right-path" id="ribbon-clean-textpath" startOffset="4%">
-              ${esc(sc.cleanStream)}
-              <animate attributeName="startOffset" from="1%" to="18%" dur="11s" repeatCount="indefinite" />
-            </textPath>
-          </text>
-        </svg>
-
-        <!-- Center Processing Pill & Live Waveform Bars -->
-        <div class="ct-voice-ribbon-center">
-          <span class="ct-voice-ribbon-status" id="ribbon-status-badge">${esc(sc.statusBadge)}</span>
-          <div class="ct-voice-ribbon-pill" title="Voice processing into Care Taker clinical report">
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-            <span class="ct-voice-wf-bar"></span>
-          </div>
-          <span class="ct-voice-ribbon-caption">Voice captured on phone -> Verified report in Care Taker</span>
-        </div>
-      </div>
+      ${ribbonMarkup()}
 
       <!-- 3. Always-Visible Signature Morph & Voice-to-Report Interactive Stage -->
       <div class="ct-page">
@@ -572,6 +526,17 @@ export async function mount(root) {
       </div>
     </section>
 
+    <section class="ct-band ct-band--surface" id="promises-section" aria-labelledby="promises-title">
+      <div class="ct-page">
+        <span class="ct-eyebrow" data-reveal="up"><span class="ct-eyebrow__dot" aria-hidden="true"></span>On every call</span>
+        <h2 id="promises-title" class="ct-section-title-lg" data-reveal="up">Seven rules Care Taker never bends.</h2>
+        <p class="ct-section-lead" data-reveal="up">The same fixed rules run for every patient, in every language, with or without API keys.</p>
+        <ol class="ct-index" data-reveal-group>
+          ${PROMISES.map(([t, d], i) => `<li class="ct-index__row"><span class="ct-index__num">${String(i + 1).padStart(2, '0')}</span><div><h3>${esc(t)}</h3><p>${esc(d)}</p></div></li>`).join('')}
+        </ol>
+      </div>
+    </section>
+
     <!-- 7. Method Split Section -->
     <section class="ct-band ct-band--surface" id="method-section" aria-labelledby="method-title">
       <div class="ct-band__inner">
@@ -708,6 +673,7 @@ export async function mount(root) {
 
   renderTourWidget(el.querySelector('#home-tour-mount'), { initialTrack: 'patients' });
 
+  mountRibbon(el);
   setupAnimationControls();
   renderAnimationStage();
   startAnimationTimer();
@@ -773,16 +739,6 @@ function setupAnimationControls() {
 function updateHeroRibbonForScenario() {
   if (!el) return;
   const sc = SCENARIOS[activeScenario] || SCENARIOS.taken_te;
-  const rawEl = el.querySelector('#ribbon-raw-textpath');
-  if (rawEl) {
-    rawEl.innerHTML = `${esc(sc.rawStream)}<animate attributeName="startOffset" from="-35%" to="15%" dur="13s" repeatCount="indefinite" />`;
-  }
-  const cleanEl = el.querySelector('#ribbon-clean-textpath');
-  if (cleanEl) {
-    cleanEl.innerHTML = `${esc(sc.cleanStream)}<animate attributeName="startOffset" from="1%" to="18%" dur="11s" repeatCount="indefinite" />`;
-  }
-  const statusBadge = el.querySelector('#ribbon-status-badge');
-  if (statusBadge) statusBadge.textContent = sc.statusBadge;
   const phraseEl = el.querySelector('#morph-banner-phrase');
   if (phraseEl) phraseEl.textContent = `"${sc.spokenPhrase}"`;
   const confirmEl = el.querySelector('#morph-banner-confirm');
@@ -968,13 +924,11 @@ function onWindowScroll() {
 
     // Update 3-stage rail progress fill & active card highlight on scroll
     const railSec = el.querySelector('#rail-section');
-    const railFill = el.querySelector('#rail-progress-fill');
-    if (railSec && railFill) {
+    if (railSec) {
       const r = railSec.getBoundingClientRect();
       const total = r.height + vh * 0.4;
       const scrolled = vh * 0.65 - r.top;
       const ratio = Math.min(1, Math.max(0, scrolled / Math.max(1, total)));
-      railFill.style.transform = `scaleX(${ratio.toFixed(3)})`;
 
       const cols = el.querySelectorAll('.ct-rail__col');
       cols.forEach((col, idx) => {
@@ -1044,6 +998,7 @@ export async function refresh() {
 }
 
 export function unmount() {
+  stopRibbon();
   if (animTimer) {
     clearInterval(animTimer);
     animTimer = null;

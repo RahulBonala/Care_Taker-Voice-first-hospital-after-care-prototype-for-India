@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/components.css">
+  <script src="/vendor/lenis.min.js" defer></script>
   <script type="module" src="/js/app.js"></script>
 </head>
 <body>
@@ -54,40 +55,28 @@
 <a class="skip-link" href="#view">Skip to content</a>
 <div class="ct-banner" role="note"><svg class="ct-icon" aria-hidden="true"><use href="#i-info"/></svg>Sample data. Not medical advice.</div>
 <header class="ct-pill-header">
-  <div class="ct-pill-navbar" role="navigation" aria-label="Main Navigation">
-    <div class="ct-pill-navbar__left">
-      <a class="ct-pill-brand" href="#home">
-        <span class="ct-pill-brand__bars" aria-hidden="true">
-          <span></span><span></span><span></span><span></span><span></span>
-        </span>
-        <span class="ct-pill-brand__text">Care Taker</span>
-      </a>
-      <div class="ct-pill-toggle" role="tablist" aria-label="Primary views">
-        <a class="ct-pill-toggle__btn ct-primary-nav__link" href="#home" role="tab">Overview</a>
-        <a class="ct-pill-toggle__btn ct-primary-nav__link" href="#tour" role="tab">Tour</a>
-        <a class="ct-pill-toggle__btn ct-primary-nav__link" href="#mobile" role="tab">Mobile app</a>
-      </div>
+  <nav class="ct-pill-navbar" aria-label="Main">
+    <a class="ct-pill-brand" href="#home" aria-label="Care Taker home">
+      <span class="ct-pill-brand__bars" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></span>
+      <span class="ct-pill-brand__text">Care Taker</span>
+    </a>
+    <div class="ct-pill-toggle" aria-label="Product">
+      <a class="ct-pill-toggle__btn" href="#home">Overview</a>
+      <a class="ct-pill-toggle__btn" href="#tour">Tour</a>
+      <a class="ct-pill-toggle__btn" href="#mobile">Mobile app</a>
+      <a class="ct-pill-toggle__btn" href="#devices">Devices</a>
     </div>
-
-    <nav class="ct-pill-roles" aria-label="Clinical role screens">
-      <a class="ct-pill-roles__link ct-segmented__item" href="#desk">Hospital desk</a>
-      <a class="ct-pill-roles__link ct-segmented__item" href="#nurse">Nurse board</a>
-      <a class="ct-pill-roles__link ct-segmented__item" href="#phone">Patient phone</a>
-      <a class="ct-pill-roles__link ct-segmented__item" href="#family">Family</a>
-      <a class="ct-pill-roles__link ct-segmented__item" href="#doctor">Doctor</a>
-    </nav>
-
-    <div class="ct-pill-navbar__right">
-      <div class="ct-pill-meta">
-        <span class="ct-clock" title="Simulated clock, India time"><svg class="ct-icon" aria-hidden="true"><use href="#i-clock"/></svg><span id="clock">--:--</span></span>
-      </div>
-      <a class="ct-btn ct-btn--pill-cta" href="#phone" title="Open voice call simulator">
-        <svg class="ct-icon" aria-hidden="true"><use href="#i-phone"/></svg>
-        <span>Call</span>
-      </a>
+    <div class="ct-pill-roles" aria-label="Role screens">
+      <a class="ct-pill-roles__link" href="#desk">Hospital desk</a>
+      <a class="ct-pill-roles__link" href="#nurse">Nurse board</a>
+      <a class="ct-pill-roles__link" href="#phone">Patient phone</a>
+      <a class="ct-pill-roles__link" href="#family">Family</a>
+      <a class="ct-pill-roles__link" href="#doctor">Doctor</a>
     </div>
-    <div class="ct-scroll-progress" aria-hidden="true"><div class="ct-scroll-progress__bar" id="scroll-progress-bar"></div></div>
-  </div>
+    <span class="ct-pill-clock" title="Simulated clock, India time"><svg class="ct-icon" aria-hidden="true"><use href="#i-clock"/></svg><span id="clock">--:--</span></span>
+    <a class="ct-btn ct-btn--pill-cta" href="#phone"><svg class="ct-icon" aria-hidden="true"><use href="#i-phone"/></svg><span>Call</span></a>
+    <span class="ct-scroll-progress" aria-hidden="true"></span>
+  </nav>
 </header>
 <main id="view" tabindex="-1"></main>
 <footer class="ct-footer">

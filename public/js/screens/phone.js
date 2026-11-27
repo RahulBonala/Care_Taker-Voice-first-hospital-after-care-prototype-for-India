@@ -117,7 +117,6 @@ export function mount(root) {
 export function unmount() {
   token += 1;
   cleanup();
-  window.dispatchEvent(new CustomEvent('ct:lang', { detail: 'English UI' }));
 }
 
 function cleanup() {
@@ -152,7 +151,6 @@ async function selectPatient(id) {
   store('ct.phone.pid', id);
   const p = patients.find((x) => x.id === id);
   L = cfg.langs.find((l) => l.code === (p && p.lang)) || cfg.langs[0];
-  window.dispatchEvent(new CustomEvent('ct:lang', { detail: `${L.name}, ${L.speechCode}` }));
   call = null; phase = 'idle'; heard = null; interim = ''; lastTranscriptLen = -1;
   const out = await voice.outputMode(L.speechCode, cfg.keys.sarvam);
   voiceLabel = out.label;

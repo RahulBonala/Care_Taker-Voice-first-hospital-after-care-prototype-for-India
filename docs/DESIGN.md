@@ -15,7 +15,7 @@ Calm, trustworthy, warm. Clinical without being cold. It should feel like the af
 | File | Purpose |
 |---|---|
 | `public/css/tokens.css` | Every color, size, space, radius and shadow. The only file with raw values. |
-| `public/css/fonts.css` | Self-hosted Noto Sans faces (Latin, Telugu, Devanagari, Tamil), copied from `@fontsource` by `scripts/copy-fonts.js`. |
+| `public/css/fonts.css` | Self-hosted Noto Sans faces (Latin, Telugu, Devanagari, Tamil), copied from `@fontsource` by `scripts/copy-assets.js`. |
 | `public/css/base.css` | Reset, type scale, focus ring, page layout and the 12-column grid. |
 | `public/css/components.css` | Every `ct-` component listed below. |
 

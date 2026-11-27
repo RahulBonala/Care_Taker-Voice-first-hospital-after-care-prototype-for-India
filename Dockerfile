@@ -11,11 +11,13 @@ RUN npm ci --omit=dev --ignore-scripts
 
 COPY server ./server
 COPY public ./public
-RUN node scripts/copy-fonts.js \
+RUN node scripts/copy-assets.js \
  && test -f public/fonts/noto-sans-latin-400-normal.woff2 \
  && test -f public/fonts/noto-sans-telugu-telugu-400-normal.woff2 \
  && test -f public/fonts/noto-sans-devanagari-devanagari-400-normal.woff2 \
  && test -f public/fonts/noto-sans-tamil-tamil-400-normal.woff2 \
+ && test -f public/vendor/lenis.min.js \
+ && node -e "require('express')" \
  && mkdir -p /app/data \
  && chown -R node:node /app/data
 
