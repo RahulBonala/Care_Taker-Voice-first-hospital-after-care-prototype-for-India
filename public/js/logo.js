@@ -1,0 +1,2 @@
+// The Care Taker mark: a phone with a heart, and two voice waves.
+export const logo = (cls = '') => `<svg class="ct-logo ${cls}" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect class="ct-logo__phone" x="6.5" y="3" width="15" height="26" rx="3.6"/><path class="ct-logo__heart" d="M14 19.6l-3.7-3.5a2.4 2.4 0 0 1 3.3-3.4l.4.4.4-.4a2.4 2.4 0 0 1 3.3 3.4z"/><path class="ct-logo__slot" d="M12 25.3h4"/><path class="ct-logo__wave" d="M24.6 12.4a5 5 0 0 1 0 7.2"/><path class="ct-logo__wave ct-logo__wave--far" d="M27.4 9.6a9 9 0 0 1 0 12.8"/></svg>`;

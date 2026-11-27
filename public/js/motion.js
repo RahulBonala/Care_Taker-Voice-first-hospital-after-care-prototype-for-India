@@ -55,3 +55,9 @@ export function resetScroll() {
   if (lenis) lenis.scrollTo(0, { immediate: true });
   else window.scrollTo(0, 0);
 }
+
+// Smooth scroll to a page position (Lenis when present).
+export function scrollToY(y) {
+  if (lenis) lenis.scrollTo(Math.round(y));
+  else window.scrollTo({ top: Math.round(y), behavior: 'smooth' });
+}

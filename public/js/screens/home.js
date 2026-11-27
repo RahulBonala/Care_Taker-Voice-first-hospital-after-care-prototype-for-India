@@ -1,220 +1,50 @@
-// Product website / landing page (#home):
-// 1. Editorial Hero (Single-line serif headlines, primary CTA, curved voice-to-report ribbon)
-// 2. Always-visible Signature Animation: Voice Input -> Phone -> Heart morphs into Tick -> Wipes Care Taker name & reappears -> Health Report visuals
-// 3. Five Neat & Clean Role Workspaces (Hospital Desk, Nurse Board, Patient Phone, Family, Doctor)
-// 4. Scrollytelling 3-Stage Lifecycle Rail & Smooth Scroll Animations
-// 5. Deterministic Rules vs Optional Adapters -> Interactive Tour -> Mobile Prototypes -> Comparison -> FAQ.
-
-import { markup as ribbonMarkup, mountRibbon, stopRibbon } from '../voice-ribbon.js';
-import { api, esc, icon } from '../lib.js';
+// Home: hero with a live dose call, the pinned "how a call becomes care" story, languages,
+// one screen per role (pinned), every device, the fixed rules, tour, apps, comparison and FAQ.
+import { esc, icon, config } from '../lib.js';
 import { renderTourWidget } from './tour.js';
+import { markup as heroCallMarkup, mountHeroCall, stopHeroCall } from '../hero-call.js';
+import { mountStories, unmountStories } from '../story.js';
+import { scrollToY } from '../motion.js';
 
 let el = null;
-let animTimer = null;
-let activeStage = 0;
-let activeScenario = 'taken_te';
-let isPaused = false;
-let scrollObserver = null;
-let scrollRaf = null;
 
-const SCENARIOS = {
-  taken_te: {
-    lang: 'Telugu',
-    patient: 'Lakshmi Devi',
-    age: 67,
-    medicine: 'Amoxiclav 625mg',
-    slot: '09:00 (After breakfast)',
-    spokenPhrase: 'వేసుకున్నాను',
-    spokenMeaning: 'Taken (Telugu)',
-    rawStream: '...ఆఫ్టర్ బ్రేక్‌ఫాస్ట్ టాబ్లెట్ వేసుకున్నాను... అవును ఇప్పుడే వేసుకున్నాను... haan subah ki dawa le li...',
-    cleanStream: 'Care Taker Report Created: Lakshmi Devi • Amoxiclav 625mg Taken at 09:00 (Confirmed Yes) • Nurse Board: 0 Unconfirmed Doses • Family 7-Day Strip Updated •',
-    intent: 'taken',
-    confidence: '0.98',
-    readback: 'You took your after-breakfast tablets at 09:00. Is that right? Say yes or press 1.',
-    confirmPhrase: 'అవును (Yes)',
-    confirmKey: 'Key 1',
-    statusBadge: 'DOSE VERIFIED',
-    reportStatus: 'Logged to DoseLog after read-back confirmation',
-    deskStatus: 'Rx verified by Nurse Priya (Day 3 of 14)',
-    nurseStatus: '0 Doses logged without yes (Verified)',
-    doctorPct: 92,
-    doctorStatus: '92% adherence (12 of 13 doses confirmed)',
-    familyStatus: 'Shared with family: Today marked Taken at 09:00',
-  },
-  unwell_hi: {
-    lang: 'Hindi',
-    patient: 'Arjun',
-    age: 24,
-    medicine: 'Isotretinoin 20mg',
-    slot: '22:00 (Night)',
-    spokenPhrase: 'haan le li, lekin chakkar aa raha hai',
-    spokenMeaning: 'Took it, but feeling dizzy (Hindi)',
-    rawStream: '...haan maine रात की दवा le li, lekin thoda chakkar aa raha hai... tabiyat theek nahi lag rahi...',
-    cleanStream: 'Care Taker Urgent Report: Arjun • Symptom "chakkar aa raha hai" outranks Taken • 0 Dose Logged • Priority 1 Nurse Callback Flag Raised •',
-    intent: 'unwell',
-    confidence: '0.96',
-    readback: 'Symptom detected: unwell outranks taken. Connecting to nurse on call.',
-    confirmPhrase: 'Urgent triage initiated',
-    confirmKey: 'Direct to nurse',
-    statusBadge: 'URGENT SYMPTOM FLAGGED',
-    reportStatus: 'Zero dose logged. Unwell flag routed to Nurse board.',
-    deskStatus: 'Consent active • Escalated to ward nurse on duty',
-    nurseStatus: 'Priority 1 Urgent Flag: "chakkar aa raha hai"',
-    doctorPct: 86,
-    doctorStatus: 'Symptom quoted verbatim for morning clinician review',
-    familyStatus: 'Family sharing locked (patient preference: off)',
-  },
-  later_hi: {
-    lang: 'Hindi',
-    patient: 'Arjun',
-    age: 24,
-    medicine: 'Isotretinoin 20mg',
-    slot: '22:00 (Night)',
-    spokenPhrase: 'khana nahi khaya, aadha ghanta baad',
-    spokenMeaning: 'Have not eaten yet, call in half hour',
-    rawStream: '...abhi khana nahi khaya hai... aadha ghanta baad call karna... 30 minutes tarvata call cheyandi...',
-    cleanStream: 'Care Taker Schedule Report: Arjun • Meal delayed ("aadha ghanta") • Slot rescheduled +30 min to 22:30 • Postpone 1 of 3 tracked •',
-    intent: 'later',
-    confidence: '0.94',
-    readback: 'Understood. We will call you back in 30 minutes at 22:30.',
-    confirmPhrase: 'Postponed 30 mins',
-    confirmKey: 'Key 2',
-    statusBadge: 'CALL POSTPONED',
-    reportStatus: 'Slot rescheduled by 30 minutes (22:30). Dose pending.',
-    deskStatus: 'Night slot shifted 22:00 -> 22:30 automatically',
-    nurseStatus: 'Postpone count: 1 of 3 allowed before alert',
-    doctorPct: 88,
-    doctorStatus: 'Meal delay tracked, course timeline intact',
-    familyStatus: 'Pending dose: next call scheduled for 22:30',
-  },
-  stopped_en: {
-    lang: 'English',
-    patient: 'Meena',
-    age: 20,
-    medicine: 'Cefixime 200mg',
-    slot: '13:30 (After lunch)',
-    spokenPhrase: 'I feel fine, I have stopped',
-    spokenMeaning: 'Stopped antibiotic course early',
-    rawStream: '...I feel fine now so I have stopped taking the tablets... fever is gone since yesterday...',
-    cleanStream: 'Care Taker Early-Stop Report: Meena • Cefixime 200mg Day 5 of 10 • Reason recorded ("fever is gone") • Stopped Early Flag on Nurse Board •',
-    intent: 'stopped',
-    confidence: '0.99',
-    readback: 'You are halfway through day 5 of 10. Can you share why you stopped for your doctor?',
-    confirmPhrase: 'Reason: "fever is gone"',
-    confirmKey: 'Logged for doctor',
-    statusBadge: 'STOPPED EARLY FLAGGED',
-    reportStatus: 'Antibiotic stop logged with verbatim patient reason',
-    deskStatus: 'Halfway course reminder played on Day 5 of 10',
-    nurseStatus: 'Stopped Early flag placed for clinician follow-up',
-    doctorPct: 50,
-    doctorStatus: 'Course incomplete: 5 of 10 days taken (Alert)',
-    familyStatus: 'Family notified: stopped early flag for doctor call',
-  },
-};
-
-const HERO_PROOF = [
-  'Runs with zero API keys',
-  'Dose logged only after a spoken or pressed yes',
-  'Telugu, Hindi, Tamil and English on any phone',
-  'Keypad & smartphones supported',
-];
-
-const ROLE_WORKSPACES = [
+const HOW = [
   {
-    key: 'desk',
-    href: '#desk',
-    iconName: 'user',
-    badge: '01 • Intake & Voice Rx',
-    title: 'Hospital desk',
-    desc: 'Register discharged patients, dictate prescriptions by voice ("Paracetamol 650, after breakfast and dinner, 5 days"), and record two-point consent.',
-    metricLabel: 'Safety gate',
-    metricVal: 'Consent + Nurse verify required',
+    key: 'capture', title: 'Capture the voice', lead: 'Care Taker calls at every dose time.',
+    text: 'The patient just answers, on a keypad phone or a smartphone, and replies in the language they speak at home.',
+    points: ['Rings up to 3 times, 10 minutes apart', 'Listens only after it finishes speaking', 'Detects the language the patient answers in'],
   },
   {
-    key: 'nurse',
-    href: '#nurse',
-    iconName: 'flag',
-    badge: '02 • Priority Triage',
-    title: 'Nurse board',
-    desc: 'Verify waiting schedules, monitor live safety measures, and call back flagged exceptions sorted Urgent > Stopped early > Not reachable > Missed.',
-    metricLabel: 'Primary measure',
-    metricVal: '0 doses logged without yes',
+    key: 'confirm', title: 'Confirm with a yes', lead: 'Nothing is logged until the patient says yes.',
+    text: 'Care Taker reads the dose and the time back. A spoken yes or a pressed 1 logs it. Anything else asks again.',
+    points: ['Read back before every log', 'Never guesses taken', 'Keypad fallback after two unclear replies'],
   },
   {
-    key: 'phone',
-    href: '#phone',
-    iconName: 'phone',
-    badge: '03 • Voice & Keypad Call',
-    title: 'Patient phone',
-    desc: 'Interactive keypad feature phone that rings at each meal slot, speaks Telugu, Hindi, Tamil, or English, and confirms a read-back before logging.',
-    metricLabel: 'Input modes',
-    metricVal: 'Live mic, sample chips, keys 1/2/3/9',
+    key: 'analyze', title: 'Understand and flag', lead: 'Fixed rules decide what a reply means.',
+    text: 'Feeling unwell outranks everything else, so a nurse hears about it at once. Unclear words are saved for review.',
+    points: ['Unwell, stop calls and stopped early come first', 'The exact words go to the care team', 'No medical advice, ever'],
   },
   {
-    key: 'family',
-    href: '#family',
-    iconName: 'users',
-    badge: '04 • Consent-Gated Strip',
-    title: 'Family view',
-    desc: 'Calm 7-day check-in strip and weekly summary built from the patient\'s own spoken words when family sharing is enabled (and locked when off).',
-    metricLabel: 'Privacy control',
-    metricVal: 'Patient opt-in toggle per course',
-  },
-  {
-    key: 'doctor',
-    href: '#doctor',
-    iconName: 'stethoscope',
-    badge: '05 • Follow-up Review',
-    title: 'Doctor review',
-    desc: 'Side-by-side course completion %, due-dose adherence %, and verbatim patient quotes for every symptom or early-stopped course.',
-    metricLabel: 'Clinical clarity',
-    metricVal: 'Honest completion % + exact words',
+    key: 'adapt', title: 'Adapt and update', lead: 'The plan changes with the answer.',
+    text: 'Later moves the call, stop calls ends them, and every report updates on its own: nurse board, doctor and family.',
+    points: ['Reschedules by the minutes heard', 'Reports update for every role', 'Switches language if the patient does'],
   },
 ];
 
-const FIXED_RULES = [
-  ['Prescription dictation', 'Reads "Paracetamol 650, after breakfast and dinner, 5 days" in server/rxparse.js by deterministic rules. A nurse checks every field before saving.'],
-  ['Spoken reply understanding', 'Per-language keyword rules in server/lang/*.json match native script, romanised speech, and English mixing in strict safety order.'],
-  ['Mandatory read-back', 'Every "taken" reply is read back with the meal slot and time. Nothing is written to DoseLog until the patient confirms with yes or key 1.'],
-  ['Priority triage and reports', 'Unwell, stopped-early, not-reachable, and missed flags sort automatically on the Nurse board with the patient\'s exact spoken words.'],
+const ROLES = [
+  { key: 'desk', icon: 'user', title: 'Hospital desk', lead: 'Register a patient in under a minute.', points: ['Dictate the prescription, the form fills itself', 'Two consent boxes before anything starts', 'Choose the language, or let the patient speak'] },
+  { key: 'nurse', icon: 'flag', title: 'Nurse board', lead: 'Verify, then call back whoever needs a person.', points: ['Flags sorted: urgent first', 'Exact words in every flag', 'Doses logged without a yes: always 0'] },
+  { key: 'phone', icon: 'phone', title: 'Patient phone', lead: 'The call itself, by voice or keypad.', points: ['Live transcript and what was heard', 'Keys 1, 2, 3 and 9 always work', 'Same call on a real phone with Twilio keys'] },
+  { key: 'family', icon: 'users', title: 'Family', lead: 'A week of doses, in the patient\'s words.', points: ['Only when the patient shares it', 'Seven-day strip and today\'s doses', 'Activity from watches and monitors'] },
+  { key: 'doctor', icon: 'stethoscope', title: 'Doctor', lead: 'Course completion and what patients said.', points: ['Completion and adherence per course', 'Vitals and alert ranges', 'Every flag with the patient\'s words'] },
+  { key: 'devices', icon: 'watch', title: 'Health devices', lead: 'Monitors, watches and rings, next to the doses.', points: ['Blood pressure and sugar over Bluetooth', 'Steps, calories and sleep from watches and rings', 'Outside the doctor\'s range goes to a nurse'] },
 ];
 
-const OPTIONAL_ADAPTERS = [
-  ['Sarvam AI speech (SARVAM_API_KEY)', 'Off unless keyed. Adds Indian-language neural voice synthesis and audio transcription when the browser lacks a local voice.'],
-  ['Twilio phone line (TWILIO_* + PUBLIC_URL)', 'Off unless keyed. Places a real outbound phone call driven by the exact same server/flow.js state machine as the on-screen phone.'],
-  ['Misheard label helper (LLM_API_KEY)', 'Off unless keyed. Suggests one fixed intent word on the Nurse board for replies the rules missed. Never logs a dose and never writes advice.'],
-  ['Graceful without keys', 'When any optional key is unset, that button clearly says "key not set" and the entire hospital-to-patient flow works locally.'],
-];
-
-const RAIL = [
-  {
-    phase: 'Stage 01: Discharge',
-    heading: 'Set up and verify at the hospital',
-    summary: 'Capture consent in the patient\'s language, dictate the prescription, and have a nurse verify before any call is scheduled.',
-    steps: [
-      ['1. Register and consent', 'Choose call language, keypad or smart phone, family sharing preference, and tick both mandatory consent checks.'],
-      ['2. Dictate schedule', 'Speak or type the discharge line to fill medicine, dose, meal slots, and course days.'],
-      ['3. Nurse verification', 'A nurse reviews the entry on the Nurse board and clicks Verify to generate DoseSlot records.'],
-    ],
-  },
-  {
-    phase: 'Stage 02: Voice follow-up',
-    heading: 'Call in their language at each meal',
-    summary: 'Ring at breakfast, lunch, dinner, or night, listen by voice or keypad, and confirm every dose before logging.',
-    steps: [
-      ['4. Meal-slot call and halfway reminder', 'Asks if the patient has eaten and taken their tablets; reminds them to finish the course from the halfway day onward.'],
-      ['5. Read-back confirmation', 'Repeats slot and time ("You took your after-breakfast tablets at 09:00. Is that right?") and logs only on yes or key 1.'],
-    ],
-  },
-  {
-    phase: 'Stage 03: Care team & family',
-    heading: 'Convert voice into clinical reports',
-    summary: 'Route unwell or stopped-early replies straight to nurses, keep family updated when permitted, and give doctors honest numbers.',
-    steps: [
-      ['6. Nurse callback queue', 'Urgent symptoms, early stopping, 2 missed slots in a row, and 3 unanswered rings surface in priority order.'],
-      ['7. Family & doctor visual reports', 'Opt-in 7-day family summary in the patient\'s own words, and course completion % with verbatim quotes for the doctor.'],
-    ],
-  },
+const DEVICES = [
+  ['keypad', 'Keypad phone', 'Voice and keys 1, 2, 3, 9'],
+  ['phone', 'Smartphone', 'Calls and the patient app'],
+  ['tablet', 'Tablet', 'Ward rounds and family'],
+  ['laptop', 'Laptop and desktop', 'Hospital desk, nurse board, doctor'],
 ];
 
 const PROMISES = [
@@ -295,234 +125,181 @@ const FAQS = [
   },
 ];
 
-export async function mount(root) {
+
+function howCard(key) {
+  if (key === 'capture') return `
+    <div class="ct-ui">
+      <div class="ct-ui__head"><span class="ct-ui__title">${icon('phone')}Calling Lakshmi Devi</span><span class="ct-status ct-status--pending">${icon('clock')}09:00</span></div>
+      <div class="ct-ui__row"><span>Ring 1 of 3</span><span class="ct-ui__wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></div>
+      <p class="ct-ui__bubble ct-ui__bubble--bot ct-ui__step">మీ ఉదయం మాత్రలు వేసుకున్నారా?<span>Have you taken your breakfast tablets?</span></p>
+      <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">ఆ... వేసుకున్నాను<span>Yes, I have taken it</span></p>
+      <div class="ct-ui__row ct-ui__step"><span class="muted">Heard in</span><strong>Telugu</strong></div>
+    </div>`;
+  if (key === 'confirm') return `
+    <div class="ct-ui">
+      <div class="ct-ui__head"><span class="ct-ui__title">${icon('mic')}Read-back</span><span class="ct-status ct-status--unclear">${icon('pending')}Waiting for yes</span></div>
+      <p class="ct-ui__bubble ct-ui__bubble--bot ct-ui__step">You took your breakfast tablets at 09:02. Is that right? Say yes or press 1.</p>
+      <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">అవును<span>Yes</span></p>
+      <div class="ct-ui__row ct-ui__ok ct-ui__step"><span>${icon('check')}Dose logged, 09:02</span><span class="ct-status ct-status--taken">${icon('check')}Taken</span></div>
+      <div class="ct-ui__row ct-ui__step"><span class="muted">Doses logged without a yes</span><strong class="tabular">0</strong></div>
+    </div>`;
+  if (key === 'analyze') return `
+    <div class="ct-ui">
+      <div class="ct-ui__head"><span class="ct-ui__title">${icon('ear')}Heard</span><span class="muted small">Hindi</span></div>
+      <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">haan le li, lekin chakkar aa raha hai<span>Took it, but feeling dizzy</span></p>
+      <div class="ct-ui__chips ct-ui__step">
+        <span class="ct-ui__chip is-hit">${icon('alert')}Unwell</span><span class="ct-ui__chip">Stop calls</span><span class="ct-ui__chip">Wants a person</span><span class="ct-ui__chip">Stopped</span><span class="ct-ui__chip">Later</span><span class="ct-ui__chip is-skip">Taken</span>
+      </div>
+      <div class="ct-ui__row ct-ui__step"><span class="muted">First rule that matches wins</span><span class="ct-status ct-status--urgent">${icon('alert')}Urgent</span></div>
+      <div class="ct-ui__row ct-ui__step"><span>A nurse calls back in minutes</span><span class="muted small">Dose not logged</span></div>
+    </div>`;
+  return `
+    <div class="ct-ui">
+      <div class="ct-ui__head"><span class="ct-ui__title">${icon('refresh')}Updated just now</span></div>
+      <div class="ct-ui__row ct-ui__step"><span>${icon('clock')}Next call moved to 09:20</span><span class="muted small">"call in 20 minutes"</span></div>
+      <div class="ct-ui__row ct-ui__step"><span>${icon('flag')}Nurse board</span><span class="ct-status ct-status--urgent">${icon('alert')}Urgent on top</span></div>
+      <div class="ct-ui__row ct-ui__step"><span>${icon('stethoscope')}Doctor</span><span class="ct-status ct-status--taken">${icon('chart')}62% confirmed</span></div>
+      <div class="ct-ui__row ct-ui__step"><span>${icon('users')}Family</span><span class="ct-status ct-status--taken">${icon('check')}Week updated</span></div>
+      <div class="ct-ui__row ct-ui__step"><span>${icon('globe')}Language</span><span class="ct-status ct-status--unclear">${icon('globe')}Now Tamil</span></div>
+    </div>`;
+}
+
+function roleCard(key) {
+  const tile = (v, l) => `<div class="ct-ui__tile"><strong>${esc(v)}</strong><span>${esc(l)}</span></div>`;
+  if (key === 'desk') return `
+    <div class="ct-ui">
+      <div class="ct-ui__head"><span class="ct-ui__title">${icon('user')}New patient</span><span class="ct-status ct-status--later">${icon('clock')}Awaiting nurse</span></div>
+      <div class="ct-ui__row ct-ui__step"><span class="muted">Patient</span><strong>Lakshmi Devi, 67</strong></div>
+      <div class="ct-ui__row ct-ui__step"><span class="muted">Language</span><strong>తెలుగు Telugu</strong></div>
+      <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">${icon('mic')} Paracetamol 650, after breakfast and dinner, 5 days</p>
+      <div class="ct-ui__chips ct-ui__step"><span class="ct-ui__chip is-ok">Paracetamol</span><span class="ct-ui__chip is-ok">650 mg</span><span class="ct-ui__chip is-ok">Breakfast, dinner</span><span class="ct-ui__chip is-ok">5 days</span></div>
+      <div class="ct-ui__row ct-ui__step"><span>${icon('shield')}Consent recorded by Nurse Priya</span><span class="ct-status ct-status--taken">${icon('check')}2 of 2</span></div>
+    </div>`;
+  if (key === 'nurse') return `
+    <div class="ct-ui">
+      <div class="ct-ui__head"><span class="ct-ui__title">${icon('flag')}Flags</span><span class="ct-ui__metric"><strong>0</strong> logged without a yes</span></div>
+      <div class="ct-ui__flag ct-ui__step"><span class="ct-status ct-status--urgent">${icon('alert')}Urgent</span><strong>Arjun</strong><span class="ct-quote">haan le li, lekin chakkar aa raha hai</span></div>
+      <div class="ct-ui__flag ct-ui__step"><span class="ct-status ct-status--later">${icon('alert')}Reading to review</span><strong>Lakshmi Devi</strong><span>Blood pressure 162/98</span></div>
+      <div class="ct-ui__flag ct-ui__step"><span class="ct-status ct-status--missed">${icon('missed')}Missed</span><strong>Meena</strong><span>Rang 3 times, no answer</span></div>
+    </div>`;
+  if (key === 'phone') return `
+    <div class="ct-ui ct-ui--keypad">
+      <div class="ct-ui__lcd">
+        <p class="ct-ui__bubble ct-ui__bubble--bot ct-ui__step">Have you taken your night tablet?</p>
+        <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">le li<span>Heard: le li, Taken</span></p>
+      </div>
+      <div class="ct-ui__keys ct-ui__step"><span><b>1</b>Taken</span><span><b>2</b>Later</span><span><b>3</b>Nurse</span><span class="ct-ui__key-wide"><b>9</b>Stop calls</span></div>
+    </div>`;
+  if (key === 'family') return `
+    <div class="ct-ui">
+      <div class="ct-ui__head"><span class="ct-ui__title">${icon('users')}Lakshmi's week</span><span class="ct-status ct-status--taken">${icon('check')}Shared</span></div>
+      <div class="ct-ui__week ct-ui__step">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => `<span class="${i < 4 ? 'is-ok' : i === 4 ? 'is-some' : ''}"><b>${d}</b>${i < 4 ? '3/3' : i === 4 ? '2/3' : ''}</span>`).join('')}</div>
+      <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">వేసుకున్నాను<span>Taken, Thursday 13:32</span></p>
+      <div class="ct-ui__row ct-ui__step"><span>${icon('watch')}2,940 steps today</span><span class="muted small">Doctor's goal 2,500</span></div>
+    </div>`;
+  if (key === 'doctor') return `
+    <div class="ct-ui">
+      <div class="ct-ui__head"><span class="ct-ui__title">${icon('chart')}Course completion</span></div>
+      ${[['Lakshmi Devi', 12, 'Amoxiclav'], ['Arjun', 22, 'Isotretinoin'], ['Meena', 40, 'Cefuroxime']].map(([n, p, m]) => `<div class="ct-ui__bar ct-ui__step"><span><strong>${n}</strong> ${m}</span><progress max="100" value="${p}">${p}%</progress><span class="tabular">${p}%</span></div>`).join('')}
+      <div class="ct-ui__row ct-ui__step"><span>${icon('gauge')}Last blood pressure</span><strong class="tabular">129/86</strong></div>
+    </div>`;
+  return `
+    <div class="ct-ui">
+      <div class="ct-ui__head"><span class="ct-ui__title">${icon('watch')}Today from devices</span></div>
+      <div class="ct-ui__tiles ct-ui__step">${tile('7,778', 'Steps')}${tile('310', 'Active kcal')}${tile('129/86', 'Blood pressure')}${tile('121', 'Sugar mg/dL')}</div>
+      <div class="ct-ui__row ct-ui__step"><span>${icon('check')}Goal of 7,000 steps reached</span></div>
+      <div class="ct-ui__row ct-ui__step"><span>${icon('alert')}162/98 yesterday, outside the range</span><span class="muted small">Nurse told</span></div>
+    </div>`;
+}
+
+function story(id, title, eyebrow, items, cardFn, sizeClass) {
+  return `
+  <section class="ct-story ${sizeClass}" data-story id="${id}" aria-labelledby="${id}-title">
+    <div class="ct-story__sticky">
+      <div class="ct-story__head">
+        <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>${esc(eyebrow)}</span>
+        <h2 id="${id}-title" class="ct-section-title-lg">${esc(title)}</h2>
+      </div>
+      <div class="ct-story__body">
+        <ol class="ct-story__tabs" aria-label="${esc(title)}">
+          ${items.map((it, i) => `<li><button type="button" class="ct-story__tab${i === 0 ? ' is-active' : ''}" data-i="${i}">${icon(it.icon || ['phone', 'check', 'ear', 'refresh'][i])}<span>${esc(it.title)}</span></button></li>`).join('')}
+        </ol>
+        <div class="ct-story__stage">
+          ${items.map((it, i) => `
+          <article class="ct-story__panel${i === 0 ? ' is-active' : ''}" data-i="${i}">
+            <div class="ct-story__copy">
+              <span class="ct-story__step">${i + 1} of ${items.length}</span>
+              <h3>${esc(it.lead)}</h3>
+              ${it.text ? `<p>${esc(it.text)}</p>` : ''}
+              <ul>${it.points.map((p) => `<li>${icon('tick')}<span>${esc(p)}</span></li>`).join('')}</ul>
+              ${it.key && sizeClass === 'ct-story--6' ? `<a class="ct-btn ct-btn--on-dark" href="#${it.key}">Open ${esc(it.title)}${icon('arrow-right')}</a>` : ''}
+            </div>
+            <div class="ct-story__visual">${cardFn(it.key)}</div>
+          </article>`).join('')}
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+
+export async function mount(root, params) {
   el = root;
-  activeStage = 0;
-  activeScenario = 'taken_te';
-  isPaused = false;
-
-  const sc = SCENARIOS[activeScenario];
-
+  const cfg = await config();
+  if (!el) return;
+  const langs = cfg.langs || [];
   el.innerHTML = `
-    <!-- 1. Hero Section -->
-    <section class="ct-band ct-band--first" aria-labelledby="home-title">
-      <div class="ct-hero ct-reveal ct-revealed">
-        <div class="ct-voice-badge">
-          <span class="ct-voice-badge__pulse" aria-hidden="true"></span>
-          <span>Voice-first after-care for India</span>
-        </div>
-
-        <h1 id="home-title" class="ct-hero__title">
-          <span class="ct-hero__sentence">Don't type, <em class="ct-hero__serif-italic">just speak.</em></span>
-          <span class="ct-hero__sentence">Don't miss, <em class="ct-hero__serif-italic">just answer.</em></span>
+    <section class="ct-hero2" aria-labelledby="home-title">
+      <div class="ct-hero2__copy">
+        <div class="ct-voice-badge"><span class="ct-voice-badge__pulse" aria-hidden="true"></span><span>Voice-first after-care for India</span></div>
+        <h1 id="home-title" class="ct-hero2__title">
+          <span class="ct-hero__sentence">Just answer the call.</span>
+          <span class="ct-hero__sentence"><em class="ct-hero__serif-italic">Every dose, confirmed.</em></span>
         </h1>
-
-        <p class="ct-hero__subtitle-one-liner"><span>Every metric is tracked, analyzed, and defined.</span> <span>Everything covered.</span></p>
-
-        <p class="ct-hero__lead">
-          Patients answer dose calls in their own language. Care Taker reads every dose back, logs it only after a yes, and turns each call into a report for the nurse, doctor and family.
-        </p>
-
+        <p class="ct-hero2__one">In your language, by voice or keypad, on any phone.</p>
+        <p class="ct-hero2__lead">Care Taker calls patients at every dose time after they leave hospital. It reads each dose back, logs it only after a yes, and turns every call into reports for the nurse, doctor and family.</p>
         <div class="ct-hero__ctas">
-          <a class="ct-btn ct-btn--hero-cta" href="#phone">
-            <svg class="ct-icon" aria-hidden="true"><use href="#i-phone"/></svg>
-            <span>Try a call</span>
-            <span class="ct-btn__pill-badge">Live</span>
-          </a>
-          <a class="ct-btn ct-btn--secondary" href="#tour-band">
-            <svg class="ct-icon" aria-hidden="true"><use href="#i-compass"/></svg>
-            <span>Take the tour</span>
-          </a>
-          <a class="ct-btn ct-btn--ghost" href="#mobile">
-            <span>Mobile app</span>
-            <svg class="ct-icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
-          </a>
+          <a class="ct-btn ct-btn--hero-cta" href="#phone">${icon('phone')}<span>Try a call</span><span class="ct-btn__pill-badge">Live</span></a>
+          <a class="ct-btn ct-btn--secondary" href="#how">${icon('compass')}<span>See how it works</span></a>
         </div>
-
-        <div class="ct-voice-proof">
-          ${HERO_PROOF.map((p) => `<span class="ct-voice-proof__item"><svg class="ct-icon" aria-hidden="true"><use href="#i-tick"/></svg>${esc(p)}</span>`).join('')}
-        </div>
+        <p class="ct-hero2__note">${icon('info')}Sample data. Not medical advice.</p>
       </div>
+      <div class="ct-hero2__visual">${heroCallMarkup()}</div>
+    </section>
 
-      ${ribbonMarkup()}
+    ${story('how', 'From one call to every report.', 'How it works', HOW, howCard, 'ct-story--4')}
 
-      <!-- 3. Always-Visible Signature Morph & Voice-to-Report Interactive Stage -->
+    <section class="ct-band ct-band--surface" id="languages" aria-labelledby="lang-title">
       <div class="ct-page">
-        <section class="ct-flow-stage" aria-label="Voice input, phone read-back, heart-to-tick morph, and clinical report showcase">
-          <!-- Always-Visible Signature Morph Bar: Voice Input -> Phone Heart Morphs to Tick -> Wipes Care Taker Name & Reappears -> Health Report Check -->
-          <div class="ct-brand-morph-banner">
-            <div class="ct-brand-morph-banner__left">
-              <div class="ct-equalizer" aria-hidden="true">
-                <span class="ct-equalizer__bar"></span>
-                <span class="ct-equalizer__bar"></span>
-                <span class="ct-equalizer__bar"></span>
-                <span class="ct-equalizer__bar"></span>
-                <span class="ct-equalizer__bar"></span>
-              </div>
-              <div class="ct-brand-morph-banner__step">
-                <span class="small muted">1. Voice Input</span>
-                <strong id="morph-banner-phrase">"${esc(sc.spokenPhrase)}"</strong>
-              </div>
-              <span class="ct-brand-morph-banner__arrow" aria-hidden="true">&rarr;</span>
-              <div class="ct-brand-morph-banner__step">
-                <span class="small muted">2. Phone Read-back</span>
-                <strong id="morph-banner-confirm">${esc(sc.confirmPhrase)}</strong>
-              </div>
-              <span class="ct-brand-morph-banner__arrow" aria-hidden="true">&rarr;</span>
-            </div>
-
-            <!-- Phone + Heart morphing into Tick + Wiping Care Taker name and reappearing -->
-            <div class="ct-brand-morph-lockup" aria-label="Heart morphs into tick, wipes Care Taker application name, and reappears">
-              <div class="ct-morph-icon-wrap ct-morph-icon-wrap--inline">
-                <div class="ct-morph-pulse-ring"></div>
-                <svg class="ct-morph-svg ct-morph-svg--animating" viewBox="0 0 32 32">
-                  <rect x="6" y="2" width="20" height="28" rx="4" class="ct-morph-phone-frame"/>
-                  <path class="ct-morph-path ct-morph-path--heart" d="M16 22.5l-1.1-1C11 18 8.5 15.7 8.5 12.9 8.5 10.6 10.3 8.8 12.6 8.8c1.3 0 2.5.6 3.4 1.6.9-1 2.1-1.6 3.4-1.6 2.3 0 4.1 1.8 4.1 4.1 0 2.8-2.5 5.1-6.4 8.6L16 22.5z"/>
-                  <path class="ct-morph-path ct-morph-path--tick" d="M21.5 12.5l-7 7-4-4"/>
-                </svg>
-              </div>
-              <div class="ct-wipe-brand ct-wipe-brand--inline">
-                <span class="ct-wipe-app-name">Care Taker</span>
-                <span class="ct-wipe-bar" aria-hidden="true"></span>
-              </div>
-              <span class="ct-wipe-badge" id="morph-banner-badge">
-                <svg class="ct-icon" aria-hidden="true"><use href="#i-check"/></svg>
-                <span>Health Report Checked</span>
-              </span>
-            </div>
-
-            <div class="ct-flow-controls">
-              <button type="button" class="ct-btn ct-btn--ghost ct-btn--sm" id="btn-anim-toggle" aria-label="Pause or play animation">
-                <span id="anim-toggle-icon">${icon('stop')}</span>
-                <span id="anim-toggle-label">Pause Loop</span>
-              </button>
-            </div>
+        <div class="ct-split2">
+          <div data-reveal="up">
+            <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>Your language</span>
+            <h2 id="lang-title" class="ct-section-title-lg">Speak your language. Care Taker answers in it.</h2>
+            <p class="ct-section-lead">Choose a language from the list, or just start talking. Care Taker detects the language you answer in, switches the call to it, and shows the patient app in it too. Adding a language is adding one file.</p>
+            <ul class="ct-checks">
+              <li>${icon('tick')}<span>${langs.length} Indian languages today, mixed with English the way people speak</span></li>
+              <li>${icon('tick')}<span>Detects the language from the reply and switches mid-call</span></li>
+              <li>${icon('tick')}<span>Lines checked by a native speaker are marked reviewed</span></li>
+            </ul>
           </div>
-
-          <!-- Interactive Scenario Switcher Chips -->
-          <div class="ct-flow-scenarios ct-flow-scenarios--top">
-            <span class="ct-flow-scenarios__label">Select live voice scenario:</span>
-            <div class="ct-flow-scenarios__chips">
-              <button type="button" class="ct-chip ct-flow-chip" data-scenario="taken_te">
-                <span>వేసుకున్నాను (Taken - Telugu)</span>
-              </button>
-              <button type="button" class="ct-chip ct-flow-chip" data-scenario="unwell_hi">
-                <span>haan le li, chakkar aa raha hai (Unwell - Hindi)</span>
-              </button>
-              <button type="button" class="ct-chip ct-flow-chip" data-scenario="later_hi">
-                <span>aadha ghanta baad (Later - Hindi)</span>
-              </button>
-              <button type="button" class="ct-chip ct-flow-chip" data-scenario="stopped_en">
-                <span>I feel fine, I have stopped (Stopped - English)</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Step Progression Nav -->
-          <nav class="ct-flow-nav" aria-label="Animation steps">
-            <button type="button" class="ct-flow-nav__btn" data-stage="0" aria-current="step">
-              <span class="ct-flow-nav__num">1</span>
-              <span class="ct-flow-nav__text">Voice Capture on Phone</span>
-            </button>
-            <button type="button" class="ct-flow-nav__btn" data-stage="1">
-              <span class="ct-flow-nav__num">2</span>
-              <span class="ct-flow-nav__text">Mandatory Read-back</span>
-            </button>
-            <button type="button" class="ct-flow-nav__btn" data-stage="2">
-              <span class="ct-flow-nav__num">3</span>
-              <span class="ct-flow-nav__text">Heart -> Tick &amp; Brand Wipe</span>
-            </button>
-            <button type="button" class="ct-flow-nav__btn" data-stage="3">
-              <span class="ct-flow-nav__num">4</span>
-              <span class="ct-flow-nav__text">Visual Clinical Reports</span>
-            </button>
-          </nav>
-
-          <!-- Always-Visible 4-Column Live Pipeline + Active Stage Spotlight -->
-          <div class="ct-flow-body" id="flow-body-mount">
-            <!-- Rendered dynamically by renderAnimationStage() -->
-          </div>
-        </section>
-      </div>
-
-      <!-- 4. Live Clinical Pulse Band -->
-      <div class="ct-page ct-reveal" id="pulse-section">
-        <section class="ct-card ct-card--raised ct-stack" aria-labelledby="pulse-title">
-          <div class="ct-card__head">
-            <h2 id="pulse-title" class="ct-section-title">${icon('chart')}Live after-care pulse</h2>
-            <p>Synchronized across Hospital desk, Nurse board, Patient phone, Family, and Doctor views</p>
-          </div>
-          <div class="ct-metrics" id="home-metrics"></div>
-          <div class="ct-row ct-row--between">
-            <p class="small muted">Every role screen reads and updates the same single source of truth in real time.</p>
-            <div class="ct-row">
-              <a class="ct-btn ct-btn--secondary ct-btn--sm" href="#desk">${icon('user')}Hospital desk</a>
-              <a class="ct-btn ct-btn--secondary ct-btn--sm" href="#nurse">${icon('flag')}Nurse board</a>
-              <a class="ct-btn ct-btn--secondary ct-btn--sm" href="#phone">${icon('phone')}Patient phone</a>
-              <a class="ct-btn ct-btn--secondary ct-btn--sm" href="#family">${icon('users')}Family view</a>
-              <a class="ct-btn ct-btn--secondary ct-btn--sm" href="#doctor">${icon('stethoscope')}Doctor review</a>
-            </div>
-          </div>
-        </section>
-      </div>
-    </section>
-
-    <!-- 5. Five Synchronized Clinical Role Workspaces Section ("Neat and clean everywhere") -->
-    <section class="ct-band ct-band--surface" id="workspaces-section" aria-labelledby="workspaces-title">
-      <div class="ct-band__inner ct-stack--lg">
-        <div class="ct-section-head">
-          <div class="ct-section-head__copy ct-reveal">
-            <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>Five Synchronized Workspaces</span>
-            <h2 id="workspaces-title">Hospital desk, Nurse board, Patient phone, Family, and Doctor. Neat and clean everywhere.</h2>
-            <p class="muted">Every voice call on the patient's phone automatically updates the clinical records, nurse triage board, consent-gated family strip, and doctor review table.</p>
-          </div>
-        </div>
-        <div class="ct-workspaces-grid">
-          ${ROLE_WORKSPACES.map((w, idx) => `
-            <a class="ct-workspace-card ct-reveal ct-reveal--delay-${(idx % 4) + 1}" href="${esc(w.href)}">
-              <div class="ct-workspace-card__top">
-                <span class="ct-workspace-card__badge">${esc(w.badge)}</span>
-                <span class="ct-workspace-card__icon">${icon(w.iconName)}</span>
-              </div>
-              <h3 class="ct-workspace-card__title">${esc(w.title)}</h3>
-              <p class="ct-workspace-card__desc">${esc(w.desc)}</p>
-              <div class="ct-workspace-card__foot">
-                <div>
-                  <span class="small muted">${esc(w.metricLabel)}</span>
-                  <strong class="ct-workspace-card__metric">${esc(w.metricVal)}</strong>
-                </div>
-                <span class="ct-workspace-card__go">Open${icon('arrow-right')}</span>
-              </div>
-            </a>
-          `).join('')}
+          <ul class="ct-langs" data-reveal-group aria-label="Languages">
+            ${langs.map((l) => `<li class="ct-langs__item"><strong lang="${esc(l.code)}">${esc(l.nativeName)}</strong><span>${esc(l.name)}</span>${l.ask ? `<span class="ct-langs__ask" lang="${esc(l.code)}">${esc(l.ask)}</span>` : ''}</li>`).join('')}
+          </ul>
         </div>
       </div>
     </section>
 
-    <!-- 6. Scrollytelling 3-Stage Lifecycle Rail -->
-    <section class="ct-band" id="rail-section" aria-labelledby="rail-title">
-      <div class="ct-band__inner">
-        <div class="ct-section-head ct-reveal">
-          <div class="ct-section-head__copy">
-            <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>End-to-End Clinical Lifecycle</span>
-            <h2 id="rail-title">From hospital discharge to follow-up review, in three stages.</h2>
-          </div>
-          <a class="ct-btn ct-btn--secondary" href="#desk">Start at Hospital desk${icon('arrow-right')}</a>
+    ${story('features', 'One screen for every role.', 'Features', ROLES, roleCard, 'ct-story--6')}
+
+    <section class="ct-band" id="devices-band" aria-labelledby="every-title">
+      <div class="ct-page">
+        <div class="ct-center-head" data-reveal="up">
+          <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>Every device</span>
+          <h2 id="every-title" class="ct-section-title-lg">Works on every device it meets.</h2>
+          <p class="ct-section-lead">A keypad phone for the patient, a tablet on the ward, a laptop at the desk. Same record, same rules, laid out for each screen.</p>
         </div>
-        <div class="ct-rail-track" aria-hidden="true">
-          <div class="ct-rail-track__fill" id="rail-progress-fill"></div>
-        </div>
-        <div class="ct-rail">
-          ${RAIL.map((g, idx) => `
-            <div class="ct-rail__col ct-reveal ct-reveal--delay-${idx + 1}" data-rail-step="${idx}">
-              <span class="ct-rail__phase">${esc(g.phase)}</span>
-              <h3>${esc(g.heading)}</h3>
-              <p class="ct-rail__summary">${esc(g.summary)}</p>
-              <ol class="ct-rail__steps">
-                ${g.steps.map(([st, sd]) => `<li><strong>${esc(st)}</strong><span>${esc(sd)}</span></li>`).join('')}
-              </ol>
-            </div>`).join('')}
-        </div>
+        <ul class="ct-every" data-reveal-group>
+          ${DEVICES.map(([ic, t, d]) => `<li class="ct-every__item">${deviceIcon(ic)}<strong>${esc(t)}</strong><span>${esc(d)}</span></li>`).join('')}
+        </ul>
       </div>
     </section>
 
@@ -534,38 +311,6 @@ export async function mount(root) {
         <ol class="ct-index" data-reveal-group>
           ${PROMISES.map(([t, d], i) => `<li class="ct-index__row"><span class="ct-index__num">${String(i + 1).padStart(2, '0')}</span><div><h3>${esc(t)}</h3><p>${esc(d)}</p></div></li>`).join('')}
         </ol>
-      </div>
-    </section>
-
-    <!-- 7. Method Split Section -->
-    <section class="ct-band ct-band--surface" id="method-section" aria-labelledby="method-title">
-      <div class="ct-band__inner">
-        <div class="ct-split">
-          <div class="ct-split__intro ct-reveal">
-            <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>Deterministic Safety Architecture</span>
-            <h2 id="method-title">Fixed clinical rules run every call. Optional services stay off unless keyed.</h2>
-            <p class="muted">
-              A medicine follow-up tool must never guess that a dose was taken and must never invent medical advice. Every call path, intent rule, and escalation in Care Taker is deterministic and covered by 124 automated tests.
-            </p>
-            <p class="muted">
-              Optional cloud speech, telephony, and misheard-label helpers are isolated behind adapters in <code>server/adapters/</code> so a fresh Docker container runs with zero keys.
-            </p>
-          </div>
-          <div class="ct-method">
-            <div class="ct-method__col ct-reveal ct-reveal--delay-1">
-              <h3>Done by fixed rules</h3>
-              <ul class="ct-method__list">
-                ${FIXED_RULES.map(([t, b]) => `<li><strong>${esc(t)}</strong><span>${esc(b)}</span></li>`).join('')}
-              </ul>
-            </div>
-            <div class="ct-method__col ct-reveal ct-reveal--delay-2">
-              <h3>Optional keyed adapters, labelled</h3>
-              <ul class="ct-method__list">
-                ${OPTIONAL_ADAPTERS.map(([t, b]) => `<li><strong>${esc(t)}</strong><span>${esc(b)}</span></li>`).join('')}
-              </ul>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -672,345 +417,28 @@ export async function mount(root) {
   `;
 
   renderTourWidget(el.querySelector('#home-tour-mount'), { initialTrack: 'patients' });
-
-  mountRibbon(el);
-  setupAnimationControls();
-  renderAnimationStage();
-  startAnimationTimer();
-  initScrollReveals();
-
-  const anchor = el.querySelector('a[href="#tour-band"]');
-  if (anchor) {
-    anchor.addEventListener('click', (e) => {
-      e.preventDefault();
-      const target = el.querySelector('#tour-band');
-      if (target) target.scrollIntoView({ behavior: 'smooth' });
-    });
-  }
-
-  await refresh();
-}
-
-function setupAnimationControls() {
-  if (!el) return;
-
-  const stepButtons = el.querySelectorAll('.ct-flow-nav__btn');
-  stepButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      activeStage = Number(btn.getAttribute('data-stage'));
-      renderAnimationStage();
-      restartAnimationTimer();
-    });
-  });
-
-  const scenarioButtons = el.querySelectorAll('.ct-flow-chip');
-  scenarioButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const sKey = btn.getAttribute('data-scenario');
-      if (SCENARIOS[sKey]) {
-        activeScenario = sKey;
-        updateHeroRibbonForScenario();
-        renderAnimationStage();
-        restartAnimationTimer();
-      }
-    });
-  });
-
-  const toggleBtn = el.querySelector('#btn-anim-toggle');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
-      isPaused = !isPaused;
-      const iconSpan = el.querySelector('#anim-toggle-icon');
-      const labelSpan = el.querySelector('#anim-toggle-label');
-      if (isPaused) {
-        clearInterval(animTimer);
-        animTimer = null;
-        if (iconSpan) iconSpan.innerHTML = icon('forward');
-        if (labelSpan) labelSpan.textContent = 'Play Loop';
-      } else {
-        startAnimationTimer();
-        if (iconSpan) iconSpan.innerHTML = icon('stop');
-        if (labelSpan) labelSpan.textContent = 'Pause Loop';
-      }
-    });
+  mountHeroCall(el);
+  mountStories(el);
+  if (params && params.get('section')) {
+    const target = el.querySelector(`#${CSS.escape(params.get('section'))}`);
+    if (target) setTimeout(() => scrollToY(target.getBoundingClientRect().top + window.scrollY - 24), 60);
   }
 }
 
-function updateHeroRibbonForScenario() {
-  if (!el) return;
-  const sc = SCENARIOS[activeScenario] || SCENARIOS.taken_te;
-  const phraseEl = el.querySelector('#morph-banner-phrase');
-  if (phraseEl) phraseEl.textContent = `"${sc.spokenPhrase}"`;
-  const confirmEl = el.querySelector('#morph-banner-confirm');
-  if (confirmEl) confirmEl.textContent = sc.confirmPhrase;
+function deviceIcon(kind) {
+  const paths = {
+    keypad: '<rect x="15" y="4" width="18" height="40" rx="4"/><rect x="18" y="8" width="12" height="11" rx="1.5"/><path d="M19 25h2M24 25h0.01M28 25h1M19 30h2M24 30h0.01M28 30h1M19 35h2M24 35h0.01M28 35h1"/>',
+    phone: '<rect x="14" y="3" width="20" height="42" rx="5"/><path d="M21 39h6"/><path d="M24 15l-3.5-3.4a2.3 2.3 0 0 1 3.2-3.3l.3.3.3-.3a2.3 2.3 0 0 1 3.2 3.3z"/>',
+    tablet: '<rect x="7" y="5" width="34" height="38" rx="4"/><path d="M21 38h6"/><path d="M14 14h20M14 20h14M14 26h17"/>',
+    laptop: '<rect x="9" y="9" width="30" height="21" rx="2.5"/><path d="M4 37h40l-3-7H7z"/><path d="M14 16h20M14 22h12"/>',
+  };
+  return `<svg class="ct-every__icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">${paths[kind]}</svg>`;
 }
 
-function renderAnimationStage() {
-  if (!el) return;
-  const mount = el.querySelector('#flow-body-mount');
-  if (!mount) return;
-
-  const sc = SCENARIOS[activeScenario] || SCENARIOS.taken_te;
-
-  const stepButtons = el.querySelectorAll('.ct-flow-nav__btn');
-  stepButtons.forEach((btn, idx) => {
-    if (idx === activeStage) {
-      btn.setAttribute('aria-current', 'step');
-      btn.classList.add('ct-flow-nav__btn--active');
-    } else {
-      btn.removeAttribute('aria-current');
-      btn.classList.remove('ct-flow-nav__btn--active');
-    }
-  });
-
-  const scenarioButtons = el.querySelectorAll('.ct-flow-chip');
-  scenarioButtons.forEach((btn) => {
-    const s = btn.getAttribute('data-scenario');
-    if (s === activeScenario) btn.classList.add('ct-flow-chip--active');
-    else btn.classList.remove('ct-flow-chip--active');
-  });
-
-  const statusClass =
-    sc.intent === 'taken'
-      ? 'ct-status--taken'
-      : sc.intent === 'unwell'
-        ? 'ct-status--urgent'
-        : sc.intent === 'later'
-          ? 'ct-status--later'
-          : 'ct-status--stopped';
-
-  mount.innerHTML = `
-    <div class="ct-pipeline-grid">
-      <!-- Column 1: Voice Input on Phone -->
-      <article class="ct-pipeline-card ${activeStage === 0 ? 'ct-pipeline-card--active' : ''}" data-pipeline-card="0">
-        <div class="ct-pipeline-card__head">
-          <span class="ct-tag ct-tag--accent">1 • Voice Input</span>
-          <span class="ct-status ct-status--unclear">${icon('mic')}${esc(sc.lang)}</span>
-        </div>
-        <h3 class="ct-pipeline-card__title">${esc(sc.patient)}, ${sc.age} (${esc(sc.medicine)})</h3>
-        <div class="ct-pipeline-quote">
-          <span class="ct-pipeline-quote__native">"${esc(sc.spokenPhrase)}"</span>
-          <span class="small muted">${esc(sc.spokenMeaning)}</span>
-        </div>
-        <div class="ct-pipeline-meta">
-          <span>Slot: <strong>${esc(sc.slot)}</strong></span>
-          <span>Match: <strong>intent=${esc(sc.intent)}</strong> (${esc(sc.confidence)})</span>
-        </div>
-      </article>
-
-      <!-- Column 2: Keypad / Phone Read-back -->
-      <article class="ct-pipeline-card ${activeStage === 1 ? 'ct-pipeline-card--active' : ''}" data-pipeline-card="1">
-        <div class="ct-pipeline-card__head">
-          <span class="ct-tag ct-tag--accent">2 • Phone Read-back</span>
-          <span class="small muted">${icon('phone')}Mandatory check</span>
-        </div>
-        <div class="ct-mini-phone">
-          <div class="ct-mini-phone__top">
-            <span>Care Taker Call</span>
-            <span class="tabular">00:18</span>
-          </div>
-          <p class="ct-mini-phone__bot">${esc(sc.readback)}</p>
-          <div class="ct-mini-phone__reply">
-            <span>${esc(sc.confirmPhrase)}</span>
-            <span class="ct-tag">${esc(sc.confirmKey)}</span>
-          </div>
-        </div>
-      </article>
-
-      <!-- Column 3: Heart Morphs to Tick & Wipes Care Taker Name -->
-      <article class="ct-pipeline-card ${activeStage === 2 ? 'ct-pipeline-card--active' : ''}" data-pipeline-card="2">
-        <div class="ct-pipeline-card__head">
-          <span class="ct-tag ct-tag--accent">3 • Heart -> Tick Check</span>
-          <span class="ct-status ${statusClass}">${icon('check')}Verified</span>
-        </div>
-        <div class="ct-morph-showcase ct-morph-showcase--compact">
-          <div class="ct-morph-icon-wrap">
-            <div class="ct-morph-pulse-ring"></div>
-            <svg class="ct-morph-svg ct-morph-svg--animating" viewBox="0 0 24 24">
-              <path class="ct-morph-path ct-morph-path--heart" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              <path class="ct-morph-path ct-morph-path--tick" d="M20 6L9 17l-5-5"/>
-            </svg>
-          </div>
-          <div class="ct-wipe-container">
-            <div class="ct-wipe-brand">
-              <span class="ct-wipe-app-name">Care Taker</span>
-              <span class="ct-wipe-bar" aria-hidden="true"></span>
-            </div>
-            <span class="ct-wipe-badge">${esc(sc.statusBadge)}</span>
-            <p class="ct-wipe-desc">${esc(sc.reportStatus)}</p>
-          </div>
-        </div>
-      </article>
-
-      <!-- Column 4: Visual Clinical Reports Across All Roles -->
-      <article class="ct-pipeline-card ${activeStage === 3 ? 'ct-pipeline-card--active' : ''}" data-pipeline-card="3">
-        <div class="ct-pipeline-card__head">
-          <span class="ct-tag ct-tag--accent">4 • Clinical Reports</span>
-          <span class="small muted">All 5 roles synced</span>
-        </div>
-        <div class="ct-mini-reports">
-          <div class="ct-mini-report-row">
-            <strong>${icon('user')}Hospital desk:</strong>
-            <span>${esc(sc.deskStatus)}</span>
-          </div>
-          <div class="ct-mini-report-row">
-            <strong>${icon('flag')}Nurse board:</strong>
-            <span>${esc(sc.nurseStatus)}</span>
-          </div>
-          <div class="ct-mini-report-row">
-            <strong>${icon('stethoscope')}Doctor report:</strong>
-            <span>${esc(sc.doctorStatus)}</span>
-          </div>
-          <div class="ct-mini-report-row">
-            <strong>${icon('users')}Family strip:</strong>
-            <span>${esc(sc.familyStatus)}</span>
-          </div>
-          <div class="ct-report-week-preview" aria-label="7-day dose strip preview">
-            <span class="ct-report-day ct-report-day--taken">M ✓</span>
-            <span class="ct-report-day ct-report-day--taken">T ✓</span>
-            <span class="ct-report-day ct-report-day--taken">W ✓</span>
-            <span class="ct-report-day ct-report-day--taken">T ✓</span>
-            <span class="ct-report-day ct-report-day--today">F •</span>
-            <span class="ct-report-day">S</span>
-            <span class="ct-report-day">S</span>
-          </div>
-        </div>
-      </article>
-    </div>
-
-    <div class="ct-flow-footer">
-      <span>Click any card or scenario above to inspect how spoken replies convert into verified hospital reports.</span>
-      <div class="ct-flow-links">
-        <a href="#desk">Hospital desk</a>
-        <a href="#nurse">Nurse board</a>
-        <a href="#phone">Patient phone</a>
-        <a href="#family">Family</a>
-        <a href="#doctor">Doctor</a>
-      </div>
-    </div>
-  `;
-
-  mount.querySelectorAll('[data-pipeline-card]').forEach((card) => {
-    card.addEventListener('click', () => {
-      activeStage = Number(card.getAttribute('data-pipeline-card'));
-      renderAnimationStage();
-      restartAnimationTimer();
-    });
-  });
-}
-
-function startAnimationTimer() {
-  if (animTimer) clearInterval(animTimer);
-  animTimer = setInterval(() => {
-    if (isPaused) return;
-    activeStage = (activeStage + 1) % 4;
-    renderAnimationStage();
-  }, 3200);
-}
-
-function restartAnimationTimer() {
-  if (!isPaused) {
-    startAnimationTimer();
-  }
-}
-
-function onWindowScroll() {
-  if (!el) return;
-  if (scrollRaf) return;
-  scrollRaf = window.requestAnimationFrame(() => {
-    scrollRaf = null;
-    if (!el) return;
-    const vh = window.innerHeight || document.documentElement.clientHeight;
-
-    // Update 3-stage rail progress fill & active card highlight on scroll
-    const railSec = el.querySelector('#rail-section');
-    if (railSec) {
-      const r = railSec.getBoundingClientRect();
-      const total = r.height + vh * 0.4;
-      const scrolled = vh * 0.65 - r.top;
-      const ratio = Math.min(1, Math.max(0, scrolled / Math.max(1, total)));
-
-      const cols = el.querySelectorAll('.ct-rail__col');
-      cols.forEach((col, idx) => {
-        const cr = col.getBoundingClientRect();
-        const isActive = cr.top < vh * 0.78 && cr.bottom > vh * 0.18;
-        col.classList.toggle('ct-rail__col--active', isActive || ratio > (idx + 0.3) / 3);
-      });
-    }
-  });
-}
-
-function initScrollReveals() {
-  if (!el) return;
-  if (scrollObserver) {
-    scrollObserver.disconnect();
-    scrollObserver = null;
-  }
-
-  const revealElements = Array.from(el.querySelectorAll('.ct-reveal'));
-
-  if ('IntersectionObserver' in window) {
-    scrollObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('ct-revealed');
-          }
-        });
-      },
-      {
-        threshold: 0.06,
-        rootMargin: '0px 0px -24px 0px',
-      }
-    );
-
-    revealElements.forEach((node) => scrollObserver.observe(node));
-  } else {
-    revealElements.forEach((node) => node.classList.add('ct-revealed'));
-  }
-
-  window.addEventListener('scroll', onWindowScroll, { passive: true });
-  onWindowScroll();
-}
-
-export async function refresh() {
-  if (!el) return;
-  const box = el.querySelector('#home-metrics');
-  if (!box) return;
-  try {
-    const m = await api('/api/measures');
-    if (!el) return;
-    const tile = (val, label, target = '', state = '') => `
-      <div class="ct-metric ${state}">
-        <span class="ct-metric__value">${esc(val)}</span>
-        <span class="ct-metric__label">${esc(label)}</span>
-        ${target ? `<span class="ct-metric__target">${target}</span>` : ''}
-      </div>`;
-    box.innerHTML = [
-      tile(m.logsWithoutYes, 'Doses logged without a yes', `${icon(m.logsWithoutYes ? 'alert' : 'check')}Must be 0`, m.logsWithoutYes ? 'ct-metric--bad' : 'ct-metric--ok'),
-      tile(`${m.takenPct}%`, `Doses confirmed (${m.taken} of ${m.dosesResolved})`),
-      tile(m.activePatients, 'Verified patients on calls', `${m.awaitingVerify} awaiting nurse`),
-      tile(m.openFlags, 'Open care-team flags', m.flagsByType.urgent ? `${icon('alert')}${m.flagsByType.urgent} urgent` : 'Sorted by clinical priority', m.flagsByType.urgent ? 'ct-metric--bad' : ''),
-    ].join('');
-  } catch (err) {
-    console.warn('refresh measures failed', err);
-  }
-}
+export async function refresh() {}
 
 export function unmount() {
-  stopRibbon();
-  if (animTimer) {
-    clearInterval(animTimer);
-    animTimer = null;
-  }
-  if (scrollObserver) {
-    scrollObserver.disconnect();
-    scrollObserver = null;
-  }
-  if (scrollRaf) {
-    window.cancelAnimationFrame(scrollRaf);
-    scrollRaf = null;
-  }
-  window.removeEventListener('scroll', onWindowScroll);
+  stopHeroCall();
+  unmountStories();
   el = null;
 }
