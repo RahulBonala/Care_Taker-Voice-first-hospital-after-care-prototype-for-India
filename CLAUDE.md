@@ -14,7 +14,7 @@ Voice-first hospital after-care prototype for India (Scaler x Wispr Flow hackath
 3. No native npm modules (no better-sqlite3, bcrypt, sharp, node-gyp). Pure JS only.
 4. Nothing is logged as "taken" without a spoken or pressed yes. Never guess "taken".
 5. No medical advice anywhere in UI, voice lines or docs. Health questions go to the nurse.
-6. Every screen shows the banner "Sample data. Not medical advice."
+6. Every screen shows "Sample data. Not medical advice." (in the footer of every page and under the home hero buttons; the top strip was removed on request).
 7. Use only design tokens from `public/css/tokens.css`. No hex values, raw pixel font sizes or inline styles anywhere else.
 8. No em dash or en dash characters anywhere in code, UI text, voice lines or docs. Use a comma, colon or full stop.
 9. Works at 360px wide, keyboard accessible, WCAG AA contrast.

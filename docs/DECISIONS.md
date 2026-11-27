@@ -52,7 +52,7 @@ Choices made during the build where the specification left room for interpretati
 
 ## 13. Voice to report ribbon rebuilt
 - **Context:** The landing page should show a reply turning into a report: words appear, then processing, then the clean report on the right, then the report in Care Taker.
-- **Decision:** `public/js/voice-ribbon.js` runs four example calls (Telugu, Hindi, Tamil, English and Hindi). Each word of the spoken reply appears along the left curve, the pill listens then processes, the report writes itself onto the dark band, and a Care Taker report card fills in. Each example follows the real rules (unwell outranks taken, nothing logged without a yes). Under 900px the same steps stack vertically. Under reduced motion the final state is shown with no animation, and a Pause button stops the loop.
+- **Superseded on 28 Nov by the hero call (below).** `public/js/voice-ribbon.js` ran four example calls (Telugu, Hindi, Tamil, English and Hindi). Each word of the spoken reply appears along the left curve, the pill listens then processes, the report writes itself onto the dark band, and a Care Taker report card fills in. Each example follows the real rules (unwell outranks taken, nothing logged without a yes). Under 900px the same steps stack vertically. Under reduced motion the final state is shown with no animation, and a Pause button stops the loop.
 
 ## 14. Step 04 scroll animation and smooth scrolling
 - **Context:** The numbered rows from step 04 of the earlier portfolio site were missing.
@@ -66,4 +66,31 @@ Choices made during the build where the specification left room for interpretati
   - Readings can also be said or typed ("BP 130 by 85", "sugar 145 after food", Hindi and Telugu words for BP and sugar are understood).
   - The doctor sets alert ranges per patient. A reading outside a range raises a "Reading to review" flag, sorted right after Urgent. One open flag per reading type is kept up to date instead of stacking duplicates.
   - Feedback is factual only (steps against the doctor's goal, averages, sleep, last readings against ranges). A test checks it never contains advice words. Out-of-range lines always say a nurse will look at it.
+
+## 16. Sample data notice moved from the top strip to the footer and hero
+- **Context:** The owner asked to remove the top "Sample data. Not medical advice." strip. The brief and CLAUDE.md rule 6 require the notice on every screen.
+- **Decision:** The strip is gone. The exact sentence stays visible on every page in the footer, and under the home hero buttons. CLAUDE.md rule 6 now says where it lives. The check script still verifies the sentence on every HTML page.
+
+## 17. Top bar: Features menu, no clock, no scroll line
+- **Context:** The five role screens crowded the bar, and the owner asked for them under Features, without the clock or the line under the bar.
+- **Decision:** Overview, Features (a menu with the five roles and Health devices, one line each), Tour, Mobile app, Devices, and Call. The menu opens on click and on hover, closes on Escape or an outside click, and returns focus. Under 900px the links fold into a Menu panel. The simulated clock now shows on the role screens, where it matters, above each page title.
+
+## 18. Tagline
+- **Context:** "Don't type, just speak. Don't miss, just answer." described voice input in general, not this product.
+- **Decision:** "Just answer the call. Every dose, confirmed." The patient's only job is to answer; Care Taker's promise is that every dose is confirmed before it counts. Sub line: "In your language, by voice or keypad, on any phone."
+
+## 19. Logo
+- **Decision:** A phone outline with a heart inside, and two voice waves in marigold. Inline SVG so its colours come from the tokens. Used in the top bar, footer, legal pages and favicon.
+
+## 20. Pinned scroll stories instead of a scroll library
+- **Context:** The owner wanted sections that stay on screen while their steps advance with the scroll, like their portfolio. The portfolio's own page names GSAP scroll choreography, but its source could not be read from here.
+- **Decision:** `public/js/story.js` pins a section with CSS sticky and moves one step per slice of scroll (the same pin-and-scrub idea as GSAP ScrollTrigger), on top of the portfolio's smooth scroll and reveal timings already in `motion.js`. No extra library. Under 900px, or with reduced motion, the steps stack and play as they scroll in. If the owner shares the portfolio source, the exact GSAP timings can be matched.
+
+## 21. Ten Indian languages, detection and switching
+- **Context:** Patients should not be limited to four languages; they should pick from a list or just speak.
+- **Decision:** Added Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi and Odia, each with every call line, reply keywords in native script and romanised form, number words, app wording and tests, all marked not yet reviewed by a native speaker. Detection uses a named language first, then the script, then romanised words; Devanagari is split between Hindi and Marathi by their keywords. English alone never moves a call away from an Indian language. Browser speech recognition needs a language set in advance, so without a Sarvam key "detect from voice" listens for the name of the language; with the key, Sarvam detects it from the audio.
+- **Fonts:** Noto Sans Gujarati, Gurmukhi and Oriya were added to `--font-sans` in `tokens.css` so the new scripts render. This is the only change to the given token values.
+
+## 22. The mobile app on a real phone
+- **Decision:** Under 560px the mobile app prototype drops its phone bezel and fills the screen, with the tab bar pinned to the bottom, so on a phone it looks like the app itself rather than a phone inside a phone.
 

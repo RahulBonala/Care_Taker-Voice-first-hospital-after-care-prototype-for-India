@@ -1,6 +1,8 @@
 # Care Taker
 
-Voice-first hospital after-care prototype for India: patients sent home with medicines receive a call at each dose time in their own language, answer by voice or keypad, and confirm a read-back before any dose is logged.
+**Just answer the call. Every dose, confirmed.**
+
+Voice-first hospital after-care prototype for India: patients sent home with medicines get a call at each dose time in their own language (ten Indian languages and English, picked or detected from their voice), answer by voice or keypad, and confirm a read-back before any dose is logged. It works on every device: keypad phones, smartphones, tablets, laptops and desktops.
 
 - **Theme:** Healthcare access (Scaler x Wispr Flow Hackathon, Round 2)
 - **Live demo:** `[LIVE DEMO LINK PLACEHOLDER]`
@@ -125,14 +127,23 @@ Patient -> Prescription -> DoseSlot -> Call -> DoseLog -> Flags / Reports
 
 ## Languages and review status
 
-Languages live as plain JSON files in `server/lang/*.json`. Adding a language requires only adding a config file and test file (see `.claude/skills/add-language/SKILL.md`).
+Languages live as plain JSON files in `server/lang/*.json`: call lines, reply keywords, number words and the patient app's wording. Adding a language requires only adding a config file and test file (see `.claude/skills/add-language/SKILL.md`).
+
+**Choose or just speak.** The hospital desk and the patient app list every language, and both have a **Detect** button. `server/langdetect.js` finds the language from a named language ("Tamil please"), from the script of the reply, or from romanised reply words. If a patient answers a call in another language, Care Taker switches the rest of the call to it and remembers it. English mixed into an Indian language is normal and never switches a call. With `SARVAM_API_KEY` set, the audio itself is sent for language detection. Without it, the browser listens for the language's name.
 
 | Code | Language | Speech code | Intents covered | Native speaker review |
 |---|---|---|---|---|
-| `te` | Telugu (తెలుగు) | `te-IN` | All 11 intents (Telugu script, romanised, English mix) | `false` (shows `Language under review`) |
-| `hi` | Hindi (हिन्दी) | `hi-IN` | All 11 intents (Devanagari, Hinglish, English mix) | `false` (shows `Language under review`) |
-| `ta` | Tamil (தமிழ்) | `ta-IN` | All 11 intents (Tamil script, romanised, English mix) | `false` (shows `Language under review`) |
-| `en` | English | `en-IN` | All 11 intents | `false` (shows `Language under review`) |
+| `bn` | Bengali (বাংলা) | `bn-IN` | All 11 intents, native script, romanised and English mixing | `false` |
+| `en` | English (English) | `en-IN` | All 11 intents, native script, romanised and English mixing | `false` |
+| `gu` | Gujarati (ગુજરાતી) | `gu-IN` | All 11 intents, native script, romanised and English mixing | `false` |
+| `hi` | Hindi (हिन्दी) | `hi-IN` | All 11 intents, native script, romanised and English mixing | `false` |
+| `kn` | Kannada (ಕನ್ನಡ) | `kn-IN` | All 11 intents, native script, romanised and English mixing | `false` |
+| `ml` | Malayalam (മലയാളം) | `ml-IN` | All 11 intents, native script, romanised and English mixing | `false` |
+| `mr` | Marathi (मराठी) | `mr-IN` | All 11 intents, native script, romanised and English mixing | `false` |
+| `or` | Odia (ଓଡ଼ିଆ) | `or-IN` | All 11 intents, native script, romanised and English mixing | `false` |
+| `pa` | Punjabi (ਪੰਜਾਬੀ) | `pa-IN` | All 11 intents, native script, romanised and English mixing | `false` |
+| `ta` | Tamil (தமிழ்) | `ta-IN` | All 11 intents, native script, romanised and English mixing | `false` |
+| `te` | Telugu (తెలుగు) | `te-IN` | All 11 intents, native script, romanised and English mixing | `false` |
 
 Intent priority order (first match wins, low confidence `< 0.5` or 8s silence is always `unclear`, never `taken`):
 `unwell > optOut > wantPerson > someoneElse > stopped > notEaten > later > notTaken > taken > no > yes`.

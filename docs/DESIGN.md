@@ -215,7 +215,7 @@ The keypad phone on the patient screen: dark ink body, white screen with `--radi
 ### `ct-pill-navbar`
 The floating top bar. A grid with areas `brand toggle roles clock cta`: one row from 1360px, two rows from 900px, three rows on phones. Every label keeps `white-space: nowrap`; the role links become a swipe row on phones instead of wrapping. A 2px scroll progress line runs along the bottom edge (CSS scroll timeline, no script).
 
-### `ct-v2r` (voice to report)
+### `ct-v2r` (voice to report, removed on 28 Nov, replaced by `ct-hcall`)
 Spoken words on a curve, a waveform pill with a status chip below (Listening, Processing, Writing the report, Report created), a dark band carrying the clean report, and a `ct-v2r__report` card that shows the report as it lands in Care Taker. `data-state` on the section drives the animation. Stacks vertically under 900px.
 
 ### `ct-index`
@@ -229,3 +229,23 @@ Seven vertical `<progress>` bars for steps. Bars that reached the doctor's goal 
 
 ### Motion
 `data-reveal` (up, left, right) and `data-reveal-group` from `public/js/motion.js`. Blocks rise 24px over 0.4s, group children 18px over 0.35s, 60ms apart, when they reach 85% of the viewport. Off under reduced motion.
+
+## Components added on 28 Nov
+
+### Logo (`ct-logo`)
+Phone outline and heart in `--color-primary`, voice waves in `--color-accent`. Use the `logo()` helper in `public/js/logo.js` or the inline SVG in `index.html`. Never recolour it outside the tokens.
+
+### `ct-pill-navbar` (updated)
+Brand, links (Overview, Features menu `ct-nav-dd`, Tour, Mobile app, Devices) and Call. `ct-nav-dd__panel` is a two-column menu, one line of explanation per role. Under 900px a `ct-nav-menu` button opens the links as a panel. No clock and no progress line.
+
+### `ct-hcall` (hero call)
+A smartphone on a dose call: caller, chat bubbles (`--bot`, `--patient`) with an English gloss, a waveform and a state line, then `ct-hcall__report` cards for the nurse board, doctor and family that light up one by one. `data-state` drives it: ringing, speaking, listening, processing, done, urgent.
+
+### `ct-story` (pinned scroll story)
+Dark band. `ct-story--4` and `ct-story--6` set the scroll length. Left: `ct-story__tab` list with the active step as a white pill. Right: `ct-story__panel` with copy and a `ct-ui` card whose `ct-ui__step` rows arrive in turn when the panel becomes active.
+
+### `ct-ui`
+Small product cards used inside stories: `ct-ui__row`, `ct-ui__bubble`, `ct-ui__chips`, `ct-ui__flag`, `ct-ui__week`, `ct-ui__bar`, `ct-ui__tiles`, and `ct-ui--keypad` for the keypad phone.
+
+### `ct-langs`, `ct-langpick`, `ct-every`, `ct-simclock`
+Language tiles in native script, the patient app language picker (`aria-pressed` marks the current one), the four-device row, and the simulated time chip on role screens.
