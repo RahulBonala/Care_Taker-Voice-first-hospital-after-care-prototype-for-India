@@ -1,0 +1,19 @@
+{
+  "name": "care-taker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voice-first hospital after-care prototype for India",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test tests/*.test.js",
+    "check": "node scripts/check.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

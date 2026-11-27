@@ -1,0 +1,180 @@
+{
+  "code": "en",
+  "name": "English",
+  "nativeName": "English",
+  "speechCode": "en-IN",
+  "reviewedByNativeSpeaker": false,
+  "twilioVoice": "Google.en-IN-Standard-A",
+  "slots": {
+    "breakfast": "after-breakfast",
+    "lunch": "after-lunch",
+    "dinner": "after-dinner",
+    "night": "bedtime"
+  },
+  "lines": {
+    "greeting": "Hello {name}. This is Care Taker, calling from your hospital.",
+    "askTaken": "Have you eaten? Have you taken your {slot} tablets?",
+    "progress": "You are on day {n} of {total}. Your doctor asked you to complete the course.",
+    "readback": "You took your {slot} tablets at {time}. Is that right? Say yes or press 1.",
+    "confirmed": "Thank you. I have written it down.",
+    "askAgain": "Sorry. Please tell me again. Have you taken your {slot} tablets?",
+    "notTakenOffer": "Will you take it now? I can call back in 30 minutes.",
+    "takeNow": "Please take it now. I will call back in {minutes} minutes to check.",
+    "postponeOk": "Okay. I will call you again in {minutes} minutes.",
+    "postponeLimit": "We have moved this dose three times. I am telling your care team.",
+    "nurseComing": "A nurse will call you in a few minutes.",
+    "askWhyStopped": "Can you tell me why you stopped?",
+    "tellingTeam": "Thank you. I am telling your care team.",
+    "askCallbackWhen": "When should I call back?",
+    "unclear": "Sorry, I did not hear that clearly. Have you taken your {slot} tablets?",
+    "keypad": "Please use the keypad. Press 1 if you have taken it. Press 2 to call later. Press 3 to talk to a nurse.",
+    "noKey": "I did not get an answer. I am telling your care team.",
+    "goodbye": "Take care. I will call again at {time}.",
+    "goodbyeDone": "Take care. This was the last dose of your course.",
+    "optOut": "All right. I will stop the calls. Your care team will be told."
+  },
+  "keywords": {
+    "unwell": [
+      "dizzy",
+      "dizziness",
+      "giddy",
+      "unwell",
+      "not well",
+      "not feeling well",
+      "feel sick",
+      "feeling sick",
+      "feel bad",
+      "feeling bad",
+      "vomit",
+      "vomiting",
+      "pain",
+      "fever",
+      "rash",
+      "breathless",
+      "cant breathe",
+      "chest",
+      "bleeding",
+      "fainted",
+      "headache"
+    ],
+    "optOut": [
+      "stop calls",
+      "stop calling",
+      "dont call",
+      "do not call",
+      "no more calls"
+    ],
+    "wantPerson": [
+      "nurse",
+      "doctor",
+      "talk to someone",
+      "talk to a person",
+      "speak to someone",
+      "real person",
+      "human"
+    ],
+    "someoneElse": [
+      "not at home",
+      "not here",
+      "is out",
+      "is sleeping",
+      "her son",
+      "his son",
+      "her daughter",
+      "his daughter",
+      "wrong number",
+      "this is her",
+      "this is his"
+    ],
+    "stopped": [
+      "stopped",
+      "i stopped",
+      "stopped taking",
+      "quit",
+      "not taking anymore",
+      "dont need it",
+      "no longer taking"
+    ],
+    "notEaten": [
+      "not eaten",
+      "havent eaten",
+      "didnt eat",
+      "did not eat",
+      "not had food",
+      "no food yet",
+      "not had my food"
+    ],
+    "later": [
+      "later",
+      "hours",
+      "minutes",
+      "minute",
+      "mins",
+      "hour",
+      "after some time",
+      "call back",
+      "call me back",
+      "in a while"
+    ],
+    "notTaken": [
+      "not taken",
+      "havent taken",
+      "didnt take",
+      "did not take",
+      "forgot",
+      "not yet",
+      "missed it"
+    ],
+    "taken": [
+      "taken",
+      "took",
+      "i took",
+      "had it",
+      "have taken",
+      "swallowed",
+      "done"
+    ],
+    "no": [
+      "no",
+      "nope",
+      "wrong",
+      "not right",
+      "incorrect"
+    ],
+    "yes": [
+      "yes",
+      "yeah",
+      "yep",
+      "correct",
+      "right",
+      "ok",
+      "okay",
+      "thats right",
+      "sure"
+    ]
+  },
+  "numbers": {
+    "ten": 10,
+    "fifteen": 15,
+    "twenty": 20,
+    "twenty five": 25,
+    "thirty": 30,
+    "forty": 40,
+    "forty five": 45,
+    "fifty": 50,
+    "sixty": 60,
+    "ninety": 90,
+    "half an hour": 30,
+    "half hour": 30,
+    "one hour": 60,
+    "an hour": 60
+  },
+  "samples": [
+    "Yes, I took it",
+    "Not yet",
+    "I have not eaten, call me in 20 minutes",
+    "I feel dizzy",
+    "I feel fine, I have stopped",
+    "Yes"
+  ]
+}
