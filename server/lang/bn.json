@@ -1,0 +1,168 @@
+{
+  "code": "bn",
+  "name": "Bengali",
+  "nativeName": "বাংলা",
+  "speechCode": "bn-IN",
+  "reviewedByNativeSpeaker": false,
+  "twilioVoice": "Google.bn-IN-Standard-A",
+  "aliases": [
+    "bengali",
+    "bangla",
+    "বাংলা"
+  ],
+  "slots": {
+    "breakfast": "সকালের জলখাবারের পরের",
+    "lunch": "দুপুরের খাবারের পরের",
+    "dinner": "রাতের খাবারের পরের",
+    "night": "রাতের"
+  },
+  "lines": {
+    "greeting": "নমস্কার {name}। আমি আপনার হাসপাতাল থেকে কেয়ার টেকার বলছি।",
+    "askTaken": "আপনি কি খেয়েছেন? আপনার {slot} ওষুধ খেয়েছেন?",
+    "progress": "আজ আপনার {total} দিনের কোর্সের {n} নম্বর দিন। ডাক্তার কোর্স শেষ করতে বলেছেন।",
+    "readback": "আপনি {time}টায় আপনার {slot} ওষুধ খেয়েছেন। ঠিক তো? হ্যাঁ বলুন বা 1 টিপুন।",
+    "confirmed": "ধন্যবাদ। আমি লিখে রাখলাম।",
+    "askAgain": "দুঃখিত। আবার বলুন। আপনার {slot} ওষুধ খেয়েছেন?",
+    "notTakenOffer": "এখন খাবেন? আমি 30 মিনিট পরে আবার ফোন করতে পারি।",
+    "takeNow": "দয়া করে এখনই খেয়ে নিন। আমি {minutes} মিনিট পরে ফোন করব।",
+    "postponeOk": "ঠিক আছে। আমি {minutes} মিনিট পরে আবার ফোন করব।",
+    "postponeLimit": "এই ডোজ তিনবার পিছিয়েছে। আপনার চিকিৎসা দলকে জানাচ্ছি।",
+    "nurseComing": "কয়েক মিনিটের মধ্যে একজন নার্স আপনাকে ফোন করবেন।",
+    "askWhyStopped": "কেন বন্ধ করলেন, বলবেন?",
+    "tellingTeam": "ধন্যবাদ। আপনার চিকিৎসা দলকে জানাচ্ছি।",
+    "askCallbackWhen": "আমি কখন আবার ফোন করব?",
+    "unclear": "দুঃখিত, ঠিক শুনতে পাইনি। আপনার {slot} ওষুধ খেয়েছেন?",
+    "keypad": "দয়া করে কীপ্যাড ব্যবহার করুন। খেয়ে থাকলে 1। পরে ফোনের জন্য 2। নার্সের জন্য 3।",
+    "noKey": "আমি উত্তর পাইনি। আপনার চিকিৎসা দলকে জানাচ্ছি।",
+    "goodbye": "ভালো থাকবেন। আমি {time}টায় আবার ফোন করব।",
+    "goodbyeDone": "ভালো থাকবেন। এটাই আপনার কোর্সের শেষ ডোজ।",
+    "optOut": "ঠিক আছে। আমি ফোন বন্ধ করছি। আপনার চিকিৎসা দলকে জানানো হবে।"
+  },
+  "keywords": {
+    "unwell": [
+      "মাথা ঘুরছে",
+      "মাথা ঘোরা",
+      "শরীর খারাপ",
+      "ব্যথা",
+      "বমি",
+      "জ্বর",
+      "matha ghurche",
+      "shorir kharap",
+      "sharir kharap",
+      "byatha",
+      "bomi"
+    ],
+    "optOut": [
+      "ফোন বন্ধ করুন",
+      "ফোন করবেন না",
+      "phone bondho korun",
+      "phone korben na"
+    ],
+    "wantPerson": [
+      "নার্সের সাথে",
+      "ডাক্তারের সাথে",
+      "কারও সাথে কথা",
+      "nurse er sathe",
+      "daktar er sathe",
+      "kotha bolte chai"
+    ],
+    "someoneElse": [
+      "বাড়িতে নেই",
+      "বাইরে গেছেন",
+      "ঘুমাচ্ছেন",
+      "barite nei",
+      "baire gechen",
+      "ghumachchen"
+    ],
+    "stopped": [
+      "বন্ধ করে দিয়েছি",
+      "ছেড়ে দিয়েছি",
+      "bondho kore diyechi",
+      "chhere diyechi"
+    ],
+    "notEaten": [
+      "খাবার খাইনি",
+      "ভাত খাইনি",
+      "khabar khaini",
+      "bhat khaini"
+    ],
+    "later": [
+      "পরে",
+      "মিনিট",
+      "ঘণ্টা",
+      "pore",
+      "ghonta"
+    ],
+    "notTaken": [
+      "ওষুধ খাইনি",
+      "খাইনি",
+      "ভুলে গেছি",
+      "এখনো না",
+      "oshudh khaini",
+      "khaini",
+      "bhule gechi"
+    ],
+    "taken": [
+      "খেয়েছি",
+      "খেয়ে নিয়েছি",
+      "খেয়ে ফেলেছি",
+      "kheyechi",
+      "kheye niyechi"
+    ],
+    "no": [
+      "না",
+      "নাহ",
+      "nah"
+    ],
+    "yes": [
+      "হ্যাঁ",
+      "হাঁ",
+      "ঠিক আছে",
+      "hya",
+      "thik ache"
+    ]
+  },
+  "numbers": {
+    "দশ": 10,
+    "dosh": 10,
+    "কুড়ি": 20,
+    "kuri": 20,
+    "ত্রিশ": 30,
+    "tirish": 30,
+    "আধ ঘণ্টা": 30,
+    "adh ghonta": 30,
+    "এক ঘণ্টা": 60,
+    "ek ghonta": 60
+  },
+  "samples": [
+    "খেয়েছি",
+    "হ্যাঁ",
+    "এখনো ওষুধ খাইনি",
+    "khabar khaini, adh ghonta pore phone korun",
+    "মাথা ঘুরছে",
+    "আমি বন্ধ করে দিয়েছি"
+  ],
+  "ui": {
+    "tabToday": "আজ",
+    "tabCall": "কল",
+    "tabHealth": "স্বাস্থ্য",
+    "tabFamily": "পরিবার",
+    "tabMore": "আরও",
+    "hello": "নমস্কার, {name}",
+    "todaysDoses": "আজকের ডোজ",
+    "ringNext": "আমার পরের কল করুন",
+    "dayOf": "{total} দিনের {n} নম্বর দিন",
+    "answer": "ধরুন",
+    "decline": "কাটুন",
+    "keyTaken": "খেয়েছি",
+    "keyLater": "পরে",
+    "keyNurse": "নার্স",
+    "keyStop": "কল বন্ধ করুন",
+    "language": "ভাষা",
+    "chooseLanguage": "আপনার ভাষা বেছে নিন",
+    "detect": "অথবা কথা বলুন, কেয়ার টেকার আপনার ভাষা চিনে নেবে",
+    "shareFamily": "আমার রেকর্ড পরিবারের সঙ্গে শেয়ার করুন",
+    "emergency": "জরুরি অবস্থায় 112 নম্বরে ফোন করুন।",
+    "callsStopped": "আপনি কল বন্ধ করতে বলেছেন।"
+  }
+}

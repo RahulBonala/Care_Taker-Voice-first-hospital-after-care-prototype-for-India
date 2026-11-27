@@ -197,5 +197,32 @@
     "20 minutes tarvata call cheyandi",
     "కళ్ళు తిరుగుతున్నాయి",
     "నేను మానేశాను"
-  ]
+  ],
+  "aliases": [
+    "telugu",
+    "తెలుగు"
+  ],
+  "ui": {
+    "tabToday": "ఈరోజు",
+    "tabCall": "కాల్",
+    "tabHealth": "ఆరోగ్యం",
+    "tabFamily": "కుటుంబం",
+    "tabMore": "మరిన్ని",
+    "hello": "నమస్కారం, {name}",
+    "todaysDoses": "ఈరోజు మోతాదులు",
+    "ringNext": "నా తదుపరి కాల్ చేయండి",
+    "dayOf": "{total} రోజులలో {n}వ రోజు",
+    "answer": "ఎత్తండి",
+    "decline": "తిరస్కరించండి",
+    "keyTaken": "వేసుకున్నాను",
+    "keyLater": "తర్వాత",
+    "keyNurse": "నర్సు",
+    "keyStop": "కాల్స్ ఆపండి",
+    "language": "భాష",
+    "chooseLanguage": "మీ భాషను ఎంచుకోండి",
+    "detect": "లేదా మాట్లాడండి, కేర్ టేకర్ మీ భాషను గుర్తిస్తుంది",
+    "shareFamily": "నా రికార్డును కుటుంబంతో పంచుకోండి",
+    "emergency": "అత్యవసరంలో 112కి కాల్ చేయండి.",
+    "callsStopped": "మీరు కాల్స్ ఆపమన్నారు."
+  }
 }

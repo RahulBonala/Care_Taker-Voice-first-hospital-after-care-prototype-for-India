@@ -11,6 +11,12 @@ const wanted = [
   ['noto-sans-telugu', 'noto-sans-telugu-telugu'],
   ['noto-sans-devanagari', 'noto-sans-devanagari-devanagari'],
   ['noto-sans-tamil', 'noto-sans-tamil-tamil'],
+  ['noto-sans-kannada', 'noto-sans-kannada-kannada'],
+  ['noto-sans-malayalam', 'noto-sans-malayalam-malayalam'],
+  ['noto-sans-bengali', 'noto-sans-bengali-bengali'],
+  ['noto-sans-gujarati', 'noto-sans-gujarati-gujarati'],
+  ['noto-sans-gurmukhi', 'noto-sans-gurmukhi-gurmukhi'],
+  ['noto-sans-oriya', 'noto-sans-oriya-oriya'],
   ['newsreader', 'newsreader-latin'],
 ];
 fs.mkdirSync(out, { recursive: true });

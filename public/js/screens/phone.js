@@ -52,14 +52,14 @@ export function mount(root) {
           </div>
           <div class="ct-phone__state" id="ph-state" role="status"></div>
           <div class="ct-phone__call-keys">
-            <button class="ct-key ct-key--answer" id="ph-answer" type="button">${icon('phone')}Answer</button>
-            <button class="ct-key ct-key--decline" id="ph-decline" type="button">${icon('phone-down')}Decline</button>
+            <button class="ct-key ct-key--answer" id="ph-answer" type="button">${icon('phone')}<span data-ui="answer">Answer</span></button>
+            <button class="ct-key ct-key--decline" id="ph-decline" type="button">${icon('phone-down')}<span data-ui="decline">Decline</span></button>
           </div>
           <div class="ct-phone__keys" id="ph-keys">
-            <button class="ct-key" type="button" data-key="1"><span class="ct-key__num">1</span><span class="ct-key__hint">Taken</span></button>
-            <button class="ct-key" type="button" data-key="2"><span class="ct-key__num">2</span><span class="ct-key__hint">Later</span></button>
-            <button class="ct-key" type="button" data-key="3"><span class="ct-key__num">3</span><span class="ct-key__hint">Nurse</span></button>
-            <button class="ct-key ct-key--wide" type="button" data-key="9"><span class="ct-key__num">9</span><span class="ct-key__hint">Stop calls</span></button>
+            <button class="ct-key" type="button" data-key="1"><span class="ct-key__num">1</span><span class="ct-key__hint" data-ui="keyTaken">Taken</span></button>
+            <button class="ct-key" type="button" data-key="2"><span class="ct-key__num">2</span><span class="ct-key__hint" data-ui="keyLater">Later</span></button>
+            <button class="ct-key" type="button" data-key="3"><span class="ct-key__num">3</span><span class="ct-key__hint" data-ui="keyNurse">Nurse</span></button>
+            <button class="ct-key ct-key--wide" type="button" data-key="9"><span class="ct-key__num">9</span><span class="ct-key__hint" data-ui="keyStop">Stop calls</span></button>
           </div>
         </div>
       </div>
@@ -181,6 +181,8 @@ export async function refresh() {
 
 function renderPhone() {
   if (!el) return;
+  // Keys and call buttons speak the patient's language too.
+  if (L && L.ui) el.querySelectorAll('[data-ui]').forEach((n) => { if (L.ui[n.dataset.ui]) n.textContent = L.ui[n.dataset.ui]; });
   const p = patients.find((x) => x.id === pid);
   const ph = el.querySelector('#ph');
   ph.classList.toggle('ct-phone--ringing', phase === 'ringing');
@@ -320,6 +322,15 @@ async function decline(reason) {
 
 async function processTurn(c, t) {
   call = c;
+  // The patient answered in another language: follow them for the rest of the call.
+  if (c.lang && L && c.lang !== L.code) {
+    const next = cfg.langs.find((l) => l.code === c.lang);
+    if (next) {
+      L = next;
+      voiceLabel = (await voice.outputMode(L.speechCode, cfg.keys.sarvam)).label;
+      toast(`Language switched to ${L.name} (${L.nativeName})`);
+    }
+  }
   const turn = c.turn;
   setPhase('speaking');
   voice.stopListening();

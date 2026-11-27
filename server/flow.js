@@ -8,6 +8,7 @@ const T = require('./time');
 const M = require('./model');
 const lang = require('./lang');
 const { parse, LABELS } = require('./intents');
+const { detect, shouldSwitch } = require('./langdetect');
 
 const MAX_RINGS = 3;      // rings before a slot is missed
 const RETRY_MINUTES = 10; // simulated gap between rings
@@ -42,7 +43,7 @@ function startNext(db, patientId) {
   s.status = 'calling';
   const call = {
     id: M.nextId(db, 'call'), patientId, slotId: s.id, status: 'ringing', rings: 1, answered: false,
-    startedAt: db.clock, endedAt: null, outcome: null, stage: null, unclear: 0, keypadMode: false,
+    startedAt: db.clock, endedAt: null, outcome: null, stage: null, unclear: 0, keypadMode: false, lang: p.lang,
     seq: 0, turn: null, transcript: [], via: 'browser',
   };
   note(call, db, `Ringing at ${T.timeOf(db.clock)} for the ${s.slot} dose, day ${s.day}`);
@@ -188,7 +189,21 @@ function unclear(db, call) {
 function reply(db, call, { text = '', confidence, silence = false, via = 'voice' } = {}) {
   if (call.status !== 'active') throw new FlowError('Call is not active');
   if (call.stage === 'keypad') throw new FlowError('Waiting for a key press');
-  const { p, code } = ctx(db, call);
+  let { p, code } = ctx(db, call);
+  // The patient may answer in another language. Care Taker follows them, and remembers it.
+  let switched = false;
+  if (!silence && text) {
+    const d = detect(text, { current: code });
+    if (shouldSwitch(d, code)) {
+      const from = lang.get(code).name;
+      p.lang = d.lang;
+      p.langChangedAt = db.clock;
+      call.lang = d.lang;
+      code = d.lang;
+      switched = true;
+      note(call, db, `Language switched from ${from} to ${lang.get(d.lang).name} (${d.by === 'name' ? 'asked for it' : d.by === 'script' ? 'answered in its script' : 'answered in its words'})`);
+    }
+  }
   const r = silence ? { text: '', heard: '', intent: 'unclear', reason: 'silence', confidence: null } : parse(text, { lang: code, confidence });
   call.transcript.push({ who: 'patient', text: r.text, heard: r.heard, intent: r.intent, label: LABELS[r.intent],
     minutes: r.minutes || null, confidence: r.confidence, reason: r.reason || null, via: silence ? 'silence' : via, at: db.clock });
@@ -207,6 +222,13 @@ function reply(db, call, { text = '', confidence, silence = false, via = 'voice'
     return postpone(db, call, r.minutes || OFFER_MINUTES, { count: false });
   }
 
+  // Only asked to change language: ask the same question again, now in that language.
+  if (switched && r.intent === 'unclear') {
+    const { s } = ctx(db, call);
+    const again = call.stage === 'confirm' ? lang.line(code, 'readback', { slot: s.slot, time: T.timeOf(call.pendingTaken ? call.pendingTaken.at : db.clock) })
+      : lang.line(code, call.stage === 'ask' ? 'askTaken' : 'askAgain', { slot: s.slot });
+    return say(db, call, [again], call.keypadMode ? 'key' : 'speech');
+  }
   if (r.intent === 'unclear') {
     db.misheard.push({ id: M.nextId(db, 'mis'), patientId: p.id, callId: call.id, lang: code,
       text: r.text || '(silence)', confidence: r.confidence, reason: r.reason, at: db.clock, suggestion: null });

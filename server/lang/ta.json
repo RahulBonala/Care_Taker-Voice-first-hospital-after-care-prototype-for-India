@@ -175,5 +175,32 @@
     "saapidala, 20 nimisham apram",
     "தலை சுற்றுது",
     "niruthitten"
-  ]
+  ],
+  "aliases": [
+    "tamil",
+    "தமிழ்"
+  ],
+  "ui": {
+    "tabToday": "இன்று",
+    "tabCall": "அழைப்பு",
+    "tabHealth": "உடல்நலம்",
+    "tabFamily": "குடும்பம்",
+    "tabMore": "மேலும்",
+    "hello": "வணக்கம், {name}",
+    "todaysDoses": "இன்றைய மாத்திரைகள்",
+    "ringNext": "என் அடுத்த அழைப்பைச் செய்",
+    "dayOf": "{total} நாளில் {n}வது நாள்",
+    "answer": "எடு",
+    "decline": "மறு",
+    "keyTaken": "எடுத்தேன்",
+    "keyLater": "பிறகு",
+    "keyNurse": "நர்ஸ்",
+    "keyStop": "அழைப்புகளை நிறுத்து",
+    "language": "மொழி",
+    "chooseLanguage": "உங்கள் மொழியைத் தேர்ந்தெடுங்கள்",
+    "detect": "அல்லது பேசுங்கள், கேர் டேக்கர் உங்கள் மொழியைக் கண்டறியும்",
+    "shareFamily": "என் பதிவை குடும்பத்துடன் பகிர்",
+    "emergency": "அவசரத்தில் 112 அழைக்கவும்.",
+    "callsStopped": "அழைப்புகளை நிறுத்தச் சொன்னீர்கள்."
+  }
 }

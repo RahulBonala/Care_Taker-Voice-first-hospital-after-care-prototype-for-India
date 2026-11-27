@@ -36,7 +36,8 @@ function publicInfo() {
   return codes().map((c) => {
     const L = langs[c];
     return { code: c, name: L.name, nativeName: L.nativeName, speechCode: L.speechCode,
-      reviewed: !!L.reviewedByNativeSpeaker, samples: L.samples || [], ask: line(c, 'askTaken', { slot: 'breakfast' }).text };
+      reviewed: !!L.reviewedByNativeSpeaker, samples: L.samples || [], ask: line(c, 'askTaken', { slot: 'breakfast' }).text,
+      aliases: L.aliases || [], ui: { ...en.ui, ...(L.ui || {}) } };
   });
 }
 

@@ -42,7 +42,7 @@ const PATIENT_SLIDES = [
     ic: 'globe',
     badge: '1 of 3: Your language',
     title: 'Calls in the language you speak at home',
-    body: 'Care Taker calls in Telugu, Hindi, Tamil, or English at each meal slot. Works on basic keypad phones by voice and keys, and right here on your smartphone.',
+    body: 'Care Taker calls in your own language at each meal slot: ten Indian languages and English. Pick yours, or just speak and it finds it. Works on basic keypad phones by voice and keys, and right here on your smartphone.',
   },
   {
     ic: 'check',
@@ -318,15 +318,16 @@ function renderDevice() {
 
   nav.hidden = false;
   if (persona === 'patient') {
+    const { ui } = uiFor(patients.find((x) => x.id === pid));
     const tabs = [
-      ['today', 'home', 'Today'],
-      ['call', 'phone', 'Call'],
-      ['health', 'watch', 'Health'],
-      ['family', 'users', 'Family'],
-      ['more', 'compass', 'Tour'],
+      ['today', 'home', ui.tabToday || 'Today'],
+      ['call', 'phone', ui.tabCall || 'Call'],
+      ['health', 'watch', ui.tabHealth || 'Health'],
+      ['family', 'users', ui.tabFamily || 'Family'],
+      ['more', 'globe', ui.tabMore || 'More'],
     ];
     nav.innerHTML = tabs.map(([k, ic, lbl]) => `
-      <button type="button" class="ct-device__tab" data-tab="${k}" aria-selected="${appTab === k ? 'true' : 'false'}">${icon(ic)}<span>${lbl}</span></button>`).join('');
+      <button type="button" class="ct-device__tab" data-tab="${k}" aria-selected="${appTab === k ? 'true' : 'false'}">${icon(ic)}<span>${esc(lbl)}</span></button>`).join('');
     body.innerHTML = renderPatientApp();
   } else {
     const tabs = [
@@ -426,6 +427,26 @@ function renderDoctorLogin() {
     </form>`;
 }
 
+// The patient app talks in the patient's language.
+function uiFor(p) {
+  const l = cfg.langs.find((x) => x.code === (p && p.lang)) || cfg.langs.find((x) => x.code === 'en');
+  return { l, ui: l.ui || {} };
+}
+const fillUi = (t, vars) => String(t || '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] === undefined ? m : vars[k]));
+
+function languagePicker(p) {
+  const { l, ui } = uiFor(p);
+  return `
+    <div class="ct-card ct-stack ct-langpick">
+      <div class="ct-row ct-row--between"><strong>${icon('globe')} ${esc(ui.chooseLanguage)}</strong><span class="ct-tag">${esc(l.nativeName)}</span></div>
+      <div class="ct-langpick__grid" role="group" aria-label="Languages">
+        ${cfg.langs.map((x) => `<button type="button" class="ct-langpick__btn" data-act="set-lang" data-lang="${esc(x.code)}" aria-pressed="${x.code === l.code}" lang="${esc(x.code)}"><strong>${esc(x.nativeName)}</strong><span>${esc(x.name)}</span></button>`).join('')}
+      </div>
+      <button type="button" class="ct-btn ct-btn--secondary ct-btn--block" data-act="detect-lang">${icon('mic')}<span>${esc(ui.detect)}</span></button>
+      <p class="small muted" id="mb-lang-note" aria-live="polite"></p>
+    </div>`;
+}
+
 function renderPatientSetup() {
   const p = patients.find((x) => x.id === pid) || patients[0];
   if (!p) return empty('No patient found.', 'user');
@@ -434,11 +455,11 @@ function renderPatientSetup() {
   return `
     <div class="ct-stack">
       <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>Step 3: Quick setup</span>
-      <h2>Hello, ${esc(p.name.split(' ')[0])}</h2>
+      <h2>${esc(fillUi(uiFor(p).ui.hello, { name: p.name.split(' ')[0] }))}</h2>
       <p class="small muted">Check your call preferences before opening your schedule.</p>
+      ${languagePicker(p)}
 
       <div class="ct-card ct-stack">
-        <div class="ct-row ct-row--between"><strong>Call language</strong><span class="ct-tag">${esc(l ? `${l.name} (${l.nativeName})` : p.lang)}</span></div>
         ${rx ? `<p class="small"><strong>Verified medicine:</strong> ${esc(rx.medicine)} ${esc(rx.dose)}, ${rx.days} days (${esc(rx.slots.map((s) => `${SLOT_LABEL[s]} ${cfg.slotTimes[s]}`).join(', '))}).</p>` : ''}
         <fieldset class="ct-fieldset">
           <legend>How do you prefer to answer?</legend>
@@ -492,14 +513,15 @@ function renderPatientApp() {
   const l = cfg.langs.find((x) => x.code === p.lang) || cfg.langs[0];
   const rx = p.prescriptions && p.prescriptions[0];
 
+  const ui = l.ui || {};
   if (appTab === 'today') {
     const todaySlots = (patientReport && patientReport.today) || [];
     return `
       <div class="ct-stack">
         <div class="ct-row ct-row--between">
           <div>
-            <h2>${esc(p.name)}</h2>
-            <p class="small muted">${esc(l.name)} (${esc(l.nativeName)})</p>
+            <h2 lang="${esc(l.code)}">${esc(fillUi(ui.hello, { name: p.name.split(' ')[0] }))}</h2>
+            <button type="button" class="ct-chip ct-chip--lang" data-tab="more">${icon('globe')}<span>${esc(l.nativeName)}, ${esc(l.name)}</span></button>
           </div>
           <select class="ct-select" id="mb-switch-pat" aria-label="Switch patient">
             ${patients.filter((x) => x.verified).map((x) => `<option value="${esc(x.id)}" ${x.id === p.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}
@@ -508,14 +530,14 @@ function renderPatientApp() {
 
         ${rx ? `<div class="ct-card ct-stack">
           <div class="ct-row ct-row--between"><strong>${esc(rx.medicine)} ${esc(rx.dose)}</strong><span class="small muted tabular">${rx.completionPct}% done</span></div>
-          ${progress(rx.day, rx.days, `Day ${rx.day} of ${rx.days}`, `${rx.taken} of ${rx.totalDoses} confirmed`)}
+          ${progress(rx.day, rx.days, fillUi(ui.dayOf, { n: rx.day, total: rx.days }), `${rx.taken} / ${rx.totalDoses}`)}
           ${p.callsStopped
-            ? `<div class="ct-notice ct-notice--warn">${icon('stop')}<p class="small">You asked to stop calls.</p></div>`
-            : `<button type="button" class="ct-btn ct-btn--primary ct-btn--block" data-act="ring-next">${icon('phone')}Ring next dose call (${p.nextDue ? esc(hm(p.nextDue)) : 'done'})</button>`}
+            ? `<div class="ct-notice ct-notice--warn">${icon('stop')}<p class="small">${esc(ui.callsStopped)}</p></div>`
+            : `<button type="button" class="ct-btn ct-btn--primary ct-btn--block" data-act="ring-next">${icon('phone')}${esc(ui.ringNext)}${p.nextDue ? `, ${esc(hm(p.nextDue))}` : ''}</button>`}
         </div>` : ''}
 
         <div class="ct-card ct-stack">
-          <strong>Today's doses</strong>
+          <strong>${esc(ui.todaysDoses)}</strong>
           <ul class="ct-list">
             ${todaySlots.length ? todaySlots.map((s) => `<li><span>${esc(SLOT_LABEL[s.slot])}</span>${slotStatus(s)}</li>`).join('') : `<li>${empty('No doses today.', 'calendar')}</li>`}
           </ul>
@@ -624,7 +646,7 @@ function renderPatientApp() {
           </div>
           <label class="ct-check">
             <input type="checkbox" data-toggle-share="${esc(p.id)}" ${p.shareWithFamily ? 'checked' : ''}>
-            <span>Share my dose record and spoken words with family</span>
+            <span>${esc(ui.shareFamily)}</span>
           </label>
         </div>
 
@@ -653,10 +675,11 @@ function renderPatientApp() {
 
   return `
     <div class="ct-stack">
+      ${languagePicker(p)}
       <div class="ct-card ct-stack">
         <strong>Consent and safety</strong>
         <p class="small muted">Consent recorded by ${esc((p.consent && p.consent.recordedBy) || 'Nurse')} for calls in ${esc(l.name)}.</p>
-        <p class="small muted">Care Taker is not an emergency line. In an emergency call 112.</p>
+        <p class="small muted">${esc(ui.emergency)}</p>
       </div>
       <button type="button" class="ct-btn ct-btn--secondary ct-btn--block" data-act="replay-tour">Replay onboarding tour</button>
       <button type="button" class="ct-btn ct-btn--ghost ct-btn--block" data-act="sign-out">Sign out / switch account</button>
@@ -870,6 +893,27 @@ async function onClick(e) {
     appTab = 'triage';
     await loadData();
     renderAll();
+  }
+  else if (act === 'set-lang') {
+    const code = actEl.dataset.lang;
+    await api(`/api/patients/${encodeURIComponent(pid)}`, { method: 'PATCH', body: { lang: code } });
+    await loadData();
+    renderDevice();
+    const x = cfg.langs.find((y) => y.code === code);
+    toast(`Language set to ${x.name} (${x.nativeName}). Calls and this app now use it.`);
+  }
+  else if (act === 'detect-lang') {
+    const note = el.querySelector('#mb-lang-note');
+    actEl.disabled = true;
+    const r = await voice.detectLanguageByVoice({ sarvamKey: cfg.keys.sarvam, onListening: (t) => { if (note) note.textContent = t; } });
+    if (!el) return;
+    actEl.disabled = false;
+    if (r.error) { if (note) note.textContent = r.error; return; }
+    await api(`/api/patients/${encodeURIComponent(pid)}`, { method: 'PATCH', body: { lang: r.lang } });
+    await loadData();
+    renderDevice();
+    const x = cfg.langs.find((y) => y.code === r.lang);
+    toast(`Detected ${x.name} (${x.nativeName}). Calls and this app now use it.`);
   }
   else if (act === 'replay-tour') { slideIdx = 0; stage = 'tour'; renderAll(); }
   else if (act === 'sign-out') { otpSent = false; stage = 'login'; renderAll(); }

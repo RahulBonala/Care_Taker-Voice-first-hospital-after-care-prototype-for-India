@@ -11,6 +11,7 @@ const { parseRx } = require('./rxparse');
 const { report, measures, courseStats } = require('./report');
 const H = require('./health');
 const { parseReading } = require('./readingparse');
+const { detect: detectLang } = require('./langdetect');
 const keys = require('./adapters/keys');
 const sarvam = require('./adapters/sarvam');
 const llm = require('./adapters/llm');
@@ -94,6 +95,10 @@ function createApp() {
     const p = M.patient(d, req.params.id);
     if (!p) throw bad('Patient not found');
     if (typeof req.body.shareWithFamily === 'boolean') p.shareWithFamily = req.body.shareWithFamily;
+    if (req.body.lang !== undefined) {
+      if (!lang.codes().includes(req.body.lang)) throw bad('Unknown language');
+      if (req.body.lang !== p.lang) { p.lang = req.body.lang; p.langChangedAt = d.clock; }
+    }
     return p;
   }));
 
@@ -116,6 +121,11 @@ function createApp() {
     d.prescriptions.push(rx);
     return rx;
   }));
+  // Which language is this text in? Used by "detect from voice" on the desk and in the patient app.
+  app.post('/api/detect-language', (req, res) => {
+    const r = detectLang((req.body || {}).text || '');
+    res.json(r ? { ...r, name: lang.get(r.lang).name, nativeName: lang.get(r.lang).nativeName } : { lang: null });
+  });
   app.post('/api/parse-rx', (req, res) => res.json(parseRx((req.body || {}).text)));
 
   // Only verified patients get slots.
@@ -208,7 +218,14 @@ function createApp() {
     return sarvam.tts(String(b.text || ''), lang.get(b.lang).speechCode);
   }));
   app.post('/api/stt', express.raw({ type: () => true, limit: '5mb' }), act(async (req) => {
-    return sarvam.stt(req.body, req.headers['content-type'], lang.get(req.query.lang).speechCode);
+    // lang=auto asks Sarvam to detect the language as well as the words.
+    const auto = req.query.lang === 'auto';
+    const out = await sarvam.stt(req.body, req.headers['content-type'], auto ? 'unknown' : lang.get(req.query.lang).speechCode);
+    if (out.languageCode) {
+      const code = lang.codes().find((c) => lang.get(c).speechCode === out.languageCode);
+      if (code) out.lang = code;
+    }
+    return out;
   }));
   app.post('/api/twilio/call/:patientId', act(async (req, d) => {
     const st = keys.status();

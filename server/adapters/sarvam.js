@@ -24,7 +24,7 @@ async function stt(buffer, mime, speechCode) {
   const res = await fetch(`${BASE}/speech-to-text`, { method: 'POST', headers: { 'api-subscription-key': process.env.SARVAM_API_KEY }, body: form });
   if (!res.ok) throw new Error(`Sarvam STT failed with ${res.status}`);
   const json = await res.json();
-  return { text: json.transcript || '', confidence: null };
+  return { text: json.transcript || '', confidence: null, languageCode: json.language_code || null };
 }
 
 module.exports = { tts, stt };

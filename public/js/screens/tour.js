@@ -27,7 +27,7 @@ const TRACKS = {
         title: 'Agree in your own language at discharge',
         hint: 'Keypad phone or smartphone, explicit opt-in',
         badge: 'Step 1 of 5: Patient onboarding',
-        body: 'Before leaving the hospital, the patient chooses the language they speak at home (Telugu, Hindi, Tamil, or English) and whether they use a keypad phone or a smartphone. Nothing starts until the patient agrees to receive dose calls and knows how to stop them at any time.',
+        body: 'Before leaving the hospital, the patient chooses the language they speak at home from ten Indian languages and English, or simply speaks and Care Taker detects it, and whether they use a keypad phone or a smartphone. Nothing starts until the patient agrees to receive dose calls and knows how to stop them at any time.',
         underHood: 'Consent is stored with the language, timestamp, and recording nurse name. Saying "stop calls" or pressing key 9 cancels all future calls immediately.',
         actionHref: '#mobile?persona=patient&stage=tour',
         actionLabel: 'Try patient mobile onboarding',

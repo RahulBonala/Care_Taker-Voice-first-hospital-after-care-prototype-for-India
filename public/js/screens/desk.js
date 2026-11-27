@@ -20,7 +20,14 @@ export async function mount(root) {
           <div class="ct-form-grid">
             ${field('name', 'Full name', '<input class="ct-input" id="f-name" name="name" required autocomplete="off">')}
             ${field('age', 'Age', '<input class="ct-input" id="f-age" name="age" type="number" min="0" max="120" inputmode="numeric">')}
-            ${field('lang', 'Call language', `<select class="ct-select" id="f-lang" name="lang">${langOptions}</select>`, 'Calls are in this language')}
+            <div class="ct-field">
+              <label class="ct-field__label" for="f-lang">Call language</label>
+              <div class="ct-row ct-row--nowrap">
+                <select class="ct-select" id="f-lang" name="lang">${langOptions}</select>
+                <button class="ct-btn ct-btn--secondary" type="button" id="f-lang-detect">${icon('mic')}<span>Detect</span></button>
+              </div>
+              <span class="ct-field__help" id="f-lang-help">Choose, or let the patient speak and Care Taker finds the language. It also switches if they answer a call in another one.</span>
+            </div>
             ${field('phone', 'Phone number', '<input class="ct-input" id="f-phone" name="phone" type="tel" autocomplete="off" placeholder="+91">')}
             <fieldset class="ct-fieldset ct-span-2"><legend>Phone type</legend>
               <div class="ct-choices">
@@ -101,6 +108,19 @@ export async function mount(root) {
   el.querySelector('#f-fill').addEventListener('click', () => fillFrom(el.querySelector('#f-dictate').value));
   el.querySelector('#f-dictate').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fillFrom(e.target.value); } });
   el.querySelector('#f-mic').addEventListener('click', dictate);
+  el.querySelector('#f-lang-detect').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const help = el.querySelector('#f-lang-help');
+    btn.disabled = true;
+    const r = await voice.detectLanguageByVoice({ sarvamKey: cfg.keys.sarvam, onListening: (t) => { help.textContent = t; } });
+    if (!el) return;
+    btn.disabled = false;
+    if (r.error) { help.textContent = r.error; return; }
+    const l = cfg.langs.find((x) => x.code === r.lang);
+    el.querySelector('#f-lang').value = r.lang;
+    el.querySelector('#f-lang').dispatchEvent(new Event('change', { bubbles: true }));
+    help.textContent = `Detected ${l.name} (${l.nativeName}) from "${r.text}".`;
+  });
   refresh();
 }
 

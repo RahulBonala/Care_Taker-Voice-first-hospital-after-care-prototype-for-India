@@ -218,3 +218,25 @@ export function startRing() {
   } catch { ringer = null; }
 }
 export function stopRing() { if (ringer) { ringer.stop(); ringer = null; } }
+
+// Finds the patient's language from their voice.
+// With a Sarvam key, the audio itself is sent for language detection. Without one, the browser
+// listens for the name of a language ("Tamil", "Kannada") or for words it can place.
+export async function detectLanguageByVoice({ sarvamKey = false, onListening = () => {} } = {}) {
+  let text = '';
+  if (sarvamKey) {
+    onListening('Listening. Say anything in your language.');
+    const r = await recordAndTranscribe('auto', 5000);
+    if (r.lang) return { lang: r.lang, text: r.text, by: 'voice' };
+    text = r.text;
+  } else {
+    if (!canRecognize()) return { error: 'Speech recognition needs Chrome. Choose from the list instead.' };
+    onListening('Listening. Say the name of your language, for example "Tamil".');
+    const r = await listen({ speechCode: 'en-IN', silenceMs: 7000 });
+    if (r.error) return { error: r.error === 'not-allowed' ? 'Microphone is blocked. Choose from the list instead.' : `Microphone stopped (${r.error}). Choose from the list instead.` };
+    text = r.text || '';
+  }
+  if (!text) return { error: 'Nothing heard. Try again or choose from the list.' };
+  const d = await post('/api/detect-language', { text });
+  return d.lang ? { lang: d.lang, text, by: d.by } : { error: `Heard "${text}" but could not place the language. Choose from the list.` };
+}

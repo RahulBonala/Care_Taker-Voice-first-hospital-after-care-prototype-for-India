@@ -89,4 +89,4 @@ const LABELS = {
   taken: 'Taken', no: 'No', yes: 'Yes', unclear: 'Unclear',
 };
 
-module.exports = { parse, normalize, extractMinutes, PRIORITY, LABELS, MIN_CONFIDENCE, DEFAULT_MINUTES };
+module.exports = { parse, normalize, contains, extractMinutes, PRIORITY, LABELS, MIN_CONFIDENCE, DEFAULT_MINUTES };

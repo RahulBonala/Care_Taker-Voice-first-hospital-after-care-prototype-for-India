@@ -49,7 +49,7 @@ const DEVICES = [
 
 const PROMISES = [
   ['A nurse verifies first', 'No call goes out until a nurse checks the prescription and the recorded consent.'],
-  ['The patient\'s own language', 'Telugu, Hindi, Tamil or English, on a keypad phone or a smartphone.'],
+  ['The patient\'s own language', 'Ten Indian languages and English, picked from a list or detected from the reply.'],
   ['Read back before logging', 'Care Taker repeats the dose and the time. Only a spoken yes or a pressed 1 logs it.'],
   ['Unclear is never taken', 'Low confidence or eight seconds of silence asks again, then offers the keypad.'],
   ['Health questions go to a person', 'Feeling unwell or asking for someone raises an urgent flag for the nurse.'],
@@ -65,7 +65,7 @@ const COMPARISON = [
   ],
   [
     'Language on the call',
-    'Speaks and understands Telugu, Hindi, Tamil, and English, including Hinglish and romanised replies.',
+    'Speaks and understands ten Indian languages and English, including mixed and romanised replies, and detects the language from the reply.',
     'English menus or one-way text alerts that elders often ignore.',
   ],
   [
@@ -276,7 +276,7 @@ export async function mount(root, params) {
             <h2 id="lang-title" class="ct-section-title-lg">Speak your language. Care Taker answers in it.</h2>
             <p class="ct-section-lead">Choose a language from the list, or just start talking. Care Taker detects the language you answer in, switches the call to it, and shows the patient app in it too. Adding a language is adding one file.</p>
             <ul class="ct-checks">
-              <li>${icon('tick')}<span>${langs.length} Indian languages today, mixed with English the way people speak</span></li>
+              <li>${icon('tick')}<span>${langs.filter((l) => l.code !== 'en').length} Indian languages and English, mixed the way people speak</span></li>
               <li>${icon('tick')}<span>Detects the language from the reply and switches mid-call</span></li>
               <li>${icon('tick')}<span>Lines checked by a native speaker are marked reviewed</span></li>
             </ul>

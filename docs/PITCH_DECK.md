@@ -20,7 +20,7 @@
 
 ### Slide 3: How Care Taker works
 - **1. Hospital desk & consent:** At discharge, a nurse dictates the prescription (`"Paracetamol 650, after breakfast and dinner, 5 days"`), records explicit patient consent in their chosen language, and verifies the schedule. Unverified patients never get calls.
-- **2. Voice + keypad call at each dose slot:** Care Taker calls at the scheduled meal slot in Telugu, Hindi, Tamil, or English, asks if the patient has eaten and taken the dose, and reminds them to finish the course from the halfway day onward.
+- **2. Voice + keypad call at each dose slot:** Care Taker calls at the scheduled meal slot in the patient's own language (ten Indian languages and English, picked or detected from the reply), asks if the patient has eaten and taken the dose, and reminds them to finish the course from the halfway day onward.
 - **3. Read-back before logging:** Nothing is ever logged as taken on the first reply. Care Taker reads back the slot and time and logs the dose only after a spoken `"yes"` or pressed `1`.
 - **4. Human escalation, zero medical advice:** Replies like `"chakkar aa raha hai"` (`unwell`), `"stopped"`, repeated silence, or missed calls never get automated medical advice. They raise prioritized flags (`Urgent > Stopped early > Not reachable > Missed`) with the patient's exact words on the Nurse board.
 

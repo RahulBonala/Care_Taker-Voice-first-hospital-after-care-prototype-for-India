@@ -209,5 +209,33 @@
     "haan le li, lekin chakkar aa raha hai",
     "tabiyat theek nahi",
     "maine band kar di, ab theek hoon"
-  ]
+  ],
+  "aliases": [
+    "hindi",
+    "हिन्दी",
+    "हिंदी"
+  ],
+  "ui": {
+    "tabToday": "आज",
+    "tabCall": "कॉल",
+    "tabHealth": "सेहत",
+    "tabFamily": "परिवार",
+    "tabMore": "और",
+    "hello": "नमस्ते, {name}",
+    "todaysDoses": "आज की खुराक",
+    "ringNext": "मेरी अगली कॉल करें",
+    "dayOf": "{total} में से {n}वां दिन",
+    "answer": "उठाएं",
+    "decline": "काटें",
+    "keyTaken": "ले ली",
+    "keyLater": "बाद में",
+    "keyNurse": "नर्स",
+    "keyStop": "कॉल बंद करें",
+    "language": "भाषा",
+    "chooseLanguage": "अपनी भाषा चुनें",
+    "detect": "या बस बोलिए, केयर टेकर आपकी भाषा पहचान लेगा",
+    "shareFamily": "मेरा रिकॉर्ड परिवार के साथ साझा करें",
+    "emergency": "आपातकाल में 112 पर कॉल करें.",
+    "callsStopped": "आपने कॉल बंद करने को कहा."
+  }
 }

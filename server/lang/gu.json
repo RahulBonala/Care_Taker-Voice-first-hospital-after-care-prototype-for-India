@@ -1,0 +1,168 @@
+{
+  "code": "gu",
+  "name": "Gujarati",
+  "nativeName": "ગુજરાતી",
+  "speechCode": "gu-IN",
+  "reviewedByNativeSpeaker": false,
+  "twilioVoice": "Google.gu-IN-Standard-A",
+  "aliases": [
+    "gujarati",
+    "ગુજરાતી"
+  ],
+  "slots": {
+    "breakfast": "નાસ્તા પછીની",
+    "lunch": "બપોરના જમણ પછીની",
+    "dinner": "રાતના જમણ પછીની",
+    "night": "રાતની"
+  },
+  "lines": {
+    "greeting": "નમસ્તે {name}. હું તમારી હોસ્પિટલમાંથી કેર ટેકર બોલું છું.",
+    "askTaken": "તમે જમ્યા? તમારી {slot} ગોળીઓ લીધી?",
+    "progress": "આજે તમારા {total} દિવસના કોર્સનો {n}મો દિવસ છે. ડૉક્ટરે કોર્સ પૂરો કરવા કહ્યું છે.",
+    "readback": "તમે {time} વાગ્યે તમારી {slot} ગોળીઓ લીધી. બરાબર છે? હા કહો અથવા 1 દબાવો.",
+    "confirmed": "આભાર. મેં લખી લીધું છે.",
+    "askAgain": "માફ કરશો. ફરી કહો. તમારી {slot} ગોળીઓ લીધી?",
+    "notTakenOffer": "હમણાં લેશો? હું 30 મિનિટ પછી ફરી ફોન કરી શકું.",
+    "takeNow": "કૃપા કરીને હમણાં જ લઈ લો. હું {minutes} મિનિટ પછી ફોન કરીશ.",
+    "postponeOk": "સારું. હું {minutes} મિનિટ પછી ફરી ફોન કરીશ.",
+    "postponeLimit": "આ ડોઝ ત્રણ વાર પાછળ ગયો છે. હું તમારી સંભાળ ટીમને જણાવું છું.",
+    "nurseComing": "થોડી મિનિટોમાં એક નર્સ તમને ફોન કરશે.",
+    "askWhyStopped": "તમે કેમ બંધ કર્યું તે કહેશો?",
+    "tellingTeam": "આભાર. હું તમારી સંભાળ ટીમને જણાવું છું.",
+    "askCallbackWhen": "હું ફરી ક્યારે ફોન કરું?",
+    "unclear": "માફ કરશો, બરાબર સંભળાયું નહીં. તમારી {slot} ગોળીઓ લીધી?",
+    "keypad": "કૃપા કરીને કીપેડ વાપરો. લીધી હોય તો 1. પછી ફોન માટે 2. નર્સ માટે 3.",
+    "noKey": "મને જવાબ મળ્યો નહીં. હું તમારી સંભાળ ટીમને જણાવું છું.",
+    "goodbye": "ધ્યાન રાખજો. હું {time} વાગ્યે ફરી ફોન કરીશ.",
+    "goodbyeDone": "ધ્યાન રાખજો. આ તમારા કોર્સનો છેલ્લો ડોઝ હતો.",
+    "optOut": "સારું. હું ફોન બંધ કરું છું. તમારી સંભાળ ટીમને જણાવવામાં આવશે."
+  },
+  "keywords": {
+    "unwell": [
+      "ચક્કર આવે છે",
+      "ચક્કર",
+      "તબિયત સારી નથી",
+      "દુખાવો",
+      "ઉલટી",
+      "તાવ",
+      "chakkar aave che",
+      "tabiyat sari nathi",
+      "dukhavo",
+      "taav"
+    ],
+    "optOut": [
+      "ફોન બંધ કરો",
+      "ફોન ન કરશો",
+      "phone bandh karo",
+      "phone na karsho"
+    ],
+    "wantPerson": [
+      "નર્સ સાથે",
+      "ડૉક્ટર સાથે",
+      "કોઈની સાથે વાત",
+      "nurse sathe",
+      "doctor sathe",
+      "vaat karvi che"
+    ],
+    "someoneElse": [
+      "ઘરે નથી",
+      "બહાર ગયા છે",
+      "સૂતા છે",
+      "ghare nathi",
+      "bahar gaya che",
+      "suta che"
+    ],
+    "stopped": [
+      "બંધ કરી દીધી",
+      "છોડી દીધી",
+      "bandh kari didhi",
+      "chhodi didhi"
+    ],
+    "notEaten": [
+      "જમ્યો નથી",
+      "જમી નથી",
+      "હજુ જમ્યા નથી",
+      "jamyo nathi",
+      "jami nathi"
+    ],
+    "later": [
+      "પછી",
+      "મિનિટ",
+      "કલાક",
+      "pachhi",
+      "pachi",
+      "kalak"
+    ],
+    "notTaken": [
+      "લીધી નથી",
+      "નથી લીધી",
+      "ભૂલી ગયો",
+      "ભૂલી ગઈ",
+      "lidhi nathi",
+      "nathi lidhi",
+      "bhuli gayo",
+      "bhuli gai"
+    ],
+    "taken": [
+      "લીધી",
+      "લઈ લીધી",
+      "lidhi",
+      "lai lidhi"
+    ],
+    "no": [
+      "ના",
+      "નથી",
+      "nathi"
+    ],
+    "yes": [
+      "હા",
+      "હાજી",
+      "બરાબર",
+      "haji",
+      "barabar"
+    ]
+  },
+  "numbers": {
+    "દસ": 10,
+    "વીસ": 20,
+    "ત્રીસ": 30,
+    "trees": 30,
+    "અડધો કલાક": 30,
+    "adadho kalak": 30,
+    "એક કલાક": 60,
+    "ek kalak": 60,
+    "vees": 20,
+    "das": 10
+  },
+  "samples": [
+    "લીધી",
+    "હા",
+    "હજુ ગોળી લીધી નથી",
+    "jamyo nathi, vees minute pachhi phone karo",
+    "ચક્કર આવે છે",
+    "મેં ગોળી બંધ કરી દીધી"
+  ],
+  "ui": {
+    "tabToday": "આજે",
+    "tabCall": "કૉલ",
+    "tabHealth": "આરોગ્ય",
+    "tabFamily": "પરિવાર",
+    "tabMore": "વધુ",
+    "hello": "નમસ્તે, {name}",
+    "todaysDoses": "આજના ડોઝ",
+    "ringNext": "મારો આગલો કૉલ કરો",
+    "dayOf": "{total} માંથી {n}મો દિવસ",
+    "answer": "ઉપાડો",
+    "decline": "નકારો",
+    "keyTaken": "લીધી",
+    "keyLater": "પછી",
+    "keyNurse": "નર્સ",
+    "keyStop": "કૉલ બંધ કરો",
+    "language": "ભાષા",
+    "chooseLanguage": "તમારી ભાષા પસંદ કરો",
+    "detect": "અથવા ફક્ત બોલો, કેર ટેકર તમારી ભાષા ઓળખી લેશે",
+    "shareFamily": "મારો રેકોર્ડ પરિવાર સાથે શેર કરો",
+    "emergency": "કટોકટીમાં 112 પર કૉલ કરો.",
+    "callsStopped": "તમે કૉલ બંધ કરવા કહ્યું છે."
+  }
+}

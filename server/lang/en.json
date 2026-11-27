@@ -176,5 +176,31 @@
     "I feel dizzy",
     "I feel fine, I have stopped",
     "Yes"
-  ]
+  ],
+  "aliases": [
+    "english"
+  ],
+  "ui": {
+    "tabToday": "Today",
+    "tabCall": "Call",
+    "tabHealth": "Health",
+    "tabFamily": "Family",
+    "tabMore": "More",
+    "hello": "Hello, {name}",
+    "todaysDoses": "Today's doses",
+    "ringNext": "Ring my next dose call",
+    "dayOf": "Day {n} of {total}",
+    "answer": "Answer",
+    "decline": "Decline",
+    "keyTaken": "Taken",
+    "keyLater": "Later",
+    "keyNurse": "Nurse",
+    "keyStop": "Stop calls",
+    "language": "Language",
+    "chooseLanguage": "Choose your language",
+    "detect": "Or just speak, and Care Taker finds your language",
+    "shareFamily": "Share my record with family",
+    "emergency": "In an emergency, call 112.",
+    "callsStopped": "You asked to stop calls."
+  }
 }
