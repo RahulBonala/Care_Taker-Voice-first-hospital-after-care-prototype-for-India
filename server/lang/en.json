@@ -201,6 +201,27 @@
     "detect": "Or just speak, and Care Taker finds your language",
     "shareFamily": "Share my record with family",
     "emergency": "In an emergency, call 112.",
-    "callsStopped": "You asked to stop calls."
+    "callsStopped": "You asked to stop calls.",
+    "slotBreakfast": "After breakfast",
+    "slotLunch": "After lunch",
+    "slotDinner": "After dinner",
+    "slotNight": "Bedtime",
+    "stPending": "Pending",
+    "stTaken": "Taken",
+    "stLater": "Later",
+    "stMissed": "Missed",
+    "stCalling": "Calling now",
+    "stNurse": "Nurse to call",
+    "pctDone": "{pct}% done",
+    "healthToday": "Today from your devices",
+    "healthShows": "What your devices show",
+    "connected": "Connected",
+    "addDevice": "Add a watch, ring or monitor",
+    "mSteps": "Steps",
+    "mActive": "Active kcal",
+    "mSleep": "Sleep",
+    "mBp": "Blood pressure",
+    "mSugar": "Sugar",
+    "mHeart": "Heart rate"
   }
 }

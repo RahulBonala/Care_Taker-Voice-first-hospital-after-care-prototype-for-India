@@ -434,6 +434,20 @@ function uiFor(p) {
 }
 const fillUi = (t, vars) => String(t || '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] === undefined ? m : vars[k]));
 
+// Meal slot and dose status in the patient's language.
+const SLOT_KEY = { breakfast: 'slotBreakfast', lunch: 'slotLunch', dinner: 'slotDinner', night: 'slotNight' };
+const slotName = (ui, slot) => ui[SLOT_KEY[slot]] || SLOT_LABEL[slot];
+function localSlotStatus(s, ui) {
+  switch (s.status) {
+    case 'taken': return status('taken', `${ui.stTaken}${s.takenAt ? `, ${hm(s.takenAt)}` : ''}`);
+    case 'postponed': return status('later', `${ui.stLater}, ${hm(s.due)}`);
+    case 'flagged': return status('urgent', ui.stNurse);
+    case 'stopped': case 'missed': case 'cancelled': return status('missed', ui.stMissed);
+    case 'calling': return status('pending', ui.stCalling);
+    default: return status('pending', `${ui.stPending}, ${hm(s.due)}`);
+  }
+}
+
 function languagePicker(p) {
   const { l, ui } = uiFor(p);
   return `
@@ -529,7 +543,7 @@ function renderPatientApp() {
         </div>
 
         ${rx ? `<div class="ct-card ct-stack">
-          <div class="ct-row ct-row--between"><strong>${esc(rx.medicine)} ${esc(rx.dose)}</strong><span class="small muted tabular">${rx.completionPct}% done</span></div>
+          <div class="ct-row ct-row--between"><strong>${esc(rx.medicine)} ${esc(rx.dose)}</strong><span class="small muted tabular">${esc(fillUi(ui.pctDone, { pct: rx.completionPct }))}</span></div>
           ${progress(rx.day, rx.days, fillUi(ui.dayOf, { n: rx.day, total: rx.days }), `${rx.taken} / ${rx.totalDoses}`)}
           ${p.callsStopped
             ? `<div class="ct-notice ct-notice--warn">${icon('stop')}<p class="small">${esc(ui.callsStopped)}</p></div>`
@@ -539,7 +553,7 @@ function renderPatientApp() {
         <div class="ct-card ct-stack">
           <strong>${esc(ui.todaysDoses)}</strong>
           <ul class="ct-list">
-            ${todaySlots.length ? todaySlots.map((s) => `<li><span>${esc(SLOT_LABEL[s.slot])}</span>${slotStatus(s)}</li>`).join('') : `<li>${empty('No doses today.', 'calendar')}</li>`}
+            ${todaySlots.length ? todaySlots.map((s) => `<li><span>${esc(slotName(ui, s.slot))}</span>${localSlotStatus(s, ui)}</li>`).join('') : `<li>${empty('No doses today.', 'calendar')}</li>`}
           </ul>
         </div>
       </div>`;
@@ -609,26 +623,26 @@ function renderPatientApp() {
     const n = (v) => (v === null || v === undefined ? 'None' : Number(v).toLocaleString('en-IN'));
     const tile = (v, label) => `<div class="ct-metric"><span class="ct-metric__value">${esc(v)}</span><span class="ct-metric__label">${esc(label)}</span></div>`;
     const tiles = [];
-    if (h.today.steps !== null) tiles.push(tile(n(h.today.steps), `Steps, goal ${n(h.ranges.stepsGoal)}`));
-    if (h.today.activeCalories !== null) tiles.push(tile(n(h.today.activeCalories), 'Active kcal'));
-    if (h.today.sleep !== null) tiles.push(tile(`${Math.floor(h.today.sleep / 60)}h ${h.today.sleep % 60}m`, 'Sleep'));
-    if (h.last.bp) tiles.push(tile(`${h.last.bp.value.sys}/${h.last.bp.value.dia}`, 'Blood pressure'));
-    if (h.last.glucose) tiles.push(tile(String(h.last.glucose.value.mgdl), 'Sugar, mg/dL'));
-    if (h.last.heartRate) tiles.push(tile(String(h.last.heartRate.value.bpm), 'Heart rate'));
+    if (h.today.steps !== null) tiles.push(tile(n(h.today.steps), `${ui.mSteps}, ${n(h.ranges.stepsGoal)}`));
+    if (h.today.activeCalories !== null) tiles.push(tile(n(h.today.activeCalories), ui.mActive));
+    if (h.today.sleep !== null) tiles.push(tile(`${Math.floor(h.today.sleep / 60)}h ${h.today.sleep % 60}m`, ui.mSleep));
+    if (h.last.bp) tiles.push(tile(`${h.last.bp.value.sys}/${h.last.bp.value.dia}`, ui.mBp));
+    if (h.last.glucose) tiles.push(tile(String(h.last.glucose.value.mgdl), `${ui.mSugar}, mg/dL`));
+    if (h.last.heartRate) tiles.push(tile(String(h.last.heartRate.value.bpm), ui.mHeart));
     return `
       <div class="ct-stack">
         <div class="ct-card ct-stack">
-          <strong>Today from your devices</strong>
+          <strong>${esc(ui.healthToday)}</strong>
           ${tiles.length ? `<div class="ct-metrics">${tiles.join('')}</div>` : '<p class="small muted">No readings yet.</p>'}
         </div>
         <div class="ct-card ct-stack">
-          <strong>What your devices show</strong>
+          <strong>${esc(ui.healthShows)}</strong>
           <ul class="ct-feedback">${h.feedback.slice(0, 5).map((f) => `<li class="ct-feedback__item ct-feedback__item--${esc(f.kind)}">${icon(f.kind === 'flag' ? 'alert' : f.kind === 'ok' ? 'check' : 'info')}<span class="small">${esc(f.text)}</span></li>`).join('')}</ul>
         </div>
         <div class="ct-card ct-stack">
-          <strong>Connected</strong>
+          <strong>${esc(ui.connected)}</strong>
           <ul class="ct-list">${h.devices.length ? h.devices.map((d) => `<li><span class="small">${esc(d.name)}</span><span class="small muted">${d.lastSync ? `synced ${esc(hm(d.lastSync))}` : 'paired'}</span></li>`).join('') : '<li><span class="small muted">No device yet.</span></li>'}</ul>
-          <a class="ct-btn ct-btn--secondary ct-btn--block" href="#devices">${icon('watch')}Add a watch, ring or monitor</a>
+          <a class="ct-btn ct-btn--secondary ct-btn--block" href="#devices">${icon('watch')}${esc(ui.addDevice)}</a>
           <p class="small muted">Readings are compared with your doctor's ranges. Questions go to your nurse.</p>
         </div>
       </div>`;
