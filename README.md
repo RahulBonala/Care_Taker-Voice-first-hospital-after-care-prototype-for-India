@@ -58,6 +58,15 @@ Open `http://localhost:3000` to explore both the public product website and the 
 4. **Family (`#family`):** Read-only 7-day dose record and weekly summary built from the patient's own spoken words, visible only when **Share with family** is enabled on the patient record.
 5. **Doctor (`#doctor`):** Course completion percentage, adherence on due doses, and flags with the patient's exact words quoted for the next clinical review.
 
+## Health devices
+
+Open **Devices** in the top bar.
+
+- **Blood pressure monitors, glucose meters, heart rate straps:** press **Pair** in Chrome on a computer or Android phone. Any device that follows the standard Bluetooth health services works. Readings arrive when the device takes one.
+- **Apple Watch, Android smartwatches, smart rings:** these share steps, calories, heart rate and sleep through Apple Health or Health Connect on the phone, which needs the Care Taker phone app. In this prototype, **Add sample** shows how the data looks.
+- **Say or type a reading:** "BP 130 by 85", "sugar 145 after food", "fasting sugar 110".
+- The doctor sets alert ranges on the **Doctor** screen. A reading outside them goes to the **Nurse board** as "Reading to review". Feedback states facts only, never advice.
+
 ## Demo steps (4 acceptance walkthroughs)
 
 Click **Reset sample data** on the **Nurse board** at any time to restore the three seeded patients (`Lakshmi Devi`, `Arjun`, `Meena`) at `08:55` IST.

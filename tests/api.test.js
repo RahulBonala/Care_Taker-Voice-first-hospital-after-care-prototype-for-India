@@ -73,3 +73,24 @@ test('reset reseeds', async () => {
   const patients = await (await fetch(base + '/api/patients')).json();
   assert.equal(patients.length, 3);
 });
+
+test('health devices: add a sample watch, add a spoken reading, out of range reaches the nurse board', async () => {
+  await post('/api/reset');
+  const patients = await (await fetch(base + '/api/patients')).json();
+  const meena = patients.find((p) => p.name === 'Meena');
+  const dev = await (await post('/api/devices', { patientId: meena.id, kind: 'appleWatch', via: 'sample' })).json();
+  assert.equal(dev.via, 'sample');
+  const h = await (await fetch(`${base}/api/health/${meena.id}`)).json();
+  assert.ok(h.devices.some((d) => d.id === dev.id));
+  assert.ok(h.feedback.length > 0);
+  const r = await (await post('/api/readings', { patientId: meena.id, text: 'BP 172 by 104', source: 'voice' })).json();
+  assert.equal(r.reading.type, 'bp');
+  assert.equal(r.flag.type, 'reading');
+  const flags = await (await fetch(`${base}/api/flags?status=open`)).json();
+  assert.equal(flags[0].type === 'urgent' || flags.some((f) => f.type === 'reading' && f.patientId === meena.id), true);
+  assert.equal((await post('/api/readings', { patientId: meena.id, text: 'hello there' })).status, 400);
+  const arjun = patients.find((p) => p.name === 'Arjun');
+  assert.equal((await fetch(`${base}/api/health/${arjun.id}?view=family`)).status, 403, 'family view respects sharing');
+  const del = await fetch(`${base}/api/devices/${dev.id}`, { method: 'DELETE' });
+  assert.equal(del.status, 200);
+});

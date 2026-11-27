@@ -86,6 +86,8 @@ function measures(db) {
     answerPct: db.calls.length ? Math.round((answered / db.calls.length) * 100) : null,
     openFlags: open.length, flagsByType: byType,
     misheard: db.misheard.length,
+    devices: (db.devices || []).length,
+    readingsOutOfRange: (db.readings || []).filter((r) => r.outOfRange).length,
   };
 }
 

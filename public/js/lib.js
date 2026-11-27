@@ -58,7 +58,7 @@ const INTENT_KIND = { taken: 'taken', yes: 'taken', key1: 'taken', later: 'later
 export const intentStatus = (intent, label) => status(INTENT_KIND[intent] || 'unclear', label);
 
 // Flag type -> pill
-const FLAG_KIND = { urgent: ['urgent', 'Urgent'], stoppedEarly: ['stopped', 'Stopped early'], notReachable: ['missed', 'Not reachable'], missed: ['missed', 'Missed'] };
+const FLAG_KIND = { urgent: ['urgent', 'Urgent'], reading: ['later', 'Reading to review'], stoppedEarly: ['stopped', 'Stopped early'], notReachable: ['missed', 'Not reachable'], missed: ['missed', 'Missed'] };
 export const flagStatus = (f) => status(...(FLAG_KIND[f.type] || ['missed', f.type]));
 
 const IST = { timeZone: 'Asia/Kolkata' };

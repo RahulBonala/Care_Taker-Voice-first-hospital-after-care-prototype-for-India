@@ -9,6 +9,8 @@ const flow = require('./flow');
 const lang = require('./lang');
 const { parseRx } = require('./rxparse');
 const { report, measures, courseStats } = require('./report');
+const H = require('./health');
+const { parseReading } = require('./readingparse');
 const keys = require('./adapters/keys');
 const sarvam = require('./adapters/sarvam');
 const llm = require('./adapters/llm');
@@ -32,7 +34,7 @@ function createApp() {
       store.save();
       res.json(out);
     } catch (err) {
-      const status = err.status || (err instanceof flow.FlowError || err.userError ? 400 : 500);
+      const status = err.status || (err instanceof flow.FlowError || err instanceof H.HealthError || err.userError ? 400 : 500);
       if (status === 500) console.error(err);
       res.status(status).json({ error: err.message });
     }
@@ -240,6 +242,42 @@ function createApp() {
       twimlReply(res, out);
     } catch (err) { res.status(400).type('text/xml').send('<Response><Hangup/></Response>'); }
   });
+
+  // ---- health devices and readings
+  app.get('/api/devices/kinds', (req, res) => res.json(H.KINDS));
+  app.get('/api/devices', (req, res) => res.json(db().devices.filter((d) => !req.query.patientId || d.patientId === req.query.patientId)));
+  app.post('/api/devices', act((req, d) => H.addDevice(d, req.body || {})));
+  app.delete('/api/devices/:id', act((req, d) => H.removeDevice(d, req.params.id)));
+  app.post('/api/devices/:id/sync', act((req, d) => {
+    const dev = d.devices.find((x) => x.id === req.params.id);
+    if (!dev) throw bad('Device not found');
+    return H.syncSample(d, dev);
+  }));
+  app.get('/api/readings', (req, res) => {
+    let list = db().readings;
+    if (req.query.patientId) list = list.filter((r) => r.patientId === req.query.patientId);
+    if (req.query.type) list = list.filter((r) => r.type === req.query.type);
+    res.json([...list].sort((a, b) => b.at.localeCompare(a.at)).slice(0, Number(req.query.limit) || 200));
+  });
+  app.post('/api/readings', act((req, d) => {
+    const b = req.body || {};
+    let { type, value } = b;
+    if (b.text) {
+      const parsed = parseReading(b.text);
+      if (!parsed) throw bad('Could not read that. Try "BP 130 by 85" or "sugar 145 after food".');
+      ({ type, value } = parsed);
+    }
+    const source = ['bluetooth', 'voice', 'typed'].includes(b.source) ? b.source : 'typed';
+    return H.addReading(d, { patientId: b.patientId, deviceId: b.deviceId || null, type, value, at: b.at && b.at < d.clock ? b.at : undefined, source, words: b.text || null });
+  }));
+  app.post('/api/parse-reading', (req, res) => res.json(parseReading((req.body || {}).text)));
+  app.get('/api/health/:patientId', (req, res) => {
+    const s = H.summary(db(), req.params.patientId);
+    if (!s) return res.status(404).json({ error: 'Patient not found' });
+    if (req.query.view === 'family' && !s.patient.shareWithFamily) return res.status(403).json({ error: 'not shared', shared: false });
+    res.json(s);
+  });
+  app.put('/api/ranges/:patientId', act((req, d) => H.setRanges(d, req.params.patientId, req.body || {}, (req.body || {}).doctor)));
 
   app.post('/api/reset', act(() => { store.reset(); return { ok: true }; }));
 

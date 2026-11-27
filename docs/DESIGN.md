@@ -209,3 +209,23 @@ The keypad phone on the patient screen: dark ink body, white screen with `--radi
 | Quote the patient's exact words | Paraphrase what a patient said in a flag |
 | Say "A nurse will call you" | Give any health advice in UI or voice lines |
 | Use a comma, colon or full stop | Use em or en dashes |
+
+## Components added on 27 Nov
+
+### `ct-pill-navbar`
+The floating top bar. A grid with areas `brand toggle roles clock cta`: one row from 1360px, two rows from 900px, three rows on phones. Every label keeps `white-space: nowrap`; the role links become a swipe row on phones instead of wrapping. A 2px scroll progress line runs along the bottom edge (CSS scroll timeline, no script).
+
+### `ct-v2r` (voice to report)
+Spoken words on a curve, a waveform pill with a status chip below (Listening, Processing, Writing the report, Report created), a dark band carrying the clean report, and a `ct-v2r__report` card that shows the report as it lands in Care Taker. `data-state` on the section drives the animation. Stacks vertically under 900px.
+
+### `ct-index`
+Numbered rows (01, 02 ...) in two ruled columns, one on narrow screens. Put `data-reveal-group` on the list so rows rise in one after another.
+
+### `ct-feedback`
+A list of plain facts from devices. `--ok` (check icon), default (info icon), `--flag` (alert icon, later colors) for anything a nurse will look at. Never advice.
+
+### `ct-dv-week`
+Seven vertical `<progress>` bars for steps. Bars that reached the doctor's goal use `is-met` (teal); the rest use the strong border color. The number sits under each bar.
+
+### Motion
+`data-reveal` (up, left, right) and `data-reveal-group` from `public/js/motion.js`. Blocks rise 24px over 0.4s, group children 18px over 0.35s, 60ms apart, when they reach 85% of the viewport. Off under reduced motion.

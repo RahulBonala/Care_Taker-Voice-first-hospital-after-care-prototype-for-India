@@ -52,6 +52,8 @@
   <p>On the patient phone screen, speech recognition runs in the browser through the Web Speech API. In Chrome this may send the audio to Google to turn it into text. Care Taker itself only receives the text.</p>
   <h2>Optional providers</h2>
   <p>Sarvam AI (speech in Indian languages), Twilio (real phone calls) and an AI model (intent suggestions) only run when their keys are set by whoever runs the app. Without keys they are off and the app says "key not set".</p>
+  <h2>Health devices</h2>
+  <p>Blood pressure monitors, glucose meters and heart rate straps pair straight to the browser over Bluetooth (Web Bluetooth in Chrome). The browser asks you to pick the device, and only readings from that device are read. Watches and rings share steps, calories, heart rate and sleep through the phone's health app (Apple Health or Health Connect), which needs the Care Taker phone app; in this prototype they use clearly labelled sample data. Readings are compared only with ranges your doctor set, and a reading outside them goes to a nurse. Care Taker never gives health advice about a reading.</p>
   <h2>What is stored</h2>
   <p>Transcripts are stored as text with timestamps. Audio is not stored.</p>
   <h2>AI model</h2>

@@ -23,8 +23,9 @@ function generateSlots(db, rx) {
   }
 }
 
-const FLAG_ORDER = { urgent: 0, stoppedEarly: 1, notReachable: 2, missed: 3 };
-const FLAG_LABELS = { urgent: 'Urgent', stoppedEarly: 'Stopped early', notReachable: 'Not reachable', missed: 'Missed' };
+// A device reading outside the doctor's range sits right after urgent: a nurse should look at it soon.
+const FLAG_ORDER = { urgent: 0, reading: 1, stoppedEarly: 2, notReachable: 3, missed: 4 };
+const FLAG_LABELS = { urgent: 'Urgent', reading: 'Reading to review', stoppedEarly: 'Stopped early', notReachable: 'Not reachable', missed: 'Missed' };
 
 function addFlag(db, f) {
   const flag = { id: nextId(db, 'flag'), status: 'open', createdAt: db.clock, closedAt: null, words: null, ...f };

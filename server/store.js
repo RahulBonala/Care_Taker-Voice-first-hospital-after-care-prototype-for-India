@@ -16,6 +16,9 @@ function load() {
     db = null;
   }
   if (!db) { db = seed(); save(); }
+  // Files saved before health devices existed get empty lists.
+  db.devices = db.devices || [];
+  db.readings = db.readings || [];
   return db;
 }
 

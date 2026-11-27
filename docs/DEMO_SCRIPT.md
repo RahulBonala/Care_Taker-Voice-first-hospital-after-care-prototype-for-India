@@ -85,7 +85,8 @@
 
 **On screen:**
 1. Click **Family**, switch dropdown to **Arjun**, showing the lock state (`Arjun has not chosen to share their record with family`).
-2. Click **Doctor**, showing course completion bars and quoted flags across all verified patients, plus the footer links (`Terms`, `Privacy`, `Medical disclaimer`, `Voice and AI notice`).
+2. Click **Devices**, pick **Lakshmi Devi**: her blood pressure monitor and glucose meter, with yesterday's 162/98 marked "Nurse told". Type `BP 130 by 85` and press **Add**. Switch to **Arjun** to show his watch: steps against the doctor's goal of 7,000, calories and sleep.
+3. Click **Doctor**, showing course completion bars, **Devices and vitals**, the alert ranges, and quoted flags, plus the footer links (`Terms`, `Privacy`, `Medical disclaimer`, `Voice and AI notice`).
 
 **Narration:**
-> "Family members only see records when the patient opts in, and doctors review real course completion alongside what patients actually said. Care Taker runs in one `docker compose up` with zero API keys, works on any phone through voice or keypad, and keeps humans in charge of care."
+> "Family members only see records when the patient opts in. Blood pressure monitors and sugar meters pair over Bluetooth, watches and rings bring steps, calories and sleep, and any reading outside the doctor's range goes to the nurse, with no advice from the app. Doctors review real course completion alongside what patients actually said. Care Taker runs in one `docker compose up` with zero API keys, works on any phone through voice or keypad, and keeps humans in charge of care."

@@ -24,6 +24,7 @@ let activeCall = null;
 let lastHeard = null;
 let speakingCall = false;
 let patientReport = null;
+let patientHealth = null;
 
 // Clinician persona state
 let clinicianRole = 'Dr. Anand Rao (General Medicine)';
@@ -232,12 +233,14 @@ async function loadData(t = token) {
   }
 
   if (pid) {
-    const [rep, calls] = await Promise.all([
+    const [rep, calls, health] = await Promise.all([
       api(`/api/report/${encodeURIComponent(pid)}`),
       api(`/api/calls?patientId=${encodeURIComponent(pid)}&limit=1`),
+      api(`/api/health/${encodeURIComponent(pid)}`),
     ]);
     if (t !== token || !el) return;
     patientReport = rep;
+    patientHealth = health;
     activeCall = calls[0] || null;
   }
   if (selectedCoursePid) {
@@ -320,6 +323,7 @@ function renderDevice() {
     const tabs = [
       ['today', 'home', 'Today'],
       ['call', 'phone', 'Call'],
+      ['health', 'watch', 'Health'],
       ['family', 'users', 'Family'],
       ['more', 'compass', 'Tour'],
     ];
@@ -576,6 +580,37 @@ function renderPatientApp() {
             </div>
           </form>
         ` : ''}
+      </div>`;
+  }
+
+  if (appTab === 'health') {
+    const h = patientHealth;
+    if (!h) return empty('Loading readings.', 'watch');
+    const n = (v) => (v === null || v === undefined ? 'None' : Number(v).toLocaleString('en-IN'));
+    const tile = (v, label) => `<div class="ct-metric"><span class="ct-metric__value">${esc(v)}</span><span class="ct-metric__label">${esc(label)}</span></div>`;
+    const tiles = [];
+    if (h.today.steps !== null) tiles.push(tile(n(h.today.steps), `Steps, goal ${n(h.ranges.stepsGoal)}`));
+    if (h.today.activeCalories !== null) tiles.push(tile(n(h.today.activeCalories), 'Active kcal'));
+    if (h.today.sleep !== null) tiles.push(tile(`${Math.floor(h.today.sleep / 60)}h ${h.today.sleep % 60}m`, 'Sleep'));
+    if (h.last.bp) tiles.push(tile(`${h.last.bp.value.sys}/${h.last.bp.value.dia}`, 'Blood pressure'));
+    if (h.last.glucose) tiles.push(tile(String(h.last.glucose.value.mgdl), 'Sugar, mg/dL'));
+    if (h.last.heartRate) tiles.push(tile(String(h.last.heartRate.value.bpm), 'Heart rate'));
+    return `
+      <div class="ct-stack">
+        <div class="ct-card ct-stack">
+          <strong>Today from your devices</strong>
+          ${tiles.length ? `<div class="ct-metrics">${tiles.join('')}</div>` : '<p class="small muted">No readings yet.</p>'}
+        </div>
+        <div class="ct-card ct-stack">
+          <strong>What your devices show</strong>
+          <ul class="ct-feedback">${h.feedback.slice(0, 5).map((f) => `<li class="ct-feedback__item ct-feedback__item--${esc(f.kind)}">${icon(f.kind === 'flag' ? 'alert' : f.kind === 'ok' ? 'check' : 'info')}<span class="small">${esc(f.text)}</span></li>`).join('')}</ul>
+        </div>
+        <div class="ct-card ct-stack">
+          <strong>Connected</strong>
+          <ul class="ct-list">${h.devices.length ? h.devices.map((d) => `<li><span class="small">${esc(d.name)}</span><span class="small muted">${d.lastSync ? `synced ${esc(hm(d.lastSync))}` : 'paired'}</span></li>`).join('') : '<li><span class="small muted">No device yet.</span></li>'}</ul>
+          <a class="ct-btn ct-btn--secondary ct-btn--block" href="#devices">${icon('watch')}Add a watch, ring or monitor</a>
+          <p class="small muted">Readings are compared with your doctor's ranges. Questions go to your nurse.</p>
+        </div>
       </div>`;
   }
 

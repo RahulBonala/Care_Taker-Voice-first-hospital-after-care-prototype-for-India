@@ -41,3 +41,29 @@ Choices made during the build where the specification left room for interpretati
 ## 10. Product website, 3-track tour, and dual-persona mobile prototype in plain ES modules
 - **Context:** Judges, clinicians, and first-time visitors benefit from a clear landing page, an interactive product tour for both patients and doctors, and a mobile app walkthrough (onboarding, login, setup, and live tabs) without adding a frontend build step or external auth dependencies.
 - **Decision:** Add `#home` (`public/js/screens/home.js`), `#tour` (`public/js/screens/tour.js`), and `#mobile` (`public/js/screens/mobile.js`) on the same token-only `ct-` design system while keeping all five role screens (`#desk`, `#nurse`, `#phone`, `#family`, `#doctor`) one click away in the top bar. Mobile sign-in uses clearly labelled sample codes (`4210` for patients, `1204` for clinicians) so zero SMS keys are needed.
+
+## 11. Navbar as a grid with one, two or three rows
+- **Context:** Every label in the top bar must stay on one line (brand, product tabs, role screens, the clock with time and date, the Call button).
+- **Decision:** The pill is a CSS grid: one row from 1360px, two rows (role screens below) from 900px, three rows on phones with the role screens as a swipe row. Labels use `white-space: nowrap`; nothing is hidden. Below 900px the bar scrolls away instead of staying pinned, so it does not cover a third of a phone screen. The scroll progress line and the rail fill use CSS scroll timelines instead of inline styles (rule 7); browsers without them show a static line.
+
+## 12. Hero headline on one line
+- **Context:** "Don't type, just speak. Don't miss, just answer." must never break inside a sentence.
+- **Decision:** Both sentences share one line from 1100px. Below that each sentence keeps its own single line. The serif face (Newsreader) is self-hosted like Noto Sans so the headline looks the same offline.
+
+## 13. Voice to report ribbon rebuilt
+- **Context:** The landing page should show a reply turning into a report: words appear, then processing, then the clean report on the right, then the report in Care Taker.
+- **Decision:** `public/js/voice-ribbon.js` runs four example calls (Telugu, Hindi, Tamil, English and Hindi). Each word of the spoken reply appears along the left curve, the pill listens then processes, the report writes itself onto the dark band, and a Care Taker report card fills in. Each example follows the real rules (unwell outranks taken, nothing logged without a yes). Under 900px the same steps stack vertically. Under reduced motion the final state is shown with no animation, and a Pause button stops the loop.
+
+## 14. Step 04 scroll animation and smooth scrolling
+- **Context:** The numbered rows from step 04 of the earlier portfolio site were missing.
+- **Decision:** `public/js/motion.js` adds the same system to every screen: blocks rise 24px over 0.4s, rows in a numbered index rise 18px over 0.35s, 60ms apart, starting when their top reaches 85% of the viewport. Lenis gives smooth wheel scrolling and is copied from `node_modules` into `public/vendor` by `scripts/copy-assets.js` (no CDN, works offline). Reduced motion turns all of it off.
+
+## 15. Health devices
+- **Context:** Patients may own blood pressure monitors, glucose meters, smartwatches (Apple Watch, Android watches) and smart rings. Their readings (steps, active and total calories, heart rate, sleep, oxygen, blood pressure, sugar) should sit next to the dose record and give useful feedback.
+- **Decision:**
+  - Blood pressure monitors, glucose meters and heart rate straps that use the standard Bluetooth health services (0x1810, 0x1808, 0x180D) pair for real in Chrome through Web Bluetooth (`public/js/ble.js`, decoders unit-tested).
+  - Watches and rings do not share steps or sleep over standard Bluetooth. They reach a phone's health app (Apple Health or Health Connect), so a real link needs the Care Taker phone app. The prototype offers clearly labelled sample devices instead. Any watch, band or ring that writes to those health apps would work the same way.
+  - Readings can also be said or typed ("BP 130 by 85", "sugar 145 after food", Hindi and Telugu words for BP and sugar are understood).
+  - The doctor sets alert ranges per patient. A reading outside a range raises a "Reading to review" flag, sorted right after Urgent. One open flag per reading type is kept up to date instead of stacking duplicates.
+  - Feedback is factual only (steps against the doctor's goal, averages, sleep, last readings against ranges). A test checks it never contains advice words. Out-of-range lines always say a nurse will look at it.
+

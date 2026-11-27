@@ -2,9 +2,10 @@
 // Sample data only. Three patients at different points of their course, with a little history.
 const T = require('./time');
 const M = require('./model');
+const H = require('./health');
 
 function seed(now = new Date()) {
-  const db = { version: 1, seq: 0, clock: null, patients: [], prescriptions: [], slots: [], calls: [], doseLogs: [], flags: [], misheard: [] };
+  const db = { version: 1, seq: 0, clock: null, patients: [], prescriptions: [], slots: [], calls: [], doseLogs: [], flags: [], misheard: [], devices: [], readings: [] };
   const today = T.dateOf(now.toISOString());
   db.clock = T.at(today, '08:55');
   const consent = (lang) => ({ calls: true, stopInfo: true, language: lang, recordedBy: 'Nurse Priya', at: T.at(T.addDays(today, -20), '11:00') });
@@ -70,6 +71,25 @@ function seed(now = new Date()) {
   const lakshmi = db.patients[0];
   db.misheard.push({ id: M.nextId(db, 'mis'), patientId: lakshmi.id, callId: null, lang: 'te',
     text: 'ఆ... ఎవరు', confidence: 0.38, reason: 'low confidence', at: T.at(T.addDays(today, -1), '13:32'), suggestion: null });
+
+  // Health devices and the doctor's ranges. Lakshmi checks her blood pressure and sugar at home,
+  // Arjun wears an Android watch, Meena wears a smart ring.
+  const byName = (n) => db.patients.find((p) => p.name.startsWith(n));
+  const rangeSet = { setBy: 'Dr. Rao', setAt: T.at(T.addDays(today, -3), '12:00') };
+  byName('Lakshmi').ranges = { ...H.DEFAULT_RANGES, stepsGoal: 2500, ...rangeSet };
+  byName('Arjun').ranges = { ...H.DEFAULT_RANGES, stepsGoal: 7000, ...rangeSet };
+  byName('Meena').ranges = { ...H.DEFAULT_RANGES, stepsGoal: 6000, ...rangeSet };
+  H.addDevice(db, { patientId: byName('Lakshmi').id, kind: 'bp', name: 'Blood pressure monitor' });
+  H.addDevice(db, { patientId: byName('Lakshmi').id, kind: 'glucose', name: 'Glucose meter' });
+  H.addDevice(db, { patientId: byName('Arjun').id, kind: 'androidWatch', name: 'Android smartwatch' });
+  H.addDevice(db, { patientId: byName('Meena').id, kind: 'ring', name: 'Smart ring' });
+  // One evening reading yesterday above the doctor's range, so the nurse has something to review.
+  const bpDev = db.devices.find((d) => d.kind === 'bp');
+  const high = db.readings.find((r) => r.deviceId === bpDev.id && r.type === 'bp' && T.dateOf(r.at) === T.addDays(today, -1) && T.timeOf(r.at) === '19:40');
+  if (high) {
+    db.readings.splice(db.readings.indexOf(high), 1);
+    H.addReading(db, { patientId: bpDev.patientId, deviceId: bpDev.id, type: 'bp', value: { sys: 162, dia: 98, pulse: 84 }, at: high.at, source: 'sample' });
+  }
   return db;
 }
 

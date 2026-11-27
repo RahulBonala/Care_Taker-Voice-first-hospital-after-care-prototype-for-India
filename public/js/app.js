@@ -9,8 +9,9 @@ import * as nurse from './screens/nurse.js';
 import * as phone from './screens/phone.js';
 import * as family from './screens/family.js';
 import * as doctor from './screens/doctor.js';
+import * as devices from './screens/devices.js';
 
-const SCREENS = { home, tour, mobile, desk, nurse, phone, family, doctor };
+const SCREENS = { home, tour, mobile, devices, desk, nurse, phone, family, doctor };
 const TITLES = {
   home: 'Voice-first hospital after-care for India',
   tour: 'Interactive application tour',
@@ -20,6 +21,7 @@ const TITLES = {
   phone: 'Patient phone',
   family: 'Family',
   doctor: 'Doctor',
+  devices: 'Health devices',
 };
 const POLL_MS = 2000;
 let current = null;
