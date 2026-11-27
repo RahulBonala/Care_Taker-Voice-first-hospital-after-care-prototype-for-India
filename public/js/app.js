@@ -69,6 +69,22 @@ export function setLangIndicator(text) {
 }
 export function activeRoute() { return currentKey; }
 
+function onScroll() {
+  const bar = document.querySelector('.ct-pill-navbar');
+  const y = window.scrollY || document.documentElement.scrollTop || 0;
+  if (bar) {
+    if (y > 20) bar.classList.add('ct-pill-navbar--scrolled');
+    else bar.classList.remove('ct-pill-navbar--scrolled');
+  }
+  const prog = document.getElementById('scroll-progress-bar');
+  if (prog) {
+    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const pct = Math.min(100, Math.max(0, (y / max) * 100));
+    prog.style.transform = `scaleX(${(pct / 100).toFixed(4)})`;
+  }
+}
+
+window.addEventListener('scroll', onScroll, { passive: true });
 window.addEventListener('ct:lang', (e) => setLangIndicator(e.detail));
 window.addEventListener('hashchange', route);
 window.addEventListener('ct:refresh', tick);
