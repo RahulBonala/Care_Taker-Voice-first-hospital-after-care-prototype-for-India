@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - care_taker_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  care_taker_data:

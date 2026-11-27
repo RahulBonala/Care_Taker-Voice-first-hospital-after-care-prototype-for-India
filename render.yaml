@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: care-taker
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT
+        value: "3000"
+      - key: DATA_DIR
+        value: /app/data
