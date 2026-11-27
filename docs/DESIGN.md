@@ -249,3 +249,6 @@ Small product cards used inside stories: `ct-ui__row`, `ct-ui__bubble`, `ct-ui__
 
 ### `ct-langs`, `ct-langpick`, `ct-every`, `ct-simclock`
 Language tiles in native script, the patient app language picker (`aria-pressed` marks the current one), the four-device row, and the simulated time chip on role screens.
+
+### `ct-sig` (footer signature loop)
+The brand mark tells the product in one loop, about nine seconds: the wordmark breaks into dots on the dashed lane, the dots become the patient's words ("I took my tablet at 1:00 pm", then Telugu, Hindi and Tamil on later loops) and glide into the phone; the heart gives way to "Recorded", a tick draws in a ring, "Check in" appears letter by letter, the phone sweeps across it with speed lines, and the logo and wordmark return. `data-phase` on `.ct-sig` drives every step. Sized in `em`, so it scales as one piece. Curves come from `--ease-out` and `--ease-in-out` in `tokens.css`; only transform, opacity, clip-path and the tick's stroke animate. Paused off screen and in hidden tabs; reduced motion shows the resting logo.

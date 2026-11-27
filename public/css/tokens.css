@@ -53,6 +53,10 @@
   --shadow-pill: 0 8px 30px rgba(27, 31, 36, 0.08), 0 1px 3px rgba(27, 31, 36, 0.05);
   --focus-ring: 0 0 0 3px var(--color-surface), 0 0 0 5px var(--color-focus);
 
+  /* Motion (strong curves: ease-out for entrances, ease-in-out for movement on screen) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
   /* Layout */
   --content-max: 1120px;
   --tap-min: 48px;  /* every button and key */

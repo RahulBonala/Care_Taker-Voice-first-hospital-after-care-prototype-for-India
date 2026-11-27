@@ -94,3 +94,7 @@ Choices made during the build where the specification left room for interpretati
 ## 22. The mobile app on a real phone
 - **Decision:** Under 560px the mobile app prototype drops its phone bezel and fills the screen, with the tab bar pinned to the bottom, so on a phone it looks like the app itself rather than a phone inside a phone.
 
+## 23. Footer signature: from a spoken reply to a check-in
+- **Context:** The owner sketched the closing animation: words flow into the phone, the Care Taker wordmark turns into dots that become the phone's input, the heart becomes Recorded and a tick, the label becomes Check in, the phone moves across Check in, and the logo returns.
+- **Decision:** Built as `public/js/signature.js` with CSS. A small timer sets `data-phase` and the CSS does the motion, following the motion rules in the design skill: transform and opacity first (clip-path for the letters the phone covers), strong ease-out for things that appear and ease-in-out for the phone's move, 40ms letter stagger, nothing from scale 0. It only runs while the footer is visible, and reduced motion keeps the static logo. Motion curves were added to `tokens.css` as `--ease-out` and `--ease-in-out`.
+

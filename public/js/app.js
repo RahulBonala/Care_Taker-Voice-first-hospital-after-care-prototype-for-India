@@ -1,6 +1,7 @@
 // Router, polling and the app bar. Each screen exports mount(el) and optional refresh() / unmount().
 import { api, setClock, clockLabel, icon } from './lib.js';
 import { initMotion, resetScroll } from './motion.js';
+import { mountSignature } from './signature.js';
 import * as home from './screens/home.js';
 import * as tour from './screens/tour.js';
 import * as mobile from './screens/mobile.js';
@@ -117,6 +118,7 @@ dd.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' && !n
 dd.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && !narrow()) hoverTimer = setTimeout(() => setFeatures(false), 180); });
 
 initMotion();
+mountSignature();
 window.addEventListener('hashchange', route);
 window.addEventListener('ct:refresh', tick);
 route();

@@ -1338,3 +1338,146 @@ html.lenis, html.lenis body { height: auto; }
   .ct-device__body { max-height: none; overflow: visible; }
   .ct-device__nav { position: sticky; bottom: 0; z-index: 5; }
 }
+/* ==========================================================================
+   Footer signature loop (public/js/signature.js). Everything is sized in em of
+   .ct-sig, so the whole mark scales as one piece from phones to desktops.
+   ========================================================================== */
+.ct-sig { display: flex; align-items: center; justify-content: center; gap: 0.18em; font-size: clamp(2rem, 8vw, 5.5rem); line-height: 1; color: var(--color-ink); user-select: none; }
+
+/* Lane: the dashed line where the input travels into the phone */
+.ct-sig__lane { position: relative; width: min(3.4em, 24vw); height: 1.5em; overflow: hidden; flex: none; }
+.ct-sig__rule { position: absolute; left: 0; right: 0; top: 50%; border-top: 0.03em dashed var(--color-border-strong); }
+.ct-sig__dots { position: absolute; inset: 0; opacity: 0; transition: opacity 300ms var(--ease-out); }
+.ct-sig__dots > span { position: absolute; inset: 0; animation: ct-sig-dot 900ms linear infinite; animation-play-state: paused; }
+.ct-sig__dots > span::before { content: ""; position: absolute; left: 0; top: 50%; width: 0.09em; height: 0.09em; margin-top: -0.045em; border-radius: var(--radius-pill); background: var(--color-primary); }
+.ct-sig__dots > span:nth-child(1) { animation-delay: 0ms; }
+.ct-sig__dots > span:nth-child(2) { animation-delay: -100ms; }
+.ct-sig__dots > span:nth-child(3) { animation-delay: -200ms; }
+.ct-sig__dots > span:nth-child(4) { animation-delay: -300ms; }
+.ct-sig__dots > span:nth-child(5) { animation-delay: -400ms; }
+.ct-sig__dots > span:nth-child(6) { animation-delay: -500ms; }
+.ct-sig__dots > span:nth-child(7) { animation-delay: -600ms; }
+.ct-sig__dots > span:nth-child(8) { animation-delay: -700ms; }
+.ct-sig__dots > span:nth-child(9) { animation-delay: -800ms; }
+@keyframes ct-sig-dot { from { transform: translateX(-10%); } to { transform: translateX(100%); } }
+.ct-sig__words { position: absolute; inset: 0; opacity: 0; }
+.ct-sig__text { position: absolute; right: 100%; top: 0; bottom: 0; display: flex; align-items: center; padding-right: 0.15em; font-size: 0.26em; font-weight: var(--weight-medium); color: var(--color-ink-muted); white-space: nowrap; }
+/* The words glide in from the left and pass fully into the phone: the box moves one lane width,
+   the text inside moves its own width, and together they make one smooth pass. */
+
+/* Phone */
+.ct-sig__track { position: relative; display: flex; align-items: center; }
+.ct-sig__mover { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; pointer-events: none; }
+.ct-sig__phone { position: relative; flex: none; width: 1.05em; height: 1.5em; border: 0.075em solid var(--color-primary); border-radius: 0.22em; background: var(--color-surface); display: grid; place-items: center; z-index: 1; }
+.ct-sig__phone > * { grid-area: 1 / 1; }
+.ct-sig__heart { width: 0.52em; height: 0.52em; fill: var(--color-primary); transition: opacity 250ms var(--ease-out), transform 250ms var(--ease-out); }
+.ct-sig__recorded { font-size: 0.13em; font-weight: var(--weight-bold); letter-spacing: 0.02em; color: var(--color-primary); opacity: 0; transform: scale(0.9); transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out); }
+.ct-sig__tick { width: 0.62em; height: 0.62em; fill: none; stroke: var(--status-taken); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+.ct-sig__tick circle { stroke-dasharray: 54; stroke-dashoffset: 54; transition: stroke-dashoffset 450ms var(--ease-out); }
+.ct-sig__tick path { stroke-dasharray: 14; stroke-dashoffset: 14; transition: stroke-dashoffset 300ms var(--ease-out) 200ms; }
+.ct-sig__slot { align-self: end; margin-bottom: 0.12em; width: 0.28em; height: 0.05em; border-radius: var(--radius-pill); background: var(--color-primary); }
+.ct-sig__speed { position: absolute; right: calc(100% + 0.08em); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 0.12em; opacity: 0; }
+.ct-sig__speed > span { display: block; height: 0.04em; width: 0.5em; border-radius: var(--radius-pill); background: var(--color-border-strong); transform-origin: right center; }
+.ct-sig__speed > span:nth-child(2) { width: 0.75em; }
+
+/* Label beside the phone: the wordmark, and Check in on the same spot */
+.ct-sig__label { position: relative; margin-left: 1.3em; font-weight: var(--weight-bold); letter-spacing: -0.03em; white-space: nowrap; }
+.ct-sig__ch, .ct-sig__ck { display: inline-block; transition: opacity 350ms var(--ease-out), transform 350ms var(--ease-out); }
+.ct-sig__checkin { position: absolute; left: 0; top: 0; color: var(--color-primary); clip-path: inset(0 0 0 0); }
+.ct-sig__ck { opacity: 0; transform: translateY(0.15em); }
+
+/* ---- phases ---- */
+.ct-sig[data-phase="dissolve"] .ct-sig__ch,
+.ct-sig[data-phase="words"] .ct-sig__ch,
+.ct-sig[data-phase="recorded"] .ct-sig__ch,
+.ct-sig[data-phase="tick"] .ct-sig__ch,
+.ct-sig[data-phase="checkin"] .ct-sig__ch,
+.ct-sig[data-phase="sweep"] .ct-sig__ch { opacity: 0; transform: scale(0.3) translateY(0.25em); }
+.ct-sig[data-phase="dissolve"] .ct-sig__ch:nth-child(1) { transition-delay: 360ms; }
+.ct-sig[data-phase="dissolve"] .ct-sig__ch:nth-child(2) { transition-delay: 320ms; }
+.ct-sig[data-phase="dissolve"] .ct-sig__ch:nth-child(3) { transition-delay: 280ms; }
+.ct-sig[data-phase="dissolve"] .ct-sig__ch:nth-child(4) { transition-delay: 240ms; }
+.ct-sig[data-phase="dissolve"] .ct-sig__ch:nth-child(5) { transition-delay: 200ms; }
+.ct-sig[data-phase="dissolve"] .ct-sig__ch:nth-child(6) { transition-delay: 160ms; }
+.ct-sig[data-phase="dissolve"] .ct-sig__ch:nth-child(7) { transition-delay: 120ms; }
+.ct-sig[data-phase="dissolve"] .ct-sig__ch:nth-child(8) { transition-delay: 80ms; }
+.ct-sig[data-phase="dissolve"] .ct-sig__ch:nth-child(9) { transition-delay: 40ms; }
+.ct-sig[data-phase="dissolve"] .ct-sig__ch:nth-child(10) { transition-delay: 0ms; }
+.ct-sig[data-phase="reset"] .ct-sig__ch:nth-child(1), .ct-sig[data-phase="rest"] .ct-sig__ch:nth-child(1) { transition-delay: 200ms; }
+.ct-sig[data-phase="reset"] .ct-sig__ch:nth-child(2), .ct-sig[data-phase="rest"] .ct-sig__ch:nth-child(2) { transition-delay: 240ms; }
+.ct-sig[data-phase="reset"] .ct-sig__ch:nth-child(3), .ct-sig[data-phase="rest"] .ct-sig__ch:nth-child(3) { transition-delay: 280ms; }
+.ct-sig[data-phase="reset"] .ct-sig__ch:nth-child(4), .ct-sig[data-phase="rest"] .ct-sig__ch:nth-child(4) { transition-delay: 320ms; }
+.ct-sig[data-phase="reset"] .ct-sig__ch:nth-child(5), .ct-sig[data-phase="rest"] .ct-sig__ch:nth-child(5) { transition-delay: 360ms; }
+.ct-sig[data-phase="reset"] .ct-sig__ch:nth-child(6), .ct-sig[data-phase="rest"] .ct-sig__ch:nth-child(6) { transition-delay: 400ms; }
+.ct-sig[data-phase="reset"] .ct-sig__ch:nth-child(7), .ct-sig[data-phase="rest"] .ct-sig__ch:nth-child(7) { transition-delay: 440ms; }
+.ct-sig[data-phase="reset"] .ct-sig__ch:nth-child(8), .ct-sig[data-phase="rest"] .ct-sig__ch:nth-child(8) { transition-delay: 480ms; }
+.ct-sig[data-phase="reset"] .ct-sig__ch:nth-child(9), .ct-sig[data-phase="rest"] .ct-sig__ch:nth-child(9) { transition-delay: 520ms; }
+.ct-sig[data-phase="reset"] .ct-sig__ch:nth-child(10), .ct-sig[data-phase="rest"] .ct-sig__ch:nth-child(10) { transition-delay: 560ms; }
+
+.ct-sig[data-phase="dissolve"] .ct-sig__dots,
+.ct-sig[data-phase="words"] .ct-sig__dots { opacity: 1; }
+.ct-sig[data-phase="dissolve"] .ct-sig__dots > span,
+.ct-sig[data-phase="words"] .ct-sig__dots > span { animation-play-state: running; }
+.ct-sig[data-phase="words"] .ct-sig__dots { opacity: 0; transition-delay: 500ms; }
+
+.ct-sig[data-phase="words"] .ct-sig__words { animation: ct-sig-words-box 2100ms var(--ease-in-out) both; }
+.ct-sig[data-phase="words"] .ct-sig__text { animation: ct-sig-words-text 2100ms var(--ease-in-out) both; }
+@keyframes ct-sig-words-box { 0% { opacity: 0; transform: translateX(0); } 10% { opacity: 1; } 100% { opacity: 1; transform: translateX(100%); } }
+@keyframes ct-sig-words-text { from { transform: translateX(0); } to { transform: translateX(100%); } }
+
+.ct-sig[data-phase="recorded"] .ct-sig__heart { opacity: 0; transform: scale(0.9); }
+.ct-sig[data-phase="recorded"] .ct-sig__recorded { opacity: 1; transform: none; }
+.ct-sig[data-phase="recorded"] .ct-sig__phone { animation: ct-sig-pulse 500ms var(--ease-out); }
+@keyframes ct-sig-pulse { 50% { transform: scale(1.06); } }
+
+.ct-sig[data-phase="tick"] .ct-sig__heart,
+.ct-sig[data-phase="checkin"] .ct-sig__heart,
+.ct-sig[data-phase="sweep"] .ct-sig__heart { opacity: 0; transform: scale(0.9); transition: none; }
+.ct-sig[data-phase="tick"] .ct-sig__tick,
+.ct-sig[data-phase="checkin"] .ct-sig__tick,
+.ct-sig[data-phase="sweep"] .ct-sig__tick { opacity: 1; }
+.ct-sig[data-phase="tick"] .ct-sig__tick circle, .ct-sig[data-phase="tick"] .ct-sig__tick path,
+.ct-sig[data-phase="checkin"] .ct-sig__tick circle, .ct-sig[data-phase="checkin"] .ct-sig__tick path,
+.ct-sig[data-phase="sweep"] .ct-sig__tick circle, .ct-sig[data-phase="sweep"] .ct-sig__tick path { stroke-dashoffset: 0; }
+
+.ct-sig[data-phase="checkin"] .ct-sig__ck,
+.ct-sig[data-phase="sweep"] .ct-sig__ck { opacity: 1; transform: none; }
+.ct-sig[data-phase="checkin"] .ct-sig__ck:nth-child(1) { transition-delay: 0ms; }
+.ct-sig[data-phase="checkin"] .ct-sig__ck:nth-child(2) { transition-delay: 40ms; }
+.ct-sig[data-phase="checkin"] .ct-sig__ck:nth-child(3) { transition-delay: 80ms; }
+.ct-sig[data-phase="checkin"] .ct-sig__ck:nth-child(4) { transition-delay: 120ms; }
+.ct-sig[data-phase="checkin"] .ct-sig__ck:nth-child(5) { transition-delay: 160ms; }
+.ct-sig[data-phase="checkin"] .ct-sig__ck:nth-child(6) { transition-delay: 200ms; }
+.ct-sig[data-phase="checkin"] .ct-sig__ck:nth-child(7) { transition-delay: 240ms; }
+.ct-sig[data-phase="checkin"] .ct-sig__ck:nth-child(8) { transition-delay: 280ms; }
+
+/* Sweep: the phone moves across Check in, which is eaten from the left in step with it */
+.ct-sig[data-phase="sweep"] .ct-sig__mover { transform: translateX(calc(100% - 1.05em)); transition: transform 1250ms var(--ease-in-out); }
+.ct-sig[data-phase="sweep"] .ct-sig__checkin { clip-path: inset(0 0 0 100%); transition: clip-path 1250ms var(--ease-in-out); }
+.ct-sig[data-phase="sweep"] .ct-sig__speed { opacity: 1; transition: opacity 150ms var(--ease-out); }
+.ct-sig[data-phase="sweep"] .ct-sig__speed > span { animation: ct-sig-speed 260ms linear infinite alternate; }
+.ct-sig[data-phase="sweep"] .ct-sig__speed > span:nth-child(2) { animation-delay: -130ms; }
+@keyframes ct-sig-speed { from { transform: scaleX(0.55); } to { transform: scaleX(1); } }
+
+/* Reset: the phone fades out where it stopped and comes back at the start */
+.ct-sig[data-phase="reset"] .ct-sig__mover { animation: ct-sig-return 700ms var(--ease-out) both; }
+@keyframes ct-sig-return {
+  0% { transform: translateX(calc(100% - 1.05em)); opacity: 1; }
+  30% { transform: translateX(calc(100% - 1.05em)); opacity: 0; }
+  31% { transform: translateX(0); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+.ct-sig[data-phase="reset"] .ct-sig__checkin { clip-path: inset(0 0 0 100%); }
+
+/* Phones: a shorter lane, readable words, and Recorded shown just under the phone */
+@media (max-width: 559px) {
+  .ct-sig { font-size: 2.1rem; }
+  .ct-sig__lane { width: min(3.4em, 17vw); }
+  .ct-sig__text { font-size: var(--text-xs); }
+  .ct-sig__phone { overflow: visible; }
+  .ct-sig__recorded { position: absolute; top: calc(100% + 0.12em); left: 50%; translate: -50% 0; font-size: var(--text-xs); white-space: nowrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-sig, .ct-sig * { animation: none !important; transition: none !important; }
+}
