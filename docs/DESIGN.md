@@ -192,7 +192,7 @@ The keypad phone on the patient screen: dark ink body, white screen with `--radi
 - `ct-band`, `ct-band--surface`, `ct-hero`, `ct-eyebrow`, `ct-proof-list`: editorial landing page sections alternating warm paper (`--color-bg`) and white (`--color-surface`) separated by 1px sand borders.
 - `ct-split` and `ct-method`: two-column explanation contrasting deterministic clinical rules with optional, off-by-default keyed adapters.
 - `ct-rail`: three-stage workflow rail (`Discharge`, `Voice follow-up`, `Clinical escalation`).
-- `ct-tour`: three-track interactive walkthrough (`For patients and families`, `For doctors and nurses`, `How it works overall`) with numbered step buttons and an interactive stage card.
+- `ct-walk`: the guided product tour (see "Components added on 28 Nov, second round").
 - `ct-compare`: side-by-side comparison grid that collapses into stacked cards under 800px.
 - `ct-faq`: accessible `<details>` / `<summary>` accordion with 48px minimum tap rows.
 - `ct-device`, `ct-otp-row`, `ct-stage-pills`, `ct-dots`: mobile application prototype shell showing onboarding tour, sample OTP sign-in, first-time setup, and bottom-tab navigation for both patient/family and doctor/nurse personas.
@@ -251,4 +251,19 @@ Small product cards used inside stories: `ct-ui__row`, `ct-ui__bubble`, `ct-ui__
 Language tiles in native script, the patient app language picker (`aria-pressed` marks the current one), the four-device row, and the simulated time chip on role screens.
 
 ### `ct-sig` (footer signature loop)
-The brand mark tells the product in one loop, about nine seconds: the wordmark breaks into dots on the dashed lane, the dots become the patient's words ("I took my tablet at 1:00 pm", then Telugu, Hindi and Tamil on later loops) and glide into the phone; the heart gives way to "Recorded", a tick draws in a ring, "Check in" appears letter by letter, the phone sweeps across it with speed lines, and the logo and wordmark return. `data-phase` on `.ct-sig` drives every step. Sized in `em`, so it scales as one piece. Curves come from `--ease-out` and `--ease-in-out` in `tokens.css`; only transform, opacity, clip-path and the tick's stroke animate. Paused off screen and in hidden tabs; reduced motion shows the resting logo.
+A dotted line loops without stop on the left, carrying "I took my tablet at 1:00 pm" in several languages. Each loop (9.6 s): the "Care Taker" letters shrink into dots, fly left past the phone and fill the gap after "1:00 pm"; the dots ride the line into the phone; the phone shows a tick, then the heart, then a check-in badge, while "Checked in" replaces the wordmark; then the wordmark returns. The moving line is the clock. Styles in `sig.css`. Only transform, opacity, clip-path and SVG stroke animate, with `--ease-out` and `--ease-in-out`. Paused off screen and in hidden tabs; reduced motion shows the static logo and wordmark. Brand files and rules: `docs/BRAND.md`.
+
+## Components added on 28 Nov, second round
+
+### Care cards (`ct-care-card`)
+The one widget concept. A Care card shows what a call produced for one role. Naming: "<Role> card": Nurse card, Doctor card, Family card, Patient card. Each card has the role emoji (gently animated), the role name, one state chip, one line of what happened and a time. States are a fixed list: received, reviewing, urgent, logged, shared, private, scheduled; each maps to a `ct-status` kind, so colours stay consistent. Built only through `careCard()` in `public/js/care-card.js`; styles in `care-card.css`. Urgent shakes once; reduced motion keeps them still.
+
+### `ct-story` role screens and `ct-stepline`
+How it works has four steps (Call, Confirm, Understand and flag, Adapt and update), each with one screen for one role in a frame that fits it: patient phone, nurse board on a laptop, doctor on a tablet, family on a phone. Rows arrive in turn when a step becomes active. While the section is on screen, `ct-stepline` slides into the navbar pill: four icons with labels joined by a line that fills to the active step (`aria-current="step"`); clicking a step scrolls to it. Hidden under 900px, where the steps stack as "n of 4" sections. Styles in `story.css`.
+
+### `ct-lring` (languages ring)
+Each language is a pill (native name, English name small) evenly spaced around a circle with the phone logo in the centre and "One call, every language" under it. A count class (`ct-lring--n4` to `--n16`) and `nth-child` rules set every angle, so no inline styles. Two staggered rings when crowded. Pills settle once on scroll in, then stay still. Styles in `langs.css`.
+
+### `ct-walk` (guided product tour)
+Left: eyebrow, headline, "Start the tour", step count and time, a thin progress bar and four numbered chapters (Patients, Families, Nurses, Doctors) with step counts. Right: a browser-style frame labelled "Live preview . sample data" showing real-looking product screens. The tour moves through 15 steps with a highlight ring and a tooltip card (Back, Next, close); arrow keys step, Escape closes. Styles in `tour.css`.
+

@@ -102,3 +102,18 @@ Choices made during the build where the specification left room for interpretati
 - **Context:** The owner asked for four habits on every task: plan mode first, subagents for parallel jobs, reusable agents saved in the repo, and a test that returns pass or fail so mistakes are fixed before they reach the owner.
 - **Decision:** `.claude/settings.json` starts sessions in plan mode. Four agents live in `.claude/agents/` (ui-verifier, intent-tester, language-builder, submission-checker). `npm run smoke` starts the app and checks every page, asset and browser module, the notice, "key not set", and that a dose is logged only after a yes; it exits 1 on any failure. There is no CI pipeline (removed on request): the three commands are run locally before every push. CLAUDE.md lists the habits under "How to work".
 
+
+## 25. Second design round: readings of the owner's notes
+- **Context:** The owner asked for a hero shift, a doctor prescription animation, images of elderly people and grandchildren, emoji role cards with states, "an overlay with votes on the phone", per-role How it works screens with a navbar step line, a languages circle, one widget concept, a guided tour like a reference screenshot, a new footer loop and a name label.
+- **Decision:**
+  - "Overlay with votes" is read as a voice-wave overlay on the phone while the patient speaks.
+  - "Stock skeleton images" and photos: stock photo sites cannot be reached from the build environment, so the doctor and the people strip are our own line-art SVG. `public/img/README.md` lists the photo for each slot; a photo dropped into `public/img/photos/` and listed in `manifest.json` replaces its drawing with no code change.
+  - The widget concept is the Care card (`ct-care-card`, "Nurse card", "Doctor card", "Family card"), with a fixed list of seven states. See DESIGN.md.
+  - The navbar step line is hidden under 900px: the steps stack there as "n of 4" sections, and the four labels do not fit at 360px.
+  - The language ring settles once and stays still. A long idle sway would need a pause control under WCAG 2.2.2.
+  - Health feedback is translated into all 11 languages; clinician screens stay English. Every translation still needs a native speaker: `docs/LANGUAGE_REVIEW.md` (made by `npm run review-sheet`) is the sheet for that.
+- **Consequence:** Translations and the new copy are marked unreviewed until a native speaker ticks them.
+
+## 26. No CI pipeline
+- **Context:** The owner asked to remove the GitHub Actions pipeline as not needed.
+- **Decision:** `.github/workflows/ci.yml` is deleted. `npm test`, `npm run check` and `npm run smoke` run locally before every push, as CLAUDE.md already requires.
