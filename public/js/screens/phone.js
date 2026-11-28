@@ -117,8 +117,12 @@ export function mount(root) {
         <section class="ct-card">
           <div class="ct-card__head"><h2>Simulation</h2><p>One press moves the clock to the patient's next dose</p></div>
           <div class="ct-stack">
-            <label class="ct-field"><span class="ct-field__label">Patient</span>
-              <select class="ct-select" id="ph-patient"></select></label>
+            <div class="ct-form-grid">
+              <label class="ct-field"><span class="ct-field__label">Patient</span>
+                <select class="ct-select" id="ph-patient"></select></label>
+              <label class="ct-field"><span class="ct-field__label">Call language</span>
+                <select class="ct-select" id="ph-lang"></select></label>
+            </div>
             <div id="ph-info" class="muted small"></div>
             <div class="ct-row">
               <button class="ct-btn ct-btn--primary" id="ph-next" type="button">${icon('forward')}Next slot</button>
@@ -146,6 +150,7 @@ export function mount(root) {
   </div>`;
 
   el.querySelector('#ph-patient').addEventListener('change', (e) => selectPatient(e.target.value));
+  el.querySelector('#ph-lang').addEventListener('change', (e) => changeLanguage(e.target.value));
   el.querySelector('#ph-next').addEventListener('click', (e) => nextSlot(e.currentTarget));
   el.querySelector('#ph-real').addEventListener('click', (e) => realCall(e.currentTarget));
   el.querySelector('#ph-answer').addEventListener('click', answer);
@@ -200,6 +205,28 @@ async function init(t) {
 function renderSelect() {
   const sel = el.querySelector('#ph-patient');
   sel.innerHTML = patients.map((p) => `<option value="${esc(p.id)}" ${p.id === pid ? 'selected' : ''} ${p.verified ? '' : 'disabled'}>${esc(p.name)}${p.verified ? '' : ' (not verified yet)'}${p.callsStopped ? ' (calls stopped)' : ''}</option>`).join('');
+  const langSel = el.querySelector('#ph-lang');
+  if (langSel && cfg && cfg.langs && !langSel.matches(':focus')) {
+    const p = patients.find((x) => x.id === pid);
+    const curLang = (p && p.lang) || (L && L.code) || 'en';
+    langSel.innerHTML = cfg.langs.map((l) => `<option value="${esc(l.code)}" ${l.code === curLang ? 'selected' : ''}>${esc(l.name)} (${esc(l.nativeName)})</option>`).join('');
+  }
+}
+
+async function changeLanguage(code) {
+  if (!pid || !code) return;
+  token += 1;
+  cleanup();
+  await api(`/api/patients/${encodeURIComponent(pid)}`, { method: 'PATCH', body: { lang: code } });
+  patients = await api('/api/patients');
+  const p = patients.find((x) => x.id === pid);
+  L = cfg.langs.find((l) => l.code === (p && p.lang)) || cfg.langs[0];
+  const clips = (cfg.audio && cfg.audio[L.code]) || [];
+  voiceLabel = (await voice.outputMode(L.speechCode, cfg.keys.sarvam, clips)).label;
+  lastTranscriptLen = -1;
+  renderSelect();
+  await refresh();
+  toast(`Language set to ${L.name} (${L.nativeName})`);
 }
 
 async function selectPatient(id) {
@@ -211,9 +238,11 @@ async function selectPatient(id) {
   L = cfg.langs.find((l) => l.code === (p && p.lang)) || cfg.langs[0];
   call = null; phase = 'idle'; heard = null; interim = ''; lastTranscriptLen = -1;
   lastChipState = 'none'; lastChipLabel = ''; lastChipCallId = null;
-  const out = await voice.outputMode(L.speechCode, cfg.keys.sarvam);
+  const clips = (cfg.audio && cfg.audio[L.code]) || [];
+  const out = await voice.outputMode(L.speechCode, cfg.keys.sarvam, clips);
   voiceLabel = out.label;
   micNote = voice.canRecognize() ? '' : (cfg.keys.sarvam ? 'This browser has no speech recognition. Sarvam speech to text will be used.' : 'This browser has no speech recognition. Use Chrome, or type the reply here.');
+  renderSelect();
   await refresh();
 }
 
@@ -222,6 +251,13 @@ export async function refresh() {
   const t = token;
   patients = await api('/api/patients');
   if (t !== token) return;
+  const p = patients.find((x) => x.id === pid);
+  if (p && cfg && (!L || L.code !== p.lang)) {
+    L = cfg.langs.find((l) => l.code === p.lang) || cfg.langs[0];
+    const clips = (cfg.audio && cfg.audio[L.code]) || [];
+    voiceLabel = (await voice.outputMode(L.speechCode, cfg.keys.sarvam, clips)).label;
+    lastTranscriptLen = -1;
+  }
   if (!el.querySelector('#ph-patient').matches(':focus')) renderSelect();
   const latest = (await api(`/api/calls?patientId=${encodeURIComponent(pid)}&limit=1`))[0] || null;
   if (t !== token) return;
@@ -321,8 +357,10 @@ function renderPhone() {
 function line(t) {
   if (t.who === 'system') return `<p class="ct-phone__line ct-phone__line--system">${esc(t.text)}</p>`;
   if (t.who === 'bot') {
-    const en = t.en && t.en !== t.text ? `<span class="ct-phone__line-en">${esc(t.en)}</span>` : '';
-    return `<p class="ct-phone__line ct-phone__line--bot" lang="${esc(L ? L.code : 'en')}">${esc(t.text)}${en}</p>`;
+    const isEn = L && L.code === 'en';
+    const mainText = (isEn && t.en) ? t.en : t.text;
+    const en = (!isEn && t.en && t.en !== mainText) ? `<span class="ct-phone__line-en">${esc(t.en)}</span>` : '';
+    return `<p class="ct-phone__line ct-phone__line--bot" lang="${esc(L ? L.code : 'en')}">${esc(mainText)}${en}</p>`;
   }
   return `<p class="ct-phone__line ct-phone__line--patient">${esc(t.text || '(silence)')}<span class="ct-phone__line-en">${esc(t.label || '')}</span></p>`;
 }
@@ -398,22 +436,28 @@ async function decline(reason) {
 async function processTurn(c, t) {
   const wasTaken = doseChipState(call) === 'taken';
   call = c;
+  lastTranscriptLen = -1;
   if (!wasTaken && doseChipState(c) === 'taken') voice.playConfirmTone();
   // The patient answered in another language: follow them for the rest of the call.
   if (c.lang && L && c.lang !== L.code) {
     const next = cfg.langs.find((l) => l.code === c.lang);
     if (next) {
       L = next;
-      voiceLabel = (await voice.outputMode(L.speechCode, cfg.keys.sarvam)).label;
+      const clips = (cfg.audio && cfg.audio[L.code]) || [];
+      voiceLabel = (await voice.outputMode(L.speechCode, cfg.keys.sarvam, clips)).label;
+      renderSelect();
       toast(`Language switched to ${L.name} (${L.nativeName})`);
     }
   }
   const turn = c.turn;
   setPhase('speaking');
   voice.stopListening();
+  voice.stopSpeaking();
   for (const l of turn.say) {
     if (t !== token) return;
-    await voice.speakLine(l, L.speechCode, { sarvamKey: cfg.keys.sarvam, clips: (cfg.audio && cfg.audio[L.code]) || [] });
+    const lineLang = l.lang || L.code;
+    const lineLangCfg = cfg.langs.find((x) => x.code === lineLang) || L;
+    await voice.speakLine(l, lineLangCfg.speechCode, { sarvamKey: cfg.keys.sarvam, clips: (cfg.audio && cfg.audio[lineLang]) || [] });
   }
   if (t !== token) return;
   if (turn.expect === 'speech') return doListen(t);

@@ -49,13 +49,15 @@ function detect(input, { current } = {}) {
     return { lang, by: 'script', confidence: mr === hi ? 0.7 : 0.85 };
   }
 
+  const enScore = keywordScore(text, langs.get('en'));
   const scores = all.filter((L) => L.code !== 'en').map((L) => ({ lang: L.code, s: keywordScore(text, L) })).sort((a, b) => b.s - a.s);
   const [top, second] = scores;
   if (top && top.s > 0 && top.s > (second ? second.s : 0)) {
-    if (current && current !== 'en' && keywordScore(text, langs.get(current)) >= top.s) return { lang: current, by: 'words', confidence: 0.6 };
+    if (current && keywordScore(text, langs.get(current)) >= top.s) return { lang: current, by: 'words', confidence: 0.6 };
+    if (enScore >= top.s) return { lang: 'en', by: 'words', confidence: 0.6 };
     return { lang: top.lang, by: 'words', confidence: Math.min(0.9, 0.55 + 0.1 * (top.s - (second ? second.s : 0))) };
   }
-  if (keywordScore(text, langs.get('en')) > 0) return { lang: 'en', by: 'words', confidence: 0.6 };
+  if (enScore > 0) return { lang: 'en', by: 'words', confidence: 0.6 };
   return null;
 }
 

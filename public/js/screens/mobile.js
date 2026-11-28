@@ -24,6 +24,7 @@ let replyPref = 'voice';          // 'voice' | 'keypad'
 let activeCall = null;
 let lastHeard = null;
 let speakingCall = false;
+let callTurnToken = 0;
 let patientReport = null;
 let patientHealth = null;
 
@@ -564,29 +565,34 @@ function renderPatientApp() {
     const c = activeCall;
     const ringing = c && c.status === 'ringing';
     const live = c && c.status === 'active';
+    const isEn = l.code === 'en';
     return `
       <div class="ct-stack">
         <div class="ct-card ct-stack">
           <div class="ct-row ct-row--between">
-            <strong>${ringing ? `Incoming call (ring ${c.rings}/${cfg.maxRings})` : live ? 'Active dose call' : 'Dose call'}</strong>
-            ${c ? `<span class="ct-tag">${esc(c.status)}</span>` : ''}
+            <strong>${ringing ? `${esc(ui.stCalling || 'Incoming call')} (${c.rings}/${cfg.maxRings})` : live ? esc(ui.tabCall || 'Active call') : esc(ui.tabCall || 'Dose call')}</strong>
+            <button type="button" class="ct-chip ct-chip--lang" data-tab="more">${icon('globe')}<span>${esc(l.nativeName)}, ${esc(l.name)}</span></button>
           </div>
           ${!c || c.status === 'ended' ? `
             <p class="small muted">${c ? `Last call outcome: ${esc(c.outcome || 'ended')}.` : 'No active call right now.'}</p>
-            <button type="button" class="ct-btn ct-btn--primary ct-btn--block" data-act="ring-next" ${p.callsStopped ? 'disabled' : ''}>${icon('forward')}Start next dose call</button>
+            <button type="button" class="ct-btn ct-btn--primary ct-btn--block" data-act="ring-next" ${p.callsStopped ? 'disabled' : ''}>${icon('forward')}${esc(ui.ringNext || 'Start next dose call')}</button>
           ` : ''}
           ${ringing ? `
             <p class="small">Care Taker is calling in <strong>${esc(l.name)}</strong>.</p>
             <div class="ct-row">
-              <button type="button" class="ct-btn ct-btn--primary" data-act="call-answer">${icon('phone')}Answer</button>
-              <button type="button" class="ct-btn ct-btn--danger" data-act="call-decline">${icon('phone-down')}Decline</button>
+              <button type="button" class="ct-btn ct-btn--primary" data-act="call-answer">${icon('phone')}${esc(ui.answer || 'Answer')}</button>
+              <button type="button" class="ct-btn ct-btn--danger" data-act="call-decline">${icon('phone-down')}${esc(ui.decline || 'Decline')}</button>
             </div>
           ` : ''}
           ${c && c.transcript && c.transcript.length ? `
             <div class="ct-phone__transcript">
               ${c.transcript.slice(-6).map((t) => {
                 if (t.who === 'system') return `<p class="ct-phone__line ct-phone__line--system">${esc(t.text)}</p>`;
-                if (t.who === 'bot') return `<p class="ct-phone__line ct-phone__line--bot">${esc(t.text)}${t.en && t.en !== t.text ? `<span class="ct-phone__line-en">${esc(t.en)}</span>` : ''}</p>`;
+                if (t.who === 'bot') {
+                  const mainText = (isEn && t.en) ? t.en : t.text;
+                  const subEn = (!isEn && t.en && t.en !== mainText) ? `<span class="ct-phone__line-en">${esc(t.en)}</span>` : '';
+                  return `<p class="ct-phone__line ct-phone__line--bot" lang="${esc(l.code)}">${esc(mainText)}${subEn}</p>`;
+                }
                 return `<p class="ct-phone__line ct-phone__line--patient">${esc(t.text || '(silence)')}<span class="ct-phone__line-en">${esc(t.label || '')}</span></p>`;
               }).join('')}
             </div>
@@ -609,10 +615,10 @@ function renderPatientApp() {
               ${(l.samples || []).map((s) => `<button type="button" class="ct-chip" data-sample="${esc(s)}">${esc(s)}</button>`).join('')}
             </div>
             <div class="ct-row">
-              <button type="button" class="ct-btn ct-btn--secondary ct-btn--sm" data-key="1">1 Taken</button>
-              <button type="button" class="ct-btn ct-btn--secondary ct-btn--sm" data-key="2">2 Later</button>
-              <button type="button" class="ct-btn ct-btn--secondary ct-btn--sm" data-key="3">3 Nurse</button>
-              <button type="button" class="ct-btn ct-btn--ghost ct-btn--sm" data-key="9">9 Stop</button>
+              <button type="button" class="ct-btn ct-btn--secondary ct-btn--sm" data-key="1">1 ${esc(ui.keyTaken || 'Taken')}</button>
+              <button type="button" class="ct-btn ct-btn--secondary ct-btn--sm" data-key="2">2 ${esc(ui.keyLater || 'Later')}</button>
+              <button type="button" class="ct-btn ct-btn--secondary ct-btn--sm" data-key="3">3 ${esc(ui.keyNurse || 'Nurse')}</button>
+              <button type="button" class="ct-btn ct-btn--ghost ct-btn--sm" data-key="9">9 ${esc(ui.keyStop || 'Stop')}</button>
             </div>
           </form>
         ` : ''}
@@ -912,6 +918,9 @@ async function onClick(e) {
   }
   else if (act === 'set-lang') {
     const code = actEl.dataset.lang;
+    callTurnToken += 1;
+    voice.stopSpeaking();
+    voice.stopListening();
     await api(`/api/patients/${encodeURIComponent(pid)}`, { method: 'PATCH', body: { lang: code } });
     await loadData();
     renderDevice();
@@ -1073,6 +1082,10 @@ async function sendPatientReply(body) {
 
 async function playCallTurn(c) {
   const myToken = token;
+  callTurnToken += 1;
+  const myTurn = callTurnToken;
+  voice.stopListening();
+  voice.stopSpeaking();
   activeCall = c;
   lastHeard = [...(c.transcript || [])].reverse().find((x) => x.who === 'patient') || null;
   await loadData(myToken);
@@ -1084,14 +1097,17 @@ async function playCallTurn(c) {
     speakingCall = true;
     try {
       for (const line of c.turn.say) {
-        if (myToken !== token) return;
-        await voice.speakLine(line, l.speechCode, { sarvamKey: cfg.keys.sarvam, clips: (cfg.audio && cfg.audio[l.code]) || [] });
+        if (myToken !== token || myTurn !== callTurnToken) return;
+        const lineLang = line.lang || l.code;
+        const lineLangCfg = cfg.langs.find((x) => x.code === lineLang) || l;
+        await voice.speakLine(line, lineLangCfg.speechCode, { sarvamKey: cfg.keys.sarvam, clips: (cfg.audio && cfg.audio[lineLang]) || [] });
       }
     } finally {
-      speakingCall = false;
+      if (myTurn === callTurnToken) speakingCall = false;
     }
   }
-  if (c.status === 'ended') {
+  if (c.status === 'ended' && myTurn === callTurnToken) {
+    if (c.outcome === 'taken') voice.playConfirmTone();
     toast(c.outcome === 'taken' ? 'Dose confirmed and logged' : `Call ended: ${c.outcome}`);
     await loadData(myToken);
     if (myToken === token) renderDevice();

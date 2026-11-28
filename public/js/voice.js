@@ -1,11 +1,20 @@
-// Voice in and out for the patient phone.
-// Out: speechSynthesis if a voice exists for the language, else Sarvam (if its key is set),
-//      else /audio/{lang}/{lineId}.mp3, else the line is shown as text only.
+// Voice in and out for the patient phone and mobile app.
+// Out: recorded voiceover files in /audio/{lang}/{lineId}.(mp4|m4a|mp3|wav) first,
+//      else Sarvam (if its key is set), else browser speechSynthesis in the line's language,
+//      else the line is shown as text only.
 // In:  webkitSpeechRecognition in the patient's language. Never listens while speaking.
 import { post } from './lib.js';
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-const readingTime = (text) => Math.min(9000, 1200 + text.length * 55);
+const readingTime = (text) => Math.min(7000, 1100 + String(text || '').length * 48);
+
+const LANG_SPEECH = {
+  en: 'en-IN', hi: 'hi-IN', te: 'te-IN', ta: 'ta-IN', kn: 'kn-IN',
+  ml: 'ml-IN', mr: 'mr-IN', bn: 'bn-IN', gu: 'gu-IN', pa: 'pa-IN', or: 'or-IN',
+};
+
+const NOVELTY_VOICE = /\b(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|kathy|ralph|rocko|reed|shelley|sandy|flo|eddy|grandma|grandpa)\b/i;
+const PREFERRED_VOICE = /\b(natural|premium|enhanced|google|siri|samantha|rishi|veena|moira|daniel|karen|lekha|geeta)\b/i;
 
 let voicesLoaded = null;
 function voicesReady() {
@@ -21,32 +30,95 @@ function voicesReady() {
   return voicesLoaded;
 }
 
+function rankVoice(v, targetCode) {
+  const norm = (s) => String(s || '').replace('_', '-').toLowerCase();
+  const vLang = norm(v.lang);
+  let score = 0;
+  if (vLang === targetCode) score += 20;
+  else if (vLang.startsWith(targetCode.slice(0, 2) + '-')) score += 10;
+  else return -100;
+  if (NOVELTY_VOICE.test(v.name)) score -= 50;
+  if (PREFERRED_VOICE.test(v.name)) score += 15;
+  if (/aman/i.test(v.name)) score -= 5;
+  if (v.localService) score += 2;
+  return score;
+}
+
 export async function findVoice(speechCode) {
   const voices = await voicesReady();
-  const norm = (s) => String(s || '').replace('_', '-').toLowerCase();
-  const code = norm(speechCode);
-  return voices.find((v) => norm(v.lang) === code) || voices.find((v) => norm(v.lang).startsWith(code.slice(0, 2) + '-')) || null;
+  const code = String(speechCode || 'en-IN').replace('_', '-').toLowerCase();
+  const candidates = voices
+    .map((v) => ({ v, s: rankVoice(v, code) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s);
+  return candidates[0] ? candidates[0].v : null;
+}
+
+export function resolveClip(lineId, clips = []) {
+  if (!lineId || !Array.isArray(clips) || !clips.length) return null;
+  for (const ext of ['.mp4', '.m4a', '.mp3', '.wav', '.ogg']) {
+    if (clips.includes(`${lineId}${ext}`)) return `${lineId}${ext}`;
+  }
+  if (clips.includes(lineId)) return `${lineId}.mp3`;
+  return null;
 }
 
 // Describes how lines will be voiced, for the screen.
-export async function outputMode(speechCode, sarvamKey) {
+export async function outputMode(speechCode, sarvamKey, clips = []) {
+  const hasRecorded = Array.isArray(clips) && clips.length > 0;
+  if (hasRecorded) return { mode: 'file', label: 'Recorded voiceover audio (MP4/MP3)' };
+  if (sarvamKey) return { mode: 'sarvam', label: 'Sarvam voice' };
   const v = await findVoice(speechCode);
   if (v) return { mode: 'browser', label: `Browser voice: ${v.name}` };
-  if (sarvamKey) return { mode: 'sarvam', label: 'Sarvam voice' };
   return { mode: 'file', label: `No browser voice for ${speechCode}. Audio files, then text.` };
 }
 
-function speakSynth(text, voice) {
+// Prepares text so browser TTS pronounces hospital terms, meal slots, and times naturally.
+function cleanForSpeech(text, langCode) {
+  let s = String(text || '');
+  if (langCode === 'en' || String(langCode || '').startsWith('en')) {
+    s = s
+      .replace(/\bCare Taker\b/gi, 'Caretaker')
+      .replace(/\bafter-breakfast\b/gi, 'after breakfast')
+      .replace(/\bafter-lunch\b/gi, 'after lunch')
+      .replace(/\bafter-dinner\b/gi, 'after dinner')
+      .replace(/\b(\d{2}):(\d{2})\b/g, (_, hh, mm) => {
+        const h24 = Number(hh);
+        const m = Number(mm);
+        const period = h24 >= 12 ? 'PM' : 'AM';
+        const h12 = h24 % 12 || 12;
+        return m === 0 ? `${h12} ${period}` : `${h12} ${m < 10 ? 'oh ' + m : m} ${period}`;
+      });
+  }
+  return s;
+}
+
+let currentAudio = null;
+
+async function speakSynth(text, voice, langCode) {
+  if (!('speechSynthesis' in window)) return 'text';
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+    await wait(50);
+  }
   return new Promise((resolve) => {
-    const u = new SpeechSynthesisUtterance(text);
+    const spokenText = cleanForSpeech(text, langCode || voice.lang);
+    const u = new SpeechSynthesisUtterance(spokenText);
     u.voice = voice;
     u.lang = voice.lang;
-    u.rate = 0.92;
+    u.rate = 0.94;
+    u.pitch = 1.0;
     let done = false;
-    const finish = () => { if (!done) { done = true; clearTimeout(guard); resolve('browser'); } };
+    const finish = () => {
+      if (!done) {
+        done = true;
+        clearTimeout(guard);
+        resolve('browser');
+      }
+    };
     // Chrome sometimes never fires onend, so a guard ends the line after its reading time.
-    const guard = setTimeout(() => { speechSynthesis.cancel(); finish(); }, readingTime(text) + 4000);
-    u.onend = finish;
+    const guard = setTimeout(() => { speechSynthesis.cancel(); finish(); }, readingTime(text) + 1500);
+    u.onend = () => setTimeout(finish, 120);
     u.onerror = finish;
     speechSynthesis.speak(u);
   });
@@ -54,30 +126,48 @@ function speakSynth(text, voice) {
 
 function play(src) {
   return new Promise((resolve, reject) => {
+    if (currentAudio) {
+      try { currentAudio.pause(); } catch { /* ignore */ }
+      currentAudio = null;
+    }
     const a = new Audio(src);
-    a.onended = () => resolve();
-    a.onerror = () => reject(new Error('no audio'));
-    a.play().catch(reject);
+    currentAudio = a;
+    const clean = () => { if (currentAudio === a) currentAudio = null; };
+    a.onended = () => { clean(); setTimeout(resolve, 120); };
+    a.onerror = () => { clean(); reject(new Error('no audio')); };
+    a.play().catch((err) => { clean(); reject(err); });
   });
 }
 
 let speaking = false;
 export const isSpeaking = () => speaking;
 
-// Speaks one line. Returns how it was voiced: browser, sarvam, file or text.
+// Speaks one line. Returns how it was voiced: file, sarvam, browser or text.
 export async function speakLine(line, speechCode, { sarvamKey = false, clips = [] } = {}) {
   speaking = true;
   try {
-    const voice = await findVoice(speechCode);
-    if (voice) return await speakSynth(line.text, voice);
+    const lineLang = (line && line.lang) || 'en';
+    const targetSpeechCode = LANG_SPEECH[lineLang] || speechCode || 'en-IN';
+    const clipFile = resolveClip(line && line.lineId, clips);
+    if (clipFile) {
+      try {
+        await play(`/audio/${lineLang}/${clipFile}`);
+        return 'file';
+      } catch { /* fall through if file cannot play */ }
+    }
     if (sarvamKey) {
       try {
-        const r = await post('/api/tts', { text: line.text, lang: line.lang });
+        const r = await post('/api/tts', { text: line.text, lang: lineLang });
         if (r && r.audio) { await play(`data:${r.mime || 'audio/wav'};base64,${r.audio}`); return 'sarvam'; }
-      } catch { /* fall through to files */ }
+      } catch { /* fall through to browser voice */ }
     }
-    if (clips.includes(line.lineId)) {
-      try { await play(`/audio/${line.lang}/${line.lineId}.mp3`); return 'file'; } catch { /* show text */ }
+    const voice = await findVoice(targetSpeechCode);
+    if (voice) return await speakSynth(line.text, voice, lineLang);
+    // Final fallback if lineId.mp4 or lineId.mp3 was dropped in after config loaded
+    for (const ext of ['.mp4', '.mp3']) {
+      if (clips.includes(line.lineId)) {
+        try { await play(`/audio/${lineLang}/${line.lineId}${ext}`); return 'file'; } catch { /* ignore */ }
+      }
     }
     await wait(readingTime(line.text));
     return 'text';
@@ -87,6 +177,10 @@ export async function speakLine(line, speechCode, { sarvamKey = false, clips = [
 }
 
 export function stopSpeaking() {
+  if (currentAudio) {
+    try { currentAudio.pause(); } catch { /* ignore */ }
+    currentAudio = null;
+  }
   if ('speechSynthesis' in window) speechSynthesis.cancel();
 }
 
