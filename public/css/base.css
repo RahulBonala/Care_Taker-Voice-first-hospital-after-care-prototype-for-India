@@ -60,3 +60,6 @@ ul, ol { margin: 0; padding-left: var(--space-5); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+h1[tabindex="-1"]:focus-visible { box-shadow: none; }
+

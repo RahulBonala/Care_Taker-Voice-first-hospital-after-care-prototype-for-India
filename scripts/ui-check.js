@@ -234,7 +234,7 @@ function fail(msg) { failed += 1; console.error(`FAIL  ${msg}`); }
     if (printOk) pass('6. Print media on #family and #doctor hides nav and keeps report and medical disclaimer visible');
     await prCtx.close();
 
-    // 7. Route change moves focus to the page h1
+    // 7. Route change moves focus to the page h1 with computed box-shadow "none"
     const focCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
     const focPage = await focCtx.newPage();
     await focPage.goto(`${BASE}/#home`, { waitUntil: 'networkidle' });
@@ -242,13 +242,19 @@ function fail(msg) { failed += 1; console.error(`FAIL  ${msg}`); }
     for (const r of ['nurse', 'family', 'doctor', 'desk', 'phone']) {
       await focPage.evaluate((hash) => { location.hash = `#${hash}`; }, r);
       await focPage.waitForTimeout(150);
-      const activeTag = await focPage.evaluate(() => document.activeElement && document.activeElement.tagName);
-      if (activeTag !== 'H1') {
+      const foc = await focPage.evaluate(() => {
+        const el = document.activeElement;
+        return {
+          tag: el && el.tagName,
+          boxShadow: el ? getComputedStyle(el).boxShadow : null,
+        };
+      });
+      if (foc.tag !== 'H1' || foc.boxShadow !== 'none') {
         focusOk = false;
-        fail(`7. Route change to #${r} did not focus H1 (focused ${activeTag})`);
+        fail(`7. Route change to #${r} focused ${foc.tag} with box-shadow "${foc.boxShadow}"`);
       }
     }
-    if (focusOk) pass('7. Route change moves focus to the page h1');
+    if (focusOk) pass('7. Route change moves focus to the page h1 with computed box-shadow "none"');
     await focCtx.close();
 
     // 8. Long scripts at 360: Tamil (Meena) and Malayalam (registered on #desk, verified on #nurse, called on #phone)
