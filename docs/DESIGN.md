@@ -80,6 +80,7 @@ Patient screens never go below `--text-md`. `--text-sm` and `--text-xs` are for 
 ## Motion
 
 150ms ease-out on hover and toasts. One gentle pulse on the incoming call avatar. All animation is switched off under `prefers-reduced-motion`.
+Duration and stagger tokens in `tokens.css`: `--dur-1` (150ms, quick exits and text swaps), `--dur-2` (240ms, chip and tooltip entrances), `--dur-3` (400ms, skeleton reveals, row highlights, and check stroke draw), `--stagger` (60ms, per-item stagger). Enter with `--ease-out`; exits run faster than entrances.
 
 ## Icons
 
@@ -268,4 +269,8 @@ Each language is a pill (native name, English name small) evenly spaced around a
 
 ### `ct-walk` (guided product tour)
 Left: eyebrow, headline, "Start the tour", step count and time, a thin progress bar and four numbered chapters (Patients, Families, Nurses, Doctors) with step counts. Right: a browser-style frame labelled "Live preview . sample data" showing real-looking product screens. The tour moves through 15 steps with a highlight ring and a tooltip card (Back, Next, close); arrow keys step, Escape closes. Styles in `tour.css`.
+
+### `ct-skeleton` and `ct-error-box` (Round 2 polish)
+`ct-skeleton` renders rows of soft bars (`ct-skeleton__bar`) in `--color-surface-sunken` inside async regions (`[aria-busy="true"]`) of Nurse, Family, Doctor, Hospital desk and Health devices until the first data arrives, reserving height so content fades in (`.ct-loaded-fade`, `--dur-3`) with no layout shift. A slow pulse runs only under `prefers-reduced-motion: no-preference`. If the initial load fails, `ct-error-box` shows "Could not load. Check your connection." with a `Retry` button (`data-retry="1"`).
+
 

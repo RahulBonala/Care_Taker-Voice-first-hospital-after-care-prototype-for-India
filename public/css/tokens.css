@@ -56,6 +56,10 @@
   /* Motion (strong curves: ease-out for entrances, ease-in-out for movement on screen) */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --dur-1: 150ms;
+  --dur-2: 240ms;
+  --dur-3: 400ms;
+  --stagger: 60ms;
 
   /* Layout */
   --content-max: 1120px;

@@ -1,49 +1,68 @@
 // Family: read-only record and weekly report, built from the patient's own words. Only shown when shared.
-import { api, esc, icon, config, empty, progress, slotStatus, intentStatus, when, dayName, SLOT_LABEL, flagStatus, store } from '../lib.js';
+import { api, esc, icon, toast, config, empty, skeleton, errorBox, progress, slotStatus, intentStatus, when, dayName, SLOT_LABEL, flagStatus, store } from '../lib.js';
 
 let el;
 let cfg;
 let pid = null;
+let loaded = false;
+let failCount = 0;
 
 export async function mount(root) {
   el = root;
-  cfg = await config();
+  loaded = false;
+  failCount = 0;
   el.innerHTML = `
   <div class="ct-stack--lg">
     <div class="ct-row ct-row--between">
       <div><h1>Family</h1><p class="muted">A read-only view for family members, in the patient's own words.</p></div>
       <label class="ct-field"><span class="ct-field__label">Patient</span><select class="ct-select" id="fa-patient"></select></label>
     </div>
-    <div id="fa-body"></div>
+    <div id="fa-body" aria-busy="true"><section class="ct-card">${skeleton(5)}</section></div>
   </div>`;
-  el.querySelector('#fa-patient').addEventListener('change', (e) => { pid = e.target.value; store('ct.family.pid', pid); refresh(); });
+  el.querySelector('#fa-patient').addEventListener('change', (e) => { pid = e.target.value; store('ct.family.pid', pid); loaded = false; refresh(); });
+  el.addEventListener('click', (e) => { if (e.target.closest('button[data-retry]')) refresh(); });
   refresh();
 }
 export function unmount() { el = null; }
 
 export async function refresh() {
   if (!el || !el.querySelector('#fa-body')) return;
-  const patients = (await api('/api/patients')).filter((p) => p.verified);
-  if (!el) return;
-  if (!pid) pid = store('ct.family.pid');
-  if (!patients.some((p) => p.id === pid)) pid = patients[0] && patients[0].id;
-  const sel = el.querySelector('#fa-patient');
-  if (!sel.matches(':focus')) sel.innerHTML = patients.map((p) => `<option value="${esc(p.id)}" ${p.id === pid ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
   const body = el.querySelector('#fa-body');
-  if (!pid) { body.innerHTML = empty('No patients yet.', 'user'); return; }
+  try {
+    const [c, allPatients] = await Promise.all([config(), api('/api/patients')]);
+    cfg = c;
+    const patients = allPatients.filter((p) => p.verified);
+    if (!el) return;
+    if (!pid) pid = store('ct.family.pid');
+    if (!patients.some((p) => p.id === pid)) pid = patients[0] && patients[0].id;
+    const sel = el.querySelector('#fa-patient');
+    if (!sel.matches(':focus')) sel.innerHTML = patients.map((p) => `<option value="${esc(p.id)}" ${p.id === pid ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
+    if (!pid) {
+      body.removeAttribute('aria-busy');
+      body.innerHTML = empty('No patients yet.', 'user');
+      return;
+    }
 
-  const res = await fetch(`/api/report/${encodeURIComponent(pid)}?view=family`);
-  const r = await res.json();
-  if (!el) return;
-  if (res.status === 403) {
-    body.innerHTML = `<section class="ct-card">${empty(`${r.patient.name} has not chosen to share their record with family.`, 'lock')}</section>`;
-    return;
-  }
-  const rx = r.courses[0];
-  const today = r.week[r.week.length - 1].date;
-  const h = await api(`/api/health/${encodeURIComponent(pid)}?view=family&lang=${encodeURIComponent(r.patient.lang || 'en')}`).catch(() => null);
-  if (!el) return;
-  body.innerHTML = `
+    const selected = patients.find((p) => p.id === pid);
+    const pLang = (selected && selected.lang) || 'en';
+    const [res, h] = await Promise.all([
+      fetch(`/api/report/${encodeURIComponent(pid)}?view=family`),
+      api(`/api/health/${encodeURIComponent(pid)}?view=family&lang=${encodeURIComponent(pLang)}`).catch(() => null),
+    ]);
+    const r = await res.json();
+    if (!el) return;
+    failCount = 0;
+    const firstLoad = !loaded;
+    loaded = true;
+    body.removeAttribute('aria-busy');
+    if (firstLoad) body.classList.add('ct-loaded-fade');
+    if (res.status === 403) {
+      body.innerHTML = `<section class="ct-card">${empty(`${r.patient.name} chose not to share this record with family. A nurse can turn sharing on with ${r.patient.name.split(' ')[0]}'s consent.`, 'lock')}</section>`;
+      return;
+    }
+    const rx = r.courses[0];
+    const today = r.week[r.week.length - 1].date;
+    body.innerHTML = `
   <div class="ct-grid">
     <section class="ct-card ct-card--raised ct-col-7 ct-stack">
       <div class="ct-card__head"><h2>This week</h2><p>${esc(r.patient.name)}</p></div>
@@ -77,6 +96,15 @@ export async function refresh() {
       <a class="ct-btn ct-btn--ghost ct-btn--sm" href="#devices">Open health devices</a>
     </section>` : ''}
   </div>`;
+  } catch (err) {
+    failCount += 1;
+    if (!loaded && el) {
+      body.removeAttribute('aria-busy');
+      body.innerHTML = `<section class="ct-card">${errorBox()}</section>`;
+    } else if (failCount >= 3) {
+      toast('Could not load. Check your connection.', 'error');
+    }
+  }
 }
 
 // One feedback line: in the patient's language, with the English line underneath for family who read English.

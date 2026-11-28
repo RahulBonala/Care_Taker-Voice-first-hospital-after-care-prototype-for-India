@@ -60,10 +60,15 @@ function report(db, patientId) {
   const openFlags = flags.filter((f) => f.status === 'open');
   if (openFlags.length) summary.push(`The care team is following up on ${openFlags.length} open ${openFlags.length === 1 ? 'item' : 'items'}.`);
   if (p.callsStopped) summary.push(`${first} asked to stop the calls on ${T.dateOf(p.callsStoppedAt)}.`);
+  const todaySlots = slots.filter((s) => s.date === today).sort((a, b) => a.due.localeCompare(b.due));
+  const dueToday = todaySlots.filter((s) => s.due <= db.clock);
+  const confirmedToday = dueToday.filter((s) => s.status === 'taken');
+  const lastTakenAt = confirmedToday.map((s) => s.takenAt).filter(Boolean).sort().pop() || null;
   return {
     patient: p, courses, week, summary, flags,
     quotes: quotesFor(db, p.id, from).slice(0, 20),
-    today: slots.filter((s) => s.date === today).sort((a, b) => a.due.localeCompare(b.due)),
+    today: todaySlots,
+    todaySummary: { due: dueToday.length, confirmed: confirmedToday.length, lastTakenAt },
   };
 }
 

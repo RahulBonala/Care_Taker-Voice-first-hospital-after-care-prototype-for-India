@@ -1,13 +1,15 @@
 // Health devices: pair blood pressure monitors, glucose meters and heart rate straps over Bluetooth,
 // connect watches and rings through the phone's health app, add readings by voice or typing,
 // and see plain feedback against the doctor's ranges. No advice: anything outside a range goes to a nurse.
-import { api, post, esc, icon, toast, busy, empty, store, hm } from '../lib.js';
+import { api, post, esc, icon, toast, busy, empty, skeleton, errorBox, store, hm } from '../lib.js';
 import * as ble from '../ble.js';
 import * as voice from '../voice.js';
 
 let el;
 let pid = null;
 let kinds = {};
+let loaded = false;
+let failCount = 0;
 const live = new Map(); // deviceId -> Bluetooth connection
 
 const TYPE_LABEL = { bp: 'Blood pressure', glucose: 'Sugar', heartRate: 'Heart rate', spo2: 'Oxygen', steps: 'Steps', activeCalories: 'Active calories', calories: 'Calories', sleep: 'Sleep' };
@@ -17,7 +19,8 @@ const sleepText = (m) => (m === null || m === undefined ? 'None yet' : `${Math.f
 
 export async function mount(root) {
   el = root;
-  kinds = await api('/api/devices/kinds');
+  loaded = false;
+  failCount = 0;
   el.innerHTML = `
   <div class="ct-stack--lg">
     <div class="ct-row ct-row--between">
@@ -32,29 +35,29 @@ export async function mount(root) {
       <div class="ct-col-8 ct-stack--lg">
         <section class="ct-card" aria-labelledby="dv-today-t">
           <div class="ct-card__head"><h2 id="dv-today-t" class="ct-section-title">${icon('chart')}Today</h2><p id="dv-synced"></p></div>
-          <div class="ct-metrics" id="dv-today" data-reveal-group></div>
+          <div class="ct-metrics" id="dv-today" aria-busy="true">${skeleton(3)}</div>
         </section>
         <section class="ct-card" aria-labelledby="dv-fb-t">
           <div class="ct-card__head"><h2 id="dv-fb-t" class="ct-section-title">${icon('list')}What your devices show</h2><p>Facts only, against your doctor's ranges</p></div>
-          <ul class="ct-feedback" id="dv-feedback"></ul>
+          <ul class="ct-feedback" id="dv-feedback" aria-busy="true"><li>${skeleton(3)}</li></ul>
         </section>
         <section class="ct-card" aria-labelledby="dv-week-t">
           <div class="ct-card__head"><h2 id="dv-week-t" class="ct-section-title">${icon('calendar')}This week</h2></div>
-          <div id="dv-week"></div>
+          <div id="dv-week" aria-busy="true">${skeleton(2)}</div>
           <div class="ct-grid ct-dv-tables">
-            <div class="ct-col-6"><h3>Blood pressure</h3><ul class="ct-list" id="dv-bp"></ul></div>
-            <div class="ct-col-6"><h3>Sugar</h3><ul class="ct-list" id="dv-sugar"></ul></div>
+            <div class="ct-col-6"><h3>Blood pressure</h3><ul class="ct-list" id="dv-bp" aria-busy="true"><li>${skeleton(2)}</li></ul></div>
+            <div class="ct-col-6"><h3>Sugar</h3><ul class="ct-list" id="dv-sugar" aria-busy="true"><li>${skeleton(2)}</li></ul></div>
           </div>
         </section>
       </div>
       <aside class="ct-col-4 ct-stack--lg">
         <section class="ct-card" aria-labelledby="dv-con-t">
           <div class="ct-card__head"><h2 id="dv-con-t">Connected</h2></div>
-          <ul class="ct-list" id="dv-devices"></ul>
+          <ul class="ct-list" id="dv-devices" aria-busy="true"><li>${skeleton(2)}</li></ul>
         </section>
         <section class="ct-card" aria-labelledby="dv-add-t">
           <div class="ct-card__head"><h2 id="dv-add-t">Add a device</h2></div>
-          <ul class="ct-list" id="dv-kinds"></ul>
+          <ul class="ct-list" id="dv-kinds" aria-busy="true"><li>${skeleton(2)}</li></ul>
           <p class="small muted" id="dv-ble-note"></p>
         </section>
         <section class="ct-card" aria-labelledby="dv-read-t">
@@ -71,7 +74,7 @@ export async function mount(root) {
         </section>
         <section class="ct-card" aria-labelledby="dv-rng-t">
           <div class="ct-card__head"><h2 id="dv-rng-t">Doctor's ranges</h2></div>
-          <dl class="ct-dl" id="dv-ranges"></dl>
+          <dl class="ct-dl" id="dv-ranges" aria-busy="true">${skeleton(3)}</dl>
           <p class="small muted" id="dv-ranges-by"></p>
           <a class="ct-btn ct-btn--ghost ct-btn--sm" href="#doctor">Change on the doctor screen</a>
         </section>
@@ -79,15 +82,15 @@ export async function mount(root) {
     </div>
   </div>`;
 
-  el.querySelector('#dv-patient').addEventListener('change', (e) => { pid = e.target.value; store('ct.devices.pid', pid); refresh(); });
+  el.querySelector('#dv-patient').addEventListener('change', (e) => { pid = e.target.value; store('ct.devices.pid', pid); loaded = false; refresh(); });
   el.querySelector('#dv-kinds').addEventListener('click', onAdd);
   el.querySelector('#dv-devices').addEventListener('click', onDevice);
   el.querySelector('#dv-read').addEventListener('submit', (e) => { e.preventDefault(); addTyped(el.querySelector('#dv-read-text').value, 'typed'); });
   el.querySelector('#dv-read-mic').addEventListener('click', sayReading);
+  el.addEventListener('click', (e) => { if (e.target.closest('button[data-retry]')) refresh(); });
   el.querySelector('#dv-ble-note').textContent = ble.bluetoothAvailable()
     ? 'Bluetooth pairing works with monitors that use the standard Bluetooth health formats.'
     : 'Bluetooth pairing needs Chrome on a computer or Android phone, on https or localhost. Sample devices work everywhere.';
-  renderKinds();
   refresh();
 }
 
@@ -189,62 +192,95 @@ function lastText(r, fn) {
 
 export async function refresh() {
   if (!el || !el.querySelector('#dv-today')) return;
-  const patients = (await api('/api/patients')).filter((p) => p.verified);
-  if (!el) return;
-  if (!pid) pid = store('ct.devices.pid');
-  if (!patients.some((p) => p.id === pid)) pid = patients[0] && patients[0].id;
-  const sel = el.querySelector('#dv-patient');
-  if (!sel.matches(':focus')) sel.innerHTML = patients.map((p) => `<option value="${esc(p.id)}" ${p.id === pid ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
-  if (!pid) return;
-  const s = await api(`/api/health/${encodeURIComponent(pid)}`);
-  if (!el) return;
-  const r = s.ranges;
-  const bp = lastText(s.last.bp, (v) => `${v.sys}/${v.dia}`);
-  const sugar = lastText(s.last.glucose, (v) => `${v.mgdl}`);
-  const hr = s.last.heartRate;
-  const stepsMet = s.today.steps !== null && s.today.steps >= r.stepsGoal;
-  const tiles = [];
-  if (s.today.steps !== null) tiles.push(metric(fmt(s.today.steps), 'Steps', `${icon(stepsMet ? 'check' : 'pending')}Doctor's goal ${fmt(r.stepsGoal)}`, stepsMet ? 'ct-metric--ok' : ''));
-  if (s.today.activeCalories !== null) tiles.push(metric(fmt(s.today.activeCalories), 'Active calories, kcal'));
-  if (s.today.calories !== null) tiles.push(metric(fmt(s.today.calories), 'Total calories, kcal'));
-  if (s.today.sleep !== null) tiles.push(metric(sleepText(s.today.sleep), 'Sleep last night'));
-  if (hr) tiles.push(metric(esc(hr.value.bpm), 'Heart rate', `${icon(hr.outOfRange ? 'alert' : 'check')}${hr.outOfRange ? 'Outside range' : 'Inside range'}`, hr.outOfRange ? 'ct-metric--bad' : ''));
-  if (s.last.bp) tiles.push(metric(bp.v, 'Blood pressure, mmHg', bp.t, bp.bad ? 'ct-metric--bad' : 'ct-metric--ok'));
-  if (s.last.glucose) tiles.push(metric(sugar.v, 'Sugar, mg/dL', sugar.t, sugar.bad ? 'ct-metric--bad' : 'ct-metric--ok'));
-  if (s.last.spo2) tiles.push(metric(`${esc(s.last.spo2.value.pct)}%`, 'Oxygen'));
-  if (s.today.steps === null) tiles.push(`<div class="ct-metric ct-metric--hint"><span class="ct-metric__label"><strong>Steps, calories and sleep</strong></span><span class="ct-metric__target">${icon('watch')}Add a watch or ring</span></div>`);
-  if (!s.last.bp && !s.last.glucose) tiles.push(`<div class="ct-metric ct-metric--hint"><span class="ct-metric__label"><strong>Blood pressure and sugar</strong></span><span class="ct-metric__target">${icon('gauge')}Pair a monitor or say a reading</span></div>`);
-  el.querySelector('#dv-today').innerHTML = tiles.join('');
-  const lastSync = s.devices.map((d) => d.lastSync).filter(Boolean).sort().pop();
-  el.querySelector('#dv-synced').textContent = lastSync ? `Last sync ${hm(lastSync)}` : '';
+  try {
+    const [k, allPatients] = await Promise.all([
+      Object.keys(kinds).length ? Promise.resolve(kinds) : api('/api/devices/kinds'),
+      api('/api/patients'),
+    ]);
+    kinds = k;
+    const patients = allPatients.filter((p) => p.verified);
+    if (!el) return;
+    const kindsEl = el.querySelector('#dv-kinds');
+    if (kindsEl && kindsEl.hasAttribute('aria-busy')) {
+      kindsEl.removeAttribute('aria-busy');
+      renderKinds();
+    }
+    if (!pid) pid = store('ct.devices.pid');
+    if (!patients.some((p) => p.id === pid)) pid = patients[0] && patients[0].id;
+    const sel = el.querySelector('#dv-patient');
+    if (!sel.matches(':focus')) sel.innerHTML = patients.map((p) => `<option value="${esc(p.id)}" ${p.id === pid ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
+    if (!pid) return;
+    const s = await api(`/api/health/${encodeURIComponent(pid)}`);
+    if (!el) return;
+    failCount = 0;
+    const firstLoad = !loaded;
+    loaded = true;
+    for (const selId of ['#dv-today', '#dv-feedback', '#dv-week', '#dv-bp', '#dv-sugar', '#dv-devices', '#dv-ranges']) {
+      const node = el.querySelector(selId);
+      if (node) {
+        node.removeAttribute('aria-busy');
+        if (firstLoad) node.classList.add('ct-loaded-fade');
+      }
+    }
+    const r = s.ranges;
+    const bp = lastText(s.last.bp, (v) => `${v.sys}/${v.dia}`);
+    const sugar = lastText(s.last.glucose, (v) => `${v.mgdl}`);
+    const hr = s.last.heartRate;
+    const stepsMet = s.today.steps !== null && s.today.steps >= r.stepsGoal;
+    const tiles = [];
+    if (s.today.steps !== null) tiles.push(metric(fmt(s.today.steps), 'Steps', `${icon(stepsMet ? 'check' : 'pending')}Doctor's goal ${fmt(r.stepsGoal)}`, stepsMet ? 'ct-metric--ok' : ''));
+    if (s.today.activeCalories !== null) tiles.push(metric(fmt(s.today.activeCalories), 'Active calories, kcal'));
+    if (s.today.calories !== null) tiles.push(metric(fmt(s.today.calories), 'Total calories, kcal'));
+    if (s.today.sleep !== null) tiles.push(metric(sleepText(s.today.sleep), 'Sleep last night'));
+    if (hr) tiles.push(metric(esc(hr.value.bpm), 'Heart rate', `${icon(hr.outOfRange ? 'alert' : 'check')}${hr.outOfRange ? 'Outside range' : 'Inside range'}`, hr.outOfRange ? 'ct-metric--bad' : ''));
+    if (s.last.bp) tiles.push(metric(bp.v, 'Blood pressure, mmHg', bp.t, bp.bad ? 'ct-metric--bad' : 'ct-metric--ok'));
+    if (s.last.glucose) tiles.push(metric(sugar.v, 'Sugar, mg/dL', sugar.t, sugar.bad ? 'ct-metric--bad' : 'ct-metric--ok'));
+    if (s.last.spo2) tiles.push(metric(`${esc(s.last.spo2.value.pct)}%`, 'Oxygen'));
+    if (s.today.steps === null) tiles.push(`<div class="ct-metric ct-metric--hint"><span class="ct-metric__label"><strong>Steps, calories and sleep</strong></span><span class="ct-metric__target">${icon('watch')}Add a watch or ring</span></div>`);
+    if (!s.last.bp && !s.last.glucose) tiles.push(`<div class="ct-metric ct-metric--hint"><span class="ct-metric__label"><strong>Blood pressure and sugar</strong></span><span class="ct-metric__target">${icon('gauge')}Pair a monitor or say a reading</span></div>`);
+    el.querySelector('#dv-today').innerHTML = tiles.join('');
+    const lastSync = s.devices.map((d) => d.lastSync).filter(Boolean).sort().pop();
+    el.querySelector('#dv-synced').textContent = lastSync ? `Last sync ${hm(lastSync)}` : '';
 
-  el.querySelector('#dv-feedback').innerHTML = s.feedback.map((f) => `<li class="ct-feedback__item ct-feedback__item--${esc(f.kind)}">${icon(f.kind === 'flag' ? 'alert' : f.kind === 'ok' ? 'check' : 'info')}<span>${esc(f.text)}</span></li>`).join('');
+    el.querySelector('#dv-feedback').innerHTML = s.feedback.map((f) => `<li class="ct-feedback__item ct-feedback__item--${esc(f.kind)}">${icon(f.kind === 'flag' ? 'alert' : f.kind === 'ok' ? 'check' : 'info')}<span>${esc(f.text)}</span></li>`).join('');
 
-  const maxSteps = Math.max(r.stepsGoal, ...s.week.map((d) => d.steps || 0));
-  el.querySelector('#dv-week').innerHTML = s.week.some((d) => d.steps !== null) ? `
-    <div class="ct-dv-week" aria-label="Steps for the last seven days">
-      ${s.week.map((d, i) => `<div class="ct-dv-week__day ${i === 6 ? 'ct-dv-week__day--today' : ''}">
-        <span class="ct-dv-week__name">${esc(new Date(d.date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' }))}</span>
-        <progress class="ct-dv-week__bar ${d.steps !== null && d.steps >= r.stepsGoal ? 'is-met' : ''}" max="${maxSteps}" value="${d.steps || 0}">${fmt(d.steps)} steps</progress>
-        <span class="ct-dv-week__val">${d.steps === null ? 'None' : fmt(d.steps)}</span></div>`).join('')}
-    </div><p class="small muted">Steps a day. Filled bars reached the doctor's goal of ${fmt(r.stepsGoal)}.</p>` : '';
-  const row = (x, txt) => `<li><span><strong class="tabular">${esc(txt)}</strong><br><span class="small muted">${esc(new Date(x.at).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', weekday: 'short' }))} ${esc(hm(x.at))}, ${esc(x.source === 'sample' ? 'sample device' : x.source)}</span></span>${x.outOfRange ? `<span class="ct-status ct-status--later">${icon('alert')}Nurse told</span>` : `<span class="ct-status ct-status--taken">${icon('check')}In range</span>`}</li>`;
-  el.querySelector('#dv-bp').innerHTML = s.bpWeek.length ? s.bpWeek.slice(0, 6).map((x) => row(x, `${x.value.sys}/${x.value.dia}${x.value.pulse ? `, pulse ${x.value.pulse}` : ''}`)).join('') : `<li>${empty('No blood pressure readings this week.', 'gauge')}</li>`;
-  el.querySelector('#dv-sugar').innerHTML = s.glucoseWeek.length ? s.glucoseWeek.slice(0, 6).map((x) => row(x, `${x.value.mgdl} mg/dL${x.value.context ? `, ${x.value.context}` : ''}`)).join('') : `<li>${empty('No sugar readings this week.', 'drop')}</li>`;
+    const maxSteps = Math.max(r.stepsGoal, ...s.week.map((d) => d.steps || 0));
+    el.querySelector('#dv-week').innerHTML = s.week.some((d) => d.steps !== null) ? `
+      <div class="ct-dv-week" aria-label="Steps for the last seven days">
+        ${s.week.map((d, i) => `<div class="ct-dv-week__day ${i === 6 ? 'ct-dv-week__day--today' : ''}">
+          <span class="ct-dv-week__name">${esc(new Date(d.date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' }))}</span>
+          <progress class="ct-dv-week__bar ${d.steps !== null && d.steps >= r.stepsGoal ? 'is-met' : ''}" max="${maxSteps}" value="${d.steps || 0}">${fmt(d.steps)} steps</progress>
+          <span class="ct-dv-week__val">${d.steps === null ? 'None' : fmt(d.steps)}</span></div>`).join('')}
+      </div><p class="small muted">Steps a day. Filled bars reached the doctor's goal of ${fmt(r.stepsGoal)}.</p>` : '';
+    const row = (x, txt) => `<li><span><strong class="tabular">${esc(txt)}</strong><br><span class="small muted">${esc(new Date(x.at).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', weekday: 'short' }))} ${esc(hm(x.at))}, ${esc(x.source === 'sample' ? 'sample device' : x.source)}</span></span>${x.outOfRange ? `<span class="ct-status ct-status--later">${icon('alert')}Nurse told</span>` : `<span class="ct-status ct-status--taken">${icon('check')}In range</span>`}</li>`;
+    el.querySelector('#dv-bp').innerHTML = s.bpWeek.length ? s.bpWeek.slice(0, 6).map((x) => row(x, `${x.value.sys}/${x.value.dia}${x.value.pulse ? `, pulse ${x.value.pulse}` : ''}`)).join('') : `<li>${empty('No blood pressure readings this week.', 'gauge')}</li>`;
+    el.querySelector('#dv-sugar').innerHTML = s.glucoseWeek.length ? s.glucoseWeek.slice(0, 6).map((x) => row(x, `${x.value.mgdl} mg/dL${x.value.context ? `, ${x.value.context}` : ''}`)).join('') : `<li>${empty('No sugar readings this week.', 'drop')}</li>`;
 
-  el.querySelector('#dv-devices').innerHTML = s.devices.length ? s.devices.map((d) => `<li>
-      <span class="ct-dv-kind">${icon(KIND_ICON[d.kind] || 'mark')}<span><strong>${esc(d.name)}</strong><br><span class="small muted">${d.via === 'bluetooth' ? (live.has(d.id) ? 'Bluetooth, connected' : 'Bluetooth, pair again to read') : `Sample data${d.app ? `, real one via ${esc(d.app)}` : ''}`}${d.lastSync ? `, synced ${esc(hm(d.lastSync))}` : ''}</span></span></span>
-      <span class="ct-row">${d.via === 'sample' ? `<button class="ct-btn ct-btn--ghost ct-btn--sm" type="button" data-sync="${esc(d.id)}">Sync</button>` : ''}<button class="ct-btn ct-btn--ghost ct-btn--sm" type="button" data-remove="${esc(d.id)}" aria-label="Remove ${esc(d.name)}">Remove</button></span></li>`).join('')
-    : `<li>${empty('No device yet. Add one below.', 'mark')}</li>`;
+    el.querySelector('#dv-devices').innerHTML = s.devices.length ? s.devices.map((d) => `<li>
+        <span class="ct-dv-kind">${icon(KIND_ICON[d.kind] || 'mark')}<span><strong>${esc(d.name)}</strong><br><span class="small muted">${d.via === 'bluetooth' ? (live.has(d.id) ? 'Bluetooth, connected' : 'Bluetooth, pair again to read') : `Sample data${d.app ? `, real one via ${esc(d.app)}` : ''}`}${d.lastSync ? `, synced ${esc(hm(d.lastSync))}` : ''}</span></span></span>
+        <span class="ct-row">${d.via === 'sample' ? `<button class="ct-btn ct-btn--ghost ct-btn--sm" type="button" data-sync="${esc(d.id)}">Sync</button>` : ''}<button class="ct-btn ct-btn--ghost ct-btn--sm" type="button" data-remove="${esc(d.id)}" aria-label="Remove ${esc(d.name)}">Remove</button></span></li>`).join('')
+      : `<li>${empty('No device yet. Add one below.', 'mark')}</li>`;
 
-  const dl = [
-    ['Blood pressure', `${r.bpSysMin}/${r.bpDiaMin} to ${r.bpSysMax}/${r.bpDiaMax}`],
-    ['Sugar, fasting', `${r.glucoseMin} to ${r.glucoseFastingMax} mg/dL`],
-    ['Sugar, after meal', `${r.glucoseMin} to ${r.glucoseAfterMealMax} mg/dL`],
-    ['Heart rate', `${r.heartRateMin} to ${r.heartRateMax}`],
-    ['Oxygen', `from ${r.spo2Min}%`],
-    ['Steps goal', `${fmt(r.stepsGoal)} a day`],
-  ];
-  el.querySelector('#dv-ranges').innerHTML = dl.map(([k, v]) => `<dt>${esc(k)}</dt><dd class="tabular">${esc(v)}</dd>`).join('');
-  el.querySelector('#dv-ranges-by').textContent = `Set by ${s.rangesSetBy}.`;
+    const dl = [
+      ['Blood pressure', `${r.bpSysMin}/${r.bpDiaMin} to ${r.bpSysMax}/${r.bpDiaMax}`],
+      ['Sugar, fasting', `${r.glucoseMin} to ${r.glucoseFastingMax} mg/dL`],
+      ['Sugar, after meal', `${r.glucoseMin} to ${r.glucoseAfterMealMax} mg/dL`],
+      ['Heart rate', `${r.heartRateMin} to ${r.heartRateMax}`],
+      ['Oxygen', `from ${r.spo2Min}%`],
+      ['Steps goal', `${fmt(r.stepsGoal)} a day`],
+    ];
+    el.querySelector('#dv-ranges').innerHTML = dl.map(([k, v]) => `<dt>${esc(k)}</dt><dd class="tabular">${esc(v)}</dd>`).join('');
+    el.querySelector('#dv-ranges-by').textContent = `Set by ${s.rangesSetBy}.`;
+  } catch (err) {
+    failCount += 1;
+    if (!loaded && el) {
+      for (const selId of ['#dv-today', '#dv-feedback', '#dv-week', '#dv-bp', '#dv-sugar', '#dv-devices', '#dv-kinds', '#dv-ranges']) {
+        const node = el.querySelector(selId);
+        if (node) node.removeAttribute('aria-busy');
+      }
+      el.querySelector('#dv-today').innerHTML = errorBox();
+    } else if (failCount >= 3) {
+      toast('Could not load. Check your connection.', 'error');
+    }
+  }
 }

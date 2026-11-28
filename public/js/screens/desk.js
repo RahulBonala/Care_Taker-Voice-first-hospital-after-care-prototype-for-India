@@ -1,15 +1,16 @@
 // Hospital desk: register a patient, record consent, enter the prescription (typed or dictated).
-import { api, post, esc, icon, toast, busy, config, langTag, empty, SLOT_LABEL } from '../lib.js';
+import { api, post, esc, icon, toast, busy, config, langTag, empty, skeleton, errorBox, SLOT_LABEL } from '../lib.js';
 import * as voice from '../voice.js';
 
 let el;
 let cfg;
+let loaded = false;
+let failCount = 0;
 
 export async function mount(root) {
   el = root;
-  cfg = await config();
-  const langOptions = cfg.langs.map((l) => `<option value="${esc(l.code)}">${esc(l.name)} (${esc(l.nativeName)})${l.reviewed ? '' : ', under review'}</option>`).join('');
-  const slotChoices = cfg.slots.map((s) => `<label class="ct-choice"><input type="checkbox" name="slots" value="${esc(s)}"><span>${esc(SLOT_LABEL[s])}, ${esc(cfg.slotTimes[s])}</span></label>`).join('');
+  loaded = false;
+  failCount = 0;
   el.innerHTML = `
   <div class="ct-stack--lg">
     <div><h1>Hospital desk</h1><p class="muted">Register a patient going home with medicines. A nurse verifies before any call is made.</p></div>
@@ -23,7 +24,7 @@ export async function mount(root) {
             <div class="ct-field">
               <label class="ct-field__label" for="f-lang">Call language</label>
               <div class="ct-row ct-row--nowrap">
-                <select class="ct-select" id="f-lang" name="lang">${langOptions}</select>
+                <select class="ct-select" id="f-lang" name="lang"></select>
                 <button class="ct-btn ct-btn--secondary" type="button" id="f-lang-detect">${icon('mic')}<span>Detect</span></button>
               </div>
               <span class="ct-field__help" id="f-lang-help">Choose, or let the patient speak and Care Taker finds the language. It also switches if they answer a call in another one.</span>
@@ -63,7 +64,7 @@ export async function mount(root) {
             <div class="ct-form-grid">
               ${field('med', 'Medicine', '<input class="ct-input" id="f-med" autocomplete="off">')}
               ${field('dose', 'Dose', '<input class="ct-input" id="f-dose" autocomplete="off" placeholder="650 mg">')}
-              <fieldset class="ct-fieldset ct-span-2"><legend>Meal slots</legend><div class="ct-choices" id="f-slots">${slotChoices}</div>
+              <fieldset class="ct-fieldset ct-span-2"><legend>Meal slots</legend><div class="ct-choices" id="f-slots"></div>
                 <span class="ct-field__error" id="err-slots"></span></fieldset>
               ${field('days', 'Days', '<input class="ct-input" id="f-days" type="number" min="1" max="365" inputmode="numeric">')}
             </div>
@@ -73,7 +74,7 @@ export async function mount(root) {
         <section class="ct-card">
           <div class="ct-card__head"><h2 class="ct-section-title">${icon('shield')}Consent</h2><p>Both are needed before a nurse can verify</p></div>
           <div class="ct-stack">
-            <label class="ct-check"><input type="checkbox" id="f-c1"><span id="f-c1-text"></span></label>
+            <label class="ct-check"><input type="checkbox" id="f-c1"><span id="f-c1-text">Patient agreed to receive dose calls in their language</span></label>
             <label class="ct-check"><input type="checkbox" id="f-c2"><span>Patient knows they can stop calls at any time by saying "stop calls" or pressing 9</span></label>
             ${field('nurse', 'Recorded by', '<input class="ct-input" id="f-nurse" autocomplete="off" placeholder="Nurse name">')}
           </div>
@@ -88,7 +89,7 @@ export async function mount(root) {
       <aside class="ct-col-4">
         <section class="ct-card">
           <div class="ct-card__head"><h2>Recent patients</h2></div>
-          <ul class="ct-list" id="desk-recent"></ul>
+          <ul class="ct-list" id="desk-recent" aria-busy="true"><li>${skeleton(3)}</li></ul>
         </section>
       </aside>
     </div>
@@ -96,14 +97,13 @@ export async function mount(root) {
 
   const form = el.querySelector('#desk-form');
   const updateConsent = () => {
-    const l = cfg.langs.find((x) => x.code === form.querySelector('#f-lang').value);
+    const l = cfg && cfg.langs.find((x) => x.code === form.querySelector('#f-lang').value);
     el.querySelector('#f-c1-text').textContent = `Patient agreed to receive dose calls in ${l ? l.name : 'their language'}`;
     const ok = form.querySelector('#f-c1').checked && form.querySelector('#f-c2').checked;
     form.querySelector('#f-save').disabled = !ok;
     el.querySelector('#f-save-help').textContent = ok ? 'A nurse checks it on the Nurse board' : 'Tick both consent boxes to save';
   };
   form.addEventListener('change', updateConsent);
-  updateConsent();
   form.addEventListener('submit', (e) => { e.preventDefault(); save(form); });
   el.querySelector('#f-fill').addEventListener('click', () => fillFrom(el.querySelector('#f-dictate').value));
   el.querySelector('#f-dictate').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fillFrom(e.target.value); } });
@@ -112,7 +112,7 @@ export async function mount(root) {
     const btn = e.currentTarget;
     const help = el.querySelector('#f-lang-help');
     btn.disabled = true;
-    const r = await voice.detectLanguageByVoice({ sarvamKey: cfg.keys.sarvam, onListening: (t) => { help.textContent = t; } });
+    const r = await voice.detectLanguageByVoice({ sarvamKey: cfg && cfg.keys.sarvam, onListening: (t) => { help.textContent = t; } });
     if (!el) return;
     btn.disabled = false;
     if (r.error) { help.textContent = r.error; return; }
@@ -121,6 +121,13 @@ export async function mount(root) {
     el.querySelector('#f-lang').dispatchEvent(new Event('change', { bubbles: true }));
     help.textContent = `Detected ${l.name} (${l.nativeName}) from "${r.text}".`;
   });
+  el.addEventListener('click', (e) => { if (e.target.closest('button[data-retry]')) refresh(); });
+
+  cfg = await config();
+  if (!el) return;
+  el.querySelector('#f-lang').innerHTML = cfg.langs.map((l) => `<option value="${esc(l.code)}">${esc(l.name)} (${esc(l.nativeName)})${l.reviewed ? '' : ', under review'}</option>`).join('');
+  el.querySelector('#f-slots').innerHTML = cfg.slots.map((s) => `<label class="ct-choice"><input type="checkbox" name="slots" value="${esc(s)}"><span>${esc(SLOT_LABEL[s])}, ${esc(cfg.slotTimes[s])}</span></label>`).join('');
+  updateConsent();
   refresh();
 }
 
@@ -132,14 +139,31 @@ export async function refresh() {
   if (!el) return;
   const list = el.querySelector('#desk-recent');
   if (!list) return;
-  const patients = await api('/api/patients');
-  list.innerHTML = patients.length ? [...patients].reverse().slice(0, 8).map((p) => {
-    const l = cfg.langs.find((x) => x.code === p.lang);
-    const st = !p.verified ? '<span class="ct-status ct-status--later">' + icon('clock') + 'Awaiting nurse</span>'
-      : p.callsStopped ? '<span class="ct-status ct-status--stopped">' + icon('stop') + 'Calls stopped</span>'
-        : '<span class="ct-status ct-status--taken">' + icon('check') + 'Verified</span>';
-    return `<li><span><strong>${esc(p.name)}</strong><br><span class="small muted">${esc(l ? l.name : p.lang)}${p.prescriptions[0] ? `, ${esc(p.prescriptions[0].medicine)}` : ''}</span> ${langTag(l)}</span>${st}</li>`;
-  }).join('') : `<li>${empty('No patients yet.', 'user')}</li>`;
+  try {
+    if (!cfg) cfg = await config();
+    const patients = await api('/api/patients');
+    if (!el) return;
+    failCount = 0;
+    const firstLoad = !loaded;
+    loaded = true;
+    list.removeAttribute('aria-busy');
+    if (firstLoad) list.classList.add('ct-loaded-fade');
+    list.innerHTML = patients.length ? [...patients].reverse().slice(0, 8).map((p) => {
+      const l = cfg.langs.find((x) => x.code === p.lang);
+      const st = !p.verified ? '<span class="ct-status ct-status--later">' + icon('clock') + 'Awaiting nurse</span>'
+        : p.callsStopped ? '<span class="ct-status ct-status--stopped">' + icon('stop') + 'Calls stopped</span>'
+          : '<span class="ct-status ct-status--taken">' + icon('check') + 'Verified</span>';
+      return `<li><span><strong>${esc(p.name)}</strong><br><span class="small muted">${esc(l ? l.name : p.lang)}${p.prescriptions[0] ? `, ${esc(p.prescriptions[0].medicine)}` : ''}</span> ${langTag(l)}</span>${st}</li>`;
+    }).join('') : `<li>${empty('No patients yet.', 'user')}</li>`;
+  } catch (err) {
+    failCount += 1;
+    if (!loaded && el) {
+      list.removeAttribute('aria-busy');
+      list.innerHTML = `<li>${errorBox()}</li>`;
+    } else if (failCount >= 3) {
+      toast('Could not load. Check your connection.', 'error');
+    }
+  }
 }
 
 export function unmount() { voice.stopListening(); el = null; }

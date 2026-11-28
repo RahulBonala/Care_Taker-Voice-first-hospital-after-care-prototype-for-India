@@ -75,6 +75,8 @@ const fail = (m) => { failed++; console.log(`FAIL  ${m}`); };
     const patients = JSON.parse((await get('/api/patients')).text);
     const lakshmi = patients.find((p) => p.name.startsWith('Lakshmi'));
     const before = JSON.parse((await get('/api/measures')).text).taken;
+    const repBefore = JSON.parse((await get(`/api/report/${lakshmi.id}`)).text);
+    const confirmedBefore = repBefore.todaySummary ? repBefore.todaySummary.confirmed : 0;
     let call = await post('/api/slots/next', { patientId: lakshmi.id });
     call = await post(`/api/calls/${call.id}/answer`);
     call = await post(`/api/calls/${call.id}/reply`, { text: 'వేసుకున్నాను' });
@@ -84,6 +86,16 @@ const fail = (m) => { failed++; console.log(`FAIL  ${m}`); };
     mid === before && after.taken === before + 1 && after.logsWithoutYes === 0 && call.outcome === 'taken'
       ? pass('a dose call logs only after the spoken yes')
       : fail(`dose call: before ${before}, before yes ${mid}, after ${after.taken}, outcome ${call.outcome}`);
+
+    const repAfter = JSON.parse((await get(`/api/report/${lakshmi.id}`)).text);
+    repAfter.todaySummary && repAfter.todaySummary.confirmed === confirmedBefore + 1
+      ? pass('report todaySummary.confirmed increased by 1')
+      : fail('report todaySummary.confirmed did not increase by 1');
+
+    const callsList = JSON.parse((await get(`/api/calls?patientId=${lakshmi.id}&limit=1`)).text);
+    callsList[0] && 'stage' in callsList[0] && 'outcome' in callsList[0] && 'pendingTaken' in callsList[0]
+      ? pass('GET /api/calls returns stage, outcome and pendingTaken')
+      : fail('GET /api/calls missing stage, outcome or pendingTaken');
   } catch (err) {
     fail(`smoke run crashed: ${err.message}`);
   } finally {

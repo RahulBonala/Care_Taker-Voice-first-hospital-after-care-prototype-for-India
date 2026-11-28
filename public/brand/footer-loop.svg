@@ -74,7 +74,7 @@
     .seg-2 { animation: segSlide2 9.6s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
     .seg-1 { animation: segSlide1 9.6s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
 
-    /* Joined line build-up & bright Teal segment running into the phone (5.4s to 6.2s) */
+    /* Joined line build-up and bright Teal segment running into the phone (5.4s to 6.2s) */
     .teal-runner {
       fill: none;
       stroke: #0F5C5A;
@@ -86,7 +86,7 @@
       animation: runIntoPhone 9.6s cubic-bezier(0.77, 0, 0.175, 1) infinite;
     }
 
-    /* Phone screen heart & green tick */
+    /* Phone screen heart and green tick */
     .phone-heart {
       transform-origin: 16px 15.8px;
       animation: heartBeatCycle 9.6s cubic-bezier(0.23, 1, 0.32, 1) infinite;

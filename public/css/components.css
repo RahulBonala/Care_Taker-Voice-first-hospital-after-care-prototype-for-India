@@ -1585,3 +1585,58 @@ html.lenis, html.lenis body { height: auto; }
 @media (prefers-reduced-motion: reduce) {
   .ct-sig, .ct-sig * { animation: none !important; transition: none !important; }
 }
+
+/* ==========================================================================
+   Skeleton loaders and retry error state (P0)
+   ========================================================================== */
+.ct-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  min-height: calc(var(--space-7) * 2);
+}
+.ct-skeleton__bar {
+  display: block;
+  height: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  width: 100%;
+}
+.ct-skeleton__bar:nth-child(2) { width: 82%; }
+.ct-skeleton__bar:nth-child(3) { width: 64%; }
+.ct-skeleton__bar:nth-child(4) { width: 76%; }
+@media (prefers-reduced-motion: no-preference) {
+  .ct-skeleton__bar {
+    animation: ct-skel-pulse 1.2s var(--ease-in-out) infinite;
+  }
+  .ct-skeleton__bar:nth-child(2) { animation-delay: var(--stagger); }
+  .ct-skeleton__bar:nth-child(3) { animation-delay: calc(var(--stagger) * 2); }
+}
+@keyframes ct-skel-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.48; }
+}
+.ct-loaded-fade {
+  animation: ct-skel-reveal var(--dur-3) var(--ease-out);
+}
+@keyframes ct-skel-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.ct-error-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--status-urgent-bg);
+  color: var(--status-urgent);
+  font-weight: var(--weight-medium);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ct-skeleton__bar, .ct-loaded-fade { animation: none !important; }
+}
+

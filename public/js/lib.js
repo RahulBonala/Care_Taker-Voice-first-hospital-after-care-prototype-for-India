@@ -89,6 +89,15 @@ export function empty(text, iconName = 'check', action = '') {
   return `<div class="ct-empty">${icon(iconName)}<p>${esc(text)}</p>${action}</div>`;
 }
 
+export function skeleton(rows = 3) {
+  const bars = Array.from({ length: rows }, () => '<span class="ct-skeleton__bar"></span>').join('');
+  return `<div class="ct-skeleton" aria-hidden="true">${bars}</div>`;
+}
+
+export function errorBox(text = 'Could not load. Check your connection.') {
+  return `<div class="ct-error-box" role="alert"><span>${icon('alert')}${esc(text)}</span><button type="button" class="ct-btn ct-btn--secondary ct-btn--sm" data-retry="1">${icon('refresh')}Retry</button></div>`;
+}
+
 // Runs an async action with a loading state on the button.
 export async function busy(btn, fn) {
   if (btn) { btn.classList.add('ct-btn--loading'); btn.setAttribute('aria-busy', 'true'); }
