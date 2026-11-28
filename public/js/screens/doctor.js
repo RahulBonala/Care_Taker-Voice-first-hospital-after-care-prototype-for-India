@@ -5,12 +5,18 @@ let el;
 let cfg;
 let loaded = false;
 let failCount = 0;
+let prevCourses = null;
+let prevVitals = null;
+let prevFlags = null;
 
 export async function mount(root) {
   el = root;
   rangesReady = false;
   loaded = false;
   failCount = 0;
+  prevCourses = null;
+  prevVitals = null;
+  prevFlags = null;
   el.innerHTML = `
   <div class="ct-stack--lg">
     <div><h1>Doctor</h1><p class="muted">Course completion and what patients said, for the next review.</p></div>
@@ -104,10 +110,14 @@ export async function refresh() {
       }
     }
     const rows = [];
+    const nextCourses = new Map();
     for (const p of patients.filter((x) => x.verified)) {
       const l = cfg.langs.find((x) => x.code === p.lang);
       for (const rx of p.prescriptions) {
-        rows.push(`<tr>
+        const cKey = `${rx.taken}:${rx.missed}:${rx.completionPct}`;
+        const changed = prevCourses && prevCourses.has(rx.prescriptionId) && prevCourses.get(rx.prescriptionId) !== cKey;
+        nextCourses.set(rx.prescriptionId, cKey);
+        rows.push(`<tr class="${changed ? 'ct-row-changed' : ''}">
           <td data-label="Patient"><strong>${esc(p.name)}</strong>${p.age ? `, ${esc(p.age)}` : ''}<br><span class="small muted">${esc(l ? l.name : p.lang)}</span> ${langTag(l)}</td>
           <td data-label="Medicine">${esc(rx.medicine)} ${esc(rx.dose)}<br><span class="small muted">Day ${rx.day} of ${rx.days}</span></td>
           <td data-label="Completion">${progress(rx.taken, rx.totalDoses, `${rx.completionPct}%`, `${rx.taken} of ${rx.totalDoses} doses`)}</td>
@@ -115,14 +125,19 @@ export async function refresh() {
           <td data-label="Not confirmed" class="tabular">${rx.missed}</td></tr>`);
       }
     }
+    prevCourses = nextCourses;
     const verified = patients.filter((x) => x.verified);
     if (!rangesReady) setupRanges(verified, health[0]);
+    const nextVitals = new Map();
     el.querySelector('#dr-vitals').innerHTML = health.map((h) => {
       const steps = h.week.filter((d) => d.steps !== null);
       const avg = steps.length ? Math.round(steps.reduce((a, d) => a + d.steps, 0) / steps.length) : null;
       const out = h.bpWeek.concat(h.glucoseWeek).filter((x) => x.outOfRange).length;
+      const vKey = `${h.last.bp ? h.last.bp.at : ''}:${h.last.glucose ? h.last.glucose.at : ''}:${avg}:${out}`;
+      const changed = prevVitals && prevVitals.has(h.patient.id) && prevVitals.get(h.patient.id) !== vKey;
+      nextVitals.set(h.patient.id, vKey);
       const v = (r, txt) => (r ? `<span class="tabular">${esc(txt)}</span><br><span class="small muted">${when(r.at)}</span>` : '<span class="muted">None</span>');
-      return `<tr>
+      return `<tr class="${changed ? 'ct-row-changed' : ''}">
         <td data-label="Patient"><strong>${esc(h.patient.name)}</strong></td>
         <td data-label="Devices">${h.devices.length ? esc(h.devices.map((d) => d.name).join(', ')) : '<span class="muted">None</span>'}</td>
         <td data-label="Last blood pressure">${v(h.last.bp, h.last.bp ? `${h.last.bp.value.sys}/${h.last.bp.value.dia}` : '')}</td>
@@ -130,8 +145,11 @@ export async function refresh() {
         <td data-label="Steps a day" class="tabular">${avg === null ? '<span class="muted">None</span>' : `${avg.toLocaleString('en-IN')}<br><span class="small muted">goal ${h.ranges.stepsGoal.toLocaleString('en-IN')}</span>`}</td>
         <td data-label="Outside range">${out ? `<span class="ct-status ct-status--later">${icon('alert')}${out} this week</span>` : `<span class="ct-status ct-status--taken">${icon('check')}None</span>`}</td></tr>`;
     }).join('');
+    prevVitals = nextVitals;
     el.querySelector('#dr-rows').innerHTML = rows.join('') || `<tr><td colspan="5">${empty('No verified patients.', 'user')}</td></tr>`;
-    el.querySelector('#dr-flags').innerHTML = flags.length ? flags.map((f) => `<li class="ct-flag-item ${f.status === 'closed' ? 'ct-flag-item--closed' : ''}">
+    const newFlagIds = prevFlags ? new Set(flags.filter((f) => !prevFlags.has(f.id)).map((f) => f.id)) : new Set();
+    prevFlags = new Set(flags.map((f) => f.id));
+    el.querySelector('#dr-flags').innerHTML = flags.length ? flags.map((f) => `<li class="ct-flag-item ${f.status === 'closed' ? 'ct-flag-item--closed' : ''}${newFlagIds.has(f.id) ? ' ct-flag-item--enter' : ''}">
         <div class="ct-flag-item__head">${flagStatus(f)}<span class="ct-flag-item__name">${esc(f.patientName || '')}</span><span class="small muted">${when(f.createdAt)}, ${f.status}</span></div>
         <div class="ct-flag-item__body"><p>${esc(f.reason)}</p>
           ${f.words ? `<blockquote class="ct-quote">${esc(f.words)}</blockquote>` : '<p class="small muted">No words recorded</p>'}

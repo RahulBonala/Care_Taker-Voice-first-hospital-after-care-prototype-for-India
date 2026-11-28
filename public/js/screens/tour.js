@@ -2,6 +2,7 @@
 // "Start the tour" walks 15 steps in 4 chapters. Each step switches the preview screen,
 // rings one element and shows a tooltip card. Used on #tour and, compact, on the #home band.
 import { esc, icon, status } from '../lib.js';
+import { renderDoseChip } from './phone.js';
 
 // ---- Steps -------------------------------------------------------------------------
 // screen: which preview to show. stage: how far the call transcript has got. spot: the
@@ -150,8 +151,8 @@ const SCREENS = {
         </dl>
         <div class="ct-wk-log" data-spot="logged">
           <span class="ct-wk-log__label">Log</span>
-          <span class="ct-wk-log__state ct-wk-log__state--wait">${status('pending', 'Waiting for a yes')}</span>
-          <span class="ct-wk-log__state ct-wk-log__state--done">${status('taken', 'Taken 09:02, after yes')}</span>
+          <span class="ct-wk-log__state ct-wk-log__state--wait">${renderDoseChip({ status: 'active', stage: 'confirm', slot: 'breakfast', pendingTaken: { at: '2026-11-28T03:32:00.000Z' } })}</span>
+          <span class="ct-wk-log__state ct-wk-log__state--done">${renderDoseChip({ status: 'ended', outcome: 'taken', slot: 'breakfast', pendingTaken: { at: '2026-11-28T03:32:00.000Z' } })}</span>
         </div>
       </div>
     </div>`,

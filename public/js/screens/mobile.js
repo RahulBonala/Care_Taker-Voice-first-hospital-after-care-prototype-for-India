@@ -3,6 +3,7 @@
 // wired directly to the live Express REST API and shared data/db.json store.
 import { api, post, esc, icon, hm, when, dayName, toast, busy, config, status, slotStatus, intentStatus, flagStatus, progress, empty, SLOT_LABEL, store, clockTime } from '../lib.js';
 import * as voice from '../voice.js';
+import { renderDoseChip } from './phone.js';
 
 let el = null;
 let cfg = null;
@@ -591,6 +592,7 @@ function renderPatientApp() {
             </div>
           ` : ''}
           ${lastHeard ? `<div class="ct-phone__heard"><strong>Heard:</strong> <span>${esc(lastHeard.text || '(silence)')}</span> -&gt; ${intentStatus(lastHeard.intent, lastHeard.label)}</div>` : ''}
+          ${c ? `<div class="ct-phone__chip" aria-hidden="true">${renderDoseChip(c)}</div>` : ''}
         </div>
 
         ${live ? `

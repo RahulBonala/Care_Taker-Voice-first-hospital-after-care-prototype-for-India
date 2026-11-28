@@ -38,7 +38,14 @@ function parseHash() {
   return { key, params };
 }
 
-function route() {
+function focusHeading(view) {
+  const h1 = view && view.querySelector('h1');
+  if (!h1) return;
+  if (!h1.hasAttribute('tabindex')) h1.setAttribute('tabindex', '-1');
+  h1.focus({ preventScroll: true });
+}
+
+function doRoute() {
   const { key, params } = parseHash();
   for (const a of document.querySelectorAll('.ct-nav-link[href], .ct-nav-dd__item')) {
     if (a.getAttribute('href') === `#${key}`) a.setAttribute('aria-current', 'page');
@@ -60,8 +67,19 @@ function route() {
     view.innerHTML = `<p class="ct-simclock">${icon('clock')}Simulated time <strong data-clock>${clockLabel()}</strong></p><div></div>`;
     root = view.lastElementChild;
   }
-  current.mount(root, params);
+  const mounted = current.mount(root, params);
+  focusHeading(view);
+  if (mounted && typeof mounted.then === 'function') mounted.then(() => focusHeading(view));
   tick();
+}
+
+function route() {
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (document.startViewTransition && !reduce && current !== null) {
+    document.startViewTransition(() => doRoute());
+  } else {
+    doRoute();
+  }
 }
 
 async function tick() {

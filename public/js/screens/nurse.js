@@ -6,11 +6,17 @@ let cfg;
 let showClosed = store('ct.nurse.closed') === '1';
 let loaded = false;
 let failCount = 0;
+let prevMetrics = null;
+let prevFlags = null;
+let prevPatients = null;
 
 export async function mount(root) {
   el = root;
   loaded = false;
   failCount = 0;
+  prevMetrics = null;
+  prevFlags = null;
+  prevPatients = null;
   el.innerHTML = `
   <div class="ct-stack--lg">
     <div class="ct-row ct-row--between">
@@ -109,7 +115,9 @@ export async function refresh() {
       }
     }
     renderMetrics(m);
-    el.querySelector('#nb-flags').innerHTML = flags.length ? flags.map(flagItem).join('') : `<li>${empty('No open flags. Everyone is on track.')}</li>`;
+    const newFlagIds = prevFlags ? new Set(flags.filter((f) => !prevFlags.has(f.id)).map((f) => f.id)) : new Set();
+    prevFlags = new Set(flags.map((f) => f.id));
+    el.querySelector('#nb-flags').innerHTML = flags.length ? flags.map((f) => flagItem(f, newFlagIds.has(f.id))).join('') : `<li>${empty('No open flags. Everyone is on track.')}</li>`;
 
     const waiting = patients.filter((p) => !p.verified);
     el.querySelector('#nb-verify').innerHTML = waiting.length ? `<ul class="ct-list">${waiting.map(verifyItem).join('')}</ul>` : empty('Nobody is waiting.', 'shield');
@@ -120,10 +128,14 @@ export async function refresh() {
         <button class="ct-btn ct-btn--ghost ct-btn--sm" type="button" data-act="suggest" data-id="${esc(x.id)}" ${cfg.keys.llm ? '' : 'title="key not set"'}>Suggest intent${cfg.keys.llm ? '' : ' (key not set)'}</button></li>`).join('')
       : `<li>${empty('No misheard replies.', 'ear')}</li>`;
 
+    const nextPatients = new Map();
     el.querySelector('#nb-patients').innerHTML = patients.filter((p) => p.verified).map((p) => {
       const l = cfg.langs.find((x) => x.code === p.lang);
       const rx = p.prescriptions[0];
-      return `<tr>
+      const rowKey = `${p.nextDue}:${p.openFlags}:${p.shareWithFamily}:${rx ? rx.taken : 0}`;
+      const changed = prevPatients && prevPatients.has(p.id) && prevPatients.get(p.id) !== rowKey;
+      nextPatients.set(p.id, rowKey);
+      return `<tr class="${changed ? 'ct-row-changed' : ''}">
         <td data-label="Patient"><strong>${esc(p.name)}</strong>${p.age ? `, ${esc(p.age)}` : ''}<br><span class="small muted">${p.phoneType === 'keypad' ? 'Keypad phone' : 'Smartphone'}</span></td>
         <td data-label="Language">${esc(l ? l.name : p.lang)} ${langTag(l)}</td>
         <td data-label="Course">${rx ? progress(rx.day, rx.days, `Day ${rx.day} of ${rx.days}`, `${rx.taken} doses confirmed`) : 'None'}</td>
@@ -131,6 +143,7 @@ export async function refresh() {
         <td data-label="Open flags" class="tabular">${p.openFlags}</td>
         <td data-label="Family view"><label class="ct-check"><input type="checkbox" data-share="${esc(p.id)}" ${p.shareWithFamily ? 'checked' : ''}><span>Shared</span></label></td></tr>`;
     }).join('');
+    prevPatients = nextPatients;
   } catch (err) {
     failCount += 1;
     if (!loaded && el) {
@@ -150,24 +163,31 @@ export async function refresh() {
 }
 
 function renderMetrics(m) {
-  const tile = (value, label, target = '', state = '') => `<div class="ct-metric ${state}"><span class="ct-metric__value">${esc(value)}</span><span class="ct-metric__label">${esc(label)}</span>${target ? `<span class="ct-metric__target">${target}</span>` : ''}</div>`;
+  const next = {};
+  const tile = (key, value, label, target = '', state = '') => {
+    const str = String(value);
+    next[key] = str;
+    const pop = prevMetrics && prevMetrics[key] !== undefined && prevMetrics[key] !== str ? ' ct-metric--pop' : '';
+    return `<div class="ct-metric ${state}${pop}"><span class="ct-metric__value">${esc(value)}</span><span class="ct-metric__label">${esc(label)}</span>${target ? `<span class="ct-metric__target">${target}</span>` : ''}</div>`;
+  };
   el.querySelector('#nb-metrics').innerHTML = [
-    tile(m.logsWithoutYes, 'Doses logged without a yes', `${icon(m.logsWithoutYes ? 'alert' : 'check')}Must be 0`, m.logsWithoutYes ? 'ct-metric--bad' : 'ct-metric--ok'),
-    tile(`${m.takenPct}%`, `Doses confirmed (${m.taken} of ${m.dosesResolved})`),
-    tile(m.missed, 'Not confirmed'),
-    tile(m.openFlags, 'Open flags', m.flagsByType.urgent ? `${icon('alert')}${m.flagsByType.urgent} urgent` : '', m.flagsByType.urgent ? 'ct-metric--bad' : ''),
-    tile(m.answerPct === null ? 'None' : `${m.answerPct}%`, `Calls answered (${m.answered} of ${m.calls})`),
-    tile(m.misheard, 'Misheard replies'),
-    tile(m.activePatients, 'Patients on calls'),
-    tile(m.awaitingVerify, 'Waiting for verification'),
+    tile('logsWithoutYes', m.logsWithoutYes, 'Doses logged without a yes', `${icon(m.logsWithoutYes ? 'alert' : 'check')}Must be 0`, m.logsWithoutYes ? 'ct-metric--bad' : 'ct-metric--ok'),
+    tile('takenPct', `${m.takenPct}%`, `Doses confirmed (${m.taken} of ${m.dosesResolved})`),
+    tile('missed', m.missed, 'Not confirmed'),
+    tile('openFlags', m.openFlags, 'Open flags', m.flagsByType.urgent ? `${icon('alert')}${m.flagsByType.urgent} urgent` : '', m.flagsByType.urgent ? 'ct-metric--bad' : ''),
+    tile('answerPct', m.answerPct === null ? 'None' : `${m.answerPct}%`, `Calls answered (${m.answered} of ${m.calls})`),
+    tile('misheard', m.misheard, 'Misheard replies'),
+    tile('activePatients', m.activePatients, 'Patients on calls'),
+    tile('awaitingVerify', m.awaitingVerify, 'Waiting for verification'),
   ].join('');
+  prevMetrics = next;
 }
 
-function flagItem(f) {
+function flagItem(f, isNew = false) {
   const closed = f.status === 'closed';
   const words = f.words ? `<blockquote class="ct-quote" lang="und">${esc(f.words)}</blockquote>` : '';
   const why = f.why ? `<p>Reason given: <span class="ct-quote">${esc(f.why)}</span></p>` : '';
-  return `<li class="ct-flag-item ${f.type === 'urgent' && !closed ? 'ct-flag-item--urgent' : ''} ${closed ? 'ct-flag-item--closed' : ''}">
+  return `<li class="ct-flag-item ${f.type === 'urgent' && !closed ? 'ct-flag-item--urgent' : ''} ${closed ? 'ct-flag-item--closed' : ''}${isNew ? ' ct-flag-item--enter' : ''}">
     <div class="ct-flag-item__head">${flagStatus(f)}<span class="ct-flag-item__name">${esc(f.patientName || '')}</span><span class="small muted">${when(f.createdAt)}</span></div>
     <div class="ct-flag-item__body"><p>${esc(f.reason)}</p>${words}${why}
       ${closed ? `<p class="small muted">${esc(f.note || 'Closed')} by ${esc(f.closedBy || 'nurse')}, ${when(f.closedAt)}</p>` : ''}</div>

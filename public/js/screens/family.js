@@ -6,11 +6,19 @@ let cfg;
 let pid = null;
 let loaded = false;
 let failCount = 0;
+let prevWeek = null;
+let prevToday = null;
+let prevQuotes = null;
+let prevFlags = null;
 
 export async function mount(root) {
   el = root;
   loaded = false;
   failCount = 0;
+  prevWeek = null;
+  prevToday = null;
+  prevQuotes = null;
+  prevFlags = null;
   el.innerHTML = `
   <div class="ct-stack--lg">
     <div class="ct-row ct-row--between">
@@ -19,7 +27,16 @@ export async function mount(root) {
     </div>
     <div id="fa-body" aria-busy="true"><section class="ct-card">${skeleton(5)}</section></div>
   </div>`;
-  el.querySelector('#fa-patient').addEventListener('change', (e) => { pid = e.target.value; store('ct.family.pid', pid); loaded = false; refresh(); });
+  el.querySelector('#fa-patient').addEventListener('change', (e) => {
+    pid = e.target.value;
+    store('ct.family.pid', pid);
+    loaded = false;
+    prevWeek = null;
+    prevToday = null;
+    prevQuotes = null;
+    prevFlags = null;
+    refresh();
+  });
   el.addEventListener('click', (e) => { if (e.target.closest('button[data-retry]')) refresh(); });
   refresh();
 }
@@ -62,6 +79,10 @@ export async function refresh() {
     }
     const rx = r.courses[0];
     const today = r.week[r.week.length - 1].date;
+    const nextWeek = new Map();
+    const nextToday = new Map();
+    const nextQuotes = new Set();
+    const nextFlags = new Set();
     body.innerHTML = `
   <div class="ct-grid">
     <section class="ct-card ct-card--raised ct-col-7 ct-stack">
@@ -72,22 +93,40 @@ export async function refresh() {
         const done = d.taken + d.missed;
         const kind = !done ? 'pending' : d.taken === done ? 'all' : d.taken ? 'some' : 'none';
         const ic = { pending: 'pending', all: 'check', some: 'clock', none: 'missed' }[kind];
+        const wkVal = `${d.taken}/${d.due}`;
+        const pop = prevWeek && prevWeek.has(d.date) && prevWeek.get(d.date) !== wkVal;
+        nextWeek.set(d.date, wkVal);
         return `<div class="ct-week__day ${d.date === today ? 'ct-week__day--today' : ''}"><span class="ct-week__name">${esc(dayName(d.date))}</span>
-          <span class="ct-week__mark ct-week__mark--${kind}">${icon(ic)}</span><span class="ct-week__count">${d.taken}/${d.due}</span>
+          <span class="ct-week__mark ct-week__mark--${kind}">${icon(ic)}</span><span class="ct-week__count${pop ? ' ct-week__count--pop' : ''}">${d.taken}/${d.due}</span>
           <span class="visually-hidden">${d.taken} of ${d.due} doses confirmed</span></div>`;
       }).join('')}</div>
     </section>
     <section class="ct-card ct-col-5">
       <div class="ct-card__head"><h2>Today</h2></div>
-      <ul class="ct-list">${r.today.length ? r.today.map((s) => `<li><span>${esc(SLOT_LABEL[s.slot])}</span>${slotStatus(s)}</li>`).join('') : `<li>${empty('No doses today.', 'calendar')}</li>`}</ul>
+      <ul class="ct-list">${r.today.length ? r.today.map((s) => {
+        const tVal = `${s.status}:${s.takenAt || ''}:${s.due}`;
+        const changed = prevToday && prevToday.has(s.id) && prevToday.get(s.id) !== tVal;
+        nextToday.set(s.id, tVal);
+        return `<li class="${changed ? 'ct-row-changed' : ''}"><span>${esc(SLOT_LABEL[s.slot])}</span>${slotStatus(s)}</li>`;
+      }).join('') : `<li>${empty('No doses today.', 'calendar')}</li>`}</ul>
     </section>
     <section class="ct-card ct-col-7">
       <div class="ct-card__head"><h2 class="ct-section-title">${icon('quote')}In ${esc(r.patient.name.split(' ')[0])}'s own words</h2><p>What was said on the calls</p></div>
-      <ul class="ct-list">${r.quotes.length ? r.quotes.map((q) => `<li><span><span class="ct-quote">${esc(q.words)}</span><br><span class="small muted">${when(q.at)}</span></span>${intentStatus(q.intent, q.label)}</li>`).join('') : `<li>${empty('No replies this week.', 'quote')}</li>`}</ul>
+      <ul class="ct-list">${r.quotes.length ? r.quotes.map((q) => {
+        const qKey = `${q.at}:${q.words}`;
+        const changed = prevQuotes && !prevQuotes.has(qKey);
+        nextQuotes.add(qKey);
+        return `<li class="${changed ? 'ct-row-changed' : ''}"><span><span class="ct-quote">${esc(q.words)}</span><br><span class="small muted">${when(q.at)}</span></span>${intentStatus(q.intent, q.label)}</li>`;
+      }).join('') : `<li>${empty('No replies this week.', 'quote')}</li>`}</ul>
     </section>
     <section class="ct-card ct-col-5">
       <div class="ct-card__head"><h2>Care team follow-ups</h2></div>
-      <ul class="ct-list">${r.flags.length ? r.flags.slice(0, 6).map((f) => `<li><span>${esc(f.reason)}<br><span class="small muted">${when(f.createdAt)}, ${f.status === 'open' ? 'open' : 'done'}</span></span>${flagStatus(f)}</li>`).join('') : `<li>${empty('Nothing to follow up.')}</li>`}</ul>
+      <ul class="ct-list">${r.flags.length ? r.flags.slice(0, 6).map((f) => {
+        const fKey = `${f.id}:${f.status}`;
+        const isNew = prevFlags && !prevFlags.has(fKey);
+        nextFlags.add(fKey);
+        return `<li class="${isNew ? 'ct-flag-item--enter ct-row-changed' : ''}"><span>${esc(f.reason)}<br><span class="small muted">${when(f.createdAt)}, ${f.status === 'open' ? 'open' : 'done'}</span></span>${flagStatus(f)}</li>`;
+      }).join('') : `<li>${empty('Nothing to follow up.')}</li>`}</ul>
       <p class="small muted">Questions about the medicine go to the hospital, not to this page.</p>
     </section>
     ${h ? `<section class="ct-card ct-col-12">
@@ -96,6 +135,10 @@ export async function refresh() {
       <a class="ct-btn ct-btn--ghost ct-btn--sm" href="#devices">Open health devices</a>
     </section>` : ''}
   </div>`;
+    prevWeek = nextWeek;
+    prevToday = nextToday;
+    prevQuotes = nextQuotes;
+    prevFlags = nextFlags;
   } catch (err) {
     failCount += 1;
     if (!loaded && el) {
