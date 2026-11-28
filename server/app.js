@@ -45,11 +45,19 @@ function createApp() {
   app.get('/healthz', (req, res) => res.json({ ok: true }));
 
   // Which recorded fallback clips exist, so the browser only asks for files that are there.
+  // Supports .mp4, .m4a, .mp3, .wav and .ogg voiceover files in public/audio/{code}/.
+  const AUDIO_RE = /\.(mp4|m4a|mp3|wav|ogg)$/i;
   const audioClips = () => {
     const out = {};
     for (const code of lang.codes()) {
       const dir = path.join(__dirname, '..', 'public', 'audio', code);
-      try { out[code] = fs.readdirSync(dir).filter((f) => f.endsWith('.mp3')).map((f) => f.replace(/\.mp3$/, '')); } catch { out[code] = []; }
+      try {
+        const files = fs.readdirSync(dir).filter((f) => AUDIO_RE.test(f)).sort();
+        const ids = files.map((f) => f.replace(AUDIO_RE, ''));
+        out[code] = [...new Set([...files, ...ids])];
+      } catch {
+        out[code] = [];
+      }
     }
     return out;
   };
@@ -94,13 +102,68 @@ function createApp() {
     d.patients.push(p);
     return p;
   }));
+  function syncPatientLanguage(d, p, newLang) {
+    p.lang = newLang;
+    p.langChangedAt = d.clock;
+    if (p.consent) p.consent.language = newLang;
+    const L = lang.get(newLang);
+    const first = p.name.split(' ')[0];
+    const takenSample = (L.samples && L.samples[0]) || (L.keywords && L.keywords.taken && L.keywords.taken[0]) || 'Yes, I took it';
+    const yesSample = (L.keywords && L.keywords.yes && L.keywords.yes[0]) || 'Yes';
+
+    for (const c of d.calls.filter((x) => x.patientId === p.id)) {
+      c.lang = newLang;
+      const s = M.slot(d, c.slotId);
+      const rx = s ? M.rxOf(d, s.prescriptionId) : null;
+      const baseTime = T.timeOf((c.pendingTaken && c.pendingTaken.at) || c.endedAt || c.startedAt || d.clock);
+      const rebuildLine = (item) => {
+        if (!item || !item.lineId) return;
+        const timeMatch = item.en && /(\d\d:\d\d)/.exec(item.en);
+        const minMatch = item.en && /(\d+)\s+minutes/.exec(item.en);
+        const vars = {
+          name: first,
+          slot: s ? s.slot : 'breakfast',
+          n: s ? s.day : 1,
+          total: rx ? rx.days : 5,
+          time: timeMatch ? timeMatch[1] : baseTime,
+          minutes: minMatch ? Number(minMatch[1]) : 30,
+        };
+        const fresh = lang.line(newLang, item.lineId, vars);
+        item.text = fresh.text;
+        item.en = fresh.en;
+        item.lang = fresh.lang;
+      };
+      if (Array.isArray(c.transcript)) {
+        for (const t of c.transcript) {
+          if (t.who === 'bot') rebuildLine(t);
+          else if (t.who === 'patient' && t.via !== 'key' && t.via !== 'silence') {
+            if (t.intent === 'taken') { t.text = takenSample; t.heard = takenSample; }
+            else if (t.intent === 'yes') { t.text = yesSample; t.heard = yesSample; }
+          }
+        }
+      }
+      if (c.turn && Array.isArray(c.turn.say)) {
+        for (const l of c.turn.say) rebuildLine(l);
+      }
+    }
+
+    for (const l of d.doseLogs.filter((x) => x.patientId === p.id && x.via !== 'key')) {
+      l.words = takenSample;
+      l.confirmWords = yesSample;
+    }
+    for (const m of d.misheard.filter((x) => x.patientId === p.id)) {
+      m.lang = newLang;
+      if (newLang === 'en' && /[^\x00-\x7F]/.test(m.text || '')) m.text = 'uh... hello';
+    }
+  }
+
   app.patch('/api/patients/:id', act((req, d) => {
     const p = M.patient(d, req.params.id);
     if (!p) throw bad('Patient not found');
     if (typeof req.body.shareWithFamily === 'boolean') p.shareWithFamily = req.body.shareWithFamily;
     if (req.body.lang !== undefined) {
       if (!lang.codes().includes(req.body.lang)) throw bad('Unknown language');
-      if (req.body.lang !== p.lang) { p.lang = req.body.lang; p.langChangedAt = d.clock; }
+      syncPatientLanguage(d, p, req.body.lang);
     }
     return p;
   }));

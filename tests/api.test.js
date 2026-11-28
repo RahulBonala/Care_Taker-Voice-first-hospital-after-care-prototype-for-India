@@ -94,3 +94,33 @@ test('health devices: add a sample watch, add a spoken reading, out of range rea
   const del = await fetch(`${base}/api/devices/${dev.id}`, { method: 'DELETE' });
   assert.equal(del.status, 200);
 });
+
+test('switching patient language to English updates existing call transcripts and quotes', async () => {
+  await post('/api/reset');
+  const patients = await (await fetch(base + '/api/patients')).json();
+  const lakshmi = patients.find((p) => p.name.startsWith('Lakshmi'));
+  let call = await (await post('/api/slots/next', { patientId: lakshmi.id })).json();
+  call = await (await post(`/api/calls/${call.id}/answer`)).json();
+  assert.equal(call.lang, 'te');
+
+  const patchRes = await fetch(`${base}/api/patients/${lakshmi.id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ lang: 'en' }),
+  });
+  assert.equal(patchRes.status, 200);
+
+  const callsAfter = await (await fetch(`${base}/api/calls?patientId=${lakshmi.id}&limit=1`)).json();
+  assert.equal(callsAfter[0].lang, 'en');
+  const botLines = callsAfter[0].transcript.filter((t) => t.who === 'bot');
+  assert.ok(botLines.length >= 2);
+  for (const b of botLines) {
+    assert.equal(b.lang, 'en');
+    assert.equal(b.text, b.en);
+  }
+
+  const rep = await (await fetch(`${base}/api/report/${lakshmi.id}`)).json();
+  for (const q of rep.quotes) {
+    assert.equal(/[ఀ-౿]/.test(q.words), false, 'no Telugu script remains in English quotes');
+  }
+});
