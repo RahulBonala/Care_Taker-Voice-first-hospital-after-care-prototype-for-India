@@ -109,8 +109,6 @@ export async function mount(root, params) {
 
     ${languagesMarkup(langs)}
 
-    ${featuresMarkup()}
-
     <section class="ct-band" id="devices-band" aria-labelledby="every-title">
       <div class="ct-page">
         <div class="ct-center-head" data-reveal="up">
@@ -123,6 +121,8 @@ export async function mount(root, params) {
         </ul>
       </div>
     </section>
+
+    ${featuresMarkup()}
 
     <section class="ct-band ct-band--surface" id="promises-section" aria-labelledby="promises-title">
       <div class="ct-page">
