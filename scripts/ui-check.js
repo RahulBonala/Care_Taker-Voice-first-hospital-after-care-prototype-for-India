@@ -361,6 +361,19 @@ function fail(msg) { failed += 1; console.error(`FAIL  ${msg}`); }
       await ctx9.close();
     }
     if (!group9Bad) pass('9. How it works frames fit the pinned screen at 5 laptop sizes, all Care cards visible');
+
+    // 10. Refreshing the page while scrolled to the footer resets scroll to the top (scrollY === 0)
+    const refCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const refPage = await refCtx.newPage();
+    await refPage.goto(`${BASE}/#home`, { waitUntil: 'networkidle' });
+    await refPage.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await refPage.waitForTimeout(100);
+    await refPage.reload({ waitUntil: 'networkidle' });
+    await refPage.waitForTimeout(200);
+    const scrollAfterReload = await refPage.evaluate(() => window.scrollY);
+    if (scrollAfterReload === 0) pass('10. Refreshing from the footer resets scroll position to the top (scrollY === 0)');
+    else fail(`10. Refreshing from the footer left scrollY at ${scrollAfterReload}`);
+    await refCtx.close();
   } catch (err) {
     fail(`ui-check crashed: ${err.message}`);
   } finally {
@@ -368,6 +381,6 @@ function fail(msg) { failed += 1; console.error(`FAIL  ${msg}`); }
     server.close();
   }
 
-  console.log(failed ? `\n${failed} UI check(s) failed` : '\nui-check: all 9 groups passed');
+  console.log(failed ? `\n${failed} UI check(s) failed` : '\nui-check: all 10 groups passed');
   process.exit(failed ? 1 : 0);
 })();

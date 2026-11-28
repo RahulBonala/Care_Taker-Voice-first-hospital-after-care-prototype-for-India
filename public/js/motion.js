@@ -6,6 +6,7 @@
 // Older blocks that use the .ct-reveal class join the same system.
 
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 let io = null;
 let lenis = null;
 
@@ -50,10 +51,20 @@ export function initMotion() {
   }
 }
 
-// Route changes jump to the top at once.
+// Route changes and page refreshes jump to the top at once.
 export function resetScroll() {
-  if (lenis) lenis.scrollTo(0, { immediate: true });
-  else window.scrollTo(0, 0);
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  const zero = () => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    if (lenis) {
+      if (typeof lenis.resize === 'function') lenis.resize();
+      lenis.scrollTo(0, { immediate: true, force: true });
+    }
+  };
+  zero();
+  requestAnimationFrame(zero);
 }
 
 // Smooth scroll to a page position (Lenis when present).

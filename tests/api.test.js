@@ -124,3 +124,27 @@ test('switching patient language to English updates existing call transcripts an
     assert.equal(/[ఀ-౿]/.test(q.words), false, 'no Telugu script remains in English quotes');
   }
 });
+
+test('all recorded MP4 voiceover clips are registered in /api/config and served cleanly', async () => {
+  const cfg = await (await fetch(base + '/api/config')).json();
+  const enLines = [
+    'askAgain', 'askCallbackWhen', 'askTaken', 'askWhyStopped', 'confirmed',
+    'goodbye', 'goodbyeDone', 'greeting', 'keypad', 'noKey',
+    'notTakenOffer', 'nurseComing', 'optOut', 'postponeLimit', 'postponeOk',
+    'progress', 'readback', 'takeNow', 'tellingTeam', 'unclear',
+  ];
+  for (const id of enLines) {
+    assert.ok(cfg.audio.en.includes(`${id}.mp4`), `en audio missing ${id}.mp4`);
+    const r = await fetch(`${base}/audio/en/${id}.mp4`);
+    assert.equal(r.status, 200, `/audio/en/${id}.mp4 status`);
+  }
+  for (const id of ['greeting', 'askTaken', 'readback', 'confirmed', 'goodbye']) {
+    assert.ok(cfg.audio.te.includes(`${id}.mp4`), `te audio missing ${id}.mp4`);
+  }
+  for (const id of ['greeting', 'askTaken', 'postponeOk', 'nurseComing', 'goodbye']) {
+    assert.ok(cfg.audio.hi.includes(`${id}.mp4`), `hi audio missing ${id}.mp4`);
+  }
+  for (const code of ['ta', 'gu', 'ml', 'mr', 'or', 'pa']) {
+    assert.ok(cfg.audio[code].includes('sample.mp4'), `${code} audio missing sample.mp4`);
+  }
+});

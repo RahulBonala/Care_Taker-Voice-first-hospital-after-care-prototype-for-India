@@ -69,7 +69,12 @@ function doRoute() {
   }
   const mounted = current.mount(root, params);
   focusHeading(view);
-  if (mounted && typeof mounted.then === 'function') mounted.then(() => focusHeading(view));
+  if (mounted && typeof mounted.then === 'function') {
+    mounted.then(() => {
+      if (!params.get('section')) resetScroll();
+      focusHeading(view);
+    });
+  }
   tick();
 }
 
@@ -139,4 +144,8 @@ initMotion();
 mountSignature();
 window.addEventListener('hashchange', route);
 window.addEventListener('ct:refresh', tick);
+window.addEventListener('pageshow', () => {
+  const { params } = parseHash();
+  if (!params.get('section')) resetScroll();
+});
 route();

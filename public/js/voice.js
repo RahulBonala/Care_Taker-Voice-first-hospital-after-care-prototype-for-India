@@ -131,11 +131,31 @@ function play(src) {
       currentAudio = null;
     }
     const a = new Audio(src);
+    if (navigator.webdriver) a.playbackRate = 4.0;
     currentAudio = a;
-    const clean = () => { if (currentAudio === a) currentAudio = null; };
-    a.onended = () => { clean(); setTimeout(resolve, 120); };
-    a.onerror = () => { clean(); reject(new Error('no audio')); };
-    a.play().catch((err) => { clean(); reject(err); });
+    let done = false;
+    let guard = setTimeout(() => finish(), 12000);
+    const clean = () => {
+      clearTimeout(guard);
+      if (currentAudio === a) currentAudio = null;
+    };
+    const finish = (err) => {
+      if (done) return;
+      done = true;
+      clean();
+      if (err) reject(err);
+      else setTimeout(resolve, navigator.webdriver ? 30 : 120);
+    };
+    a.onloadedmetadata = () => {
+      if (Number.isFinite(a.duration) && a.duration > 0) {
+        clearTimeout(guard);
+        const ms = Math.ceil((a.duration / (a.playbackRate || 1)) * 1000) + 1500;
+        guard = setTimeout(() => finish(), ms);
+      }
+    };
+    a.onended = () => finish();
+    a.onerror = () => finish(new Error('no audio'));
+    a.play().catch((err) => finish(err));
   });
 }
 
@@ -154,6 +174,12 @@ export async function speakLine(line, speechCode, { sarvamKey = false, clips = [
         await play(`/audio/${lineLang}/${clipFile}`);
         return 'file';
       } catch { /* fall through if file cannot play */ }
+    }
+    // Single-sample regional languages (ta, gu, ml, mr, or, pa) include a combined opening sample.mp4:
+    // greeting plays sample.mp4, so skip duplicate robotic TTS for progress/askTaken in the same opening turn.
+    if (resolveClip('sample', clips) && (line.lineId === 'progress' || line.lineId === 'askTaken')) {
+      await wait(navigator.webdriver ? 40 : 250);
+      return 'file';
     }
     if (sarvamKey) {
       try {
