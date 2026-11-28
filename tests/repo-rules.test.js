@@ -30,3 +30,30 @@ test('scripts/check.js SKIP_DIRS includes .impeccable and .polish', () => {
   const check = read('scripts/check.js');
   assert.ok(check.includes("'.impeccable'") && check.includes("'.polish'"));
 });
+
+test('docker-compose.yml has no required: false and lists all optional .env.example keys', () => {
+  const compose = read('docker-compose.yml');
+  assert.ok(!compose.includes('required:'), 'docker-compose.yml must not contain required:');
+  const envExample = read('.env.example');
+  const keys = envExample
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith('#') && l.includes('='))
+    .map((l) => l.split('=')[0].trim())
+    .filter((k) => k !== 'PORT' && k !== 'DATA_DIR');
+  assert.ok(keys.length >= 11, 'expected at least 11 optional keys in .env.example');
+  for (const k of keys) {
+    assert.ok(
+      compose.includes(`${k}=\${${k}:-}`),
+      `docker-compose.yml missing ${k}=\${${k}:-}`
+    );
+  }
+});
+
+test('DEMO_SCRIPT.md and PITCH_DECK.md match Round 2 polish requirements', () => {
+  const demo = read('docs/DEMO_SCRIPT.md');
+  assert.ok(!demo.includes('08:55, Fri'), 'DEMO_SCRIPT.md must not reference 08:55, Fri');
+  assert.ok(!demo.includes('top banner'), 'DEMO_SCRIPT.md must not reference top banner');
+  const deck = read('docs/PITCH_DECK.md');
+  assert.ok(!deck.includes('[SOURCE NEEDED'), 'PITCH_DECK.md must not contain [SOURCE NEEDED');
+});

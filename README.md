@@ -5,9 +5,10 @@
 Voice-first hospital after-care prototype for India: patients sent home with medicines get a call at each dose time in their own language (ten Indian languages and English, picked or detected from their voice), answer by voice or keypad, and confirm a read-back before any dose is logged. It works on every device: keypad phones, smartphones, tablets, laptops and desktops.
 
 - **Theme:** Healthcare access (Scaler x Wispr Flow Hackathon, Round 2)
-- **Live demo:** `[LIVE DEMO LINK PLACEHOLDER]`
-- **Demo video (3 min):** `[VIDEO LINK PLACEHOLDER]`
-- **Pitch deck (PDF):** `[PITCH DECK LINK PLACEHOLDER]`
+- **Live demo:** `[LIVE DEMO LINK PLACEHOLDER]` (Rahul: paste deployed HTTPS URL before submitting)
+- **Demo video (3 min):** `[VIDEO LINK PLACEHOLDER]` (Rahul: paste public/unlisted video URL before submitting)
+- **Pitch deck (PDF):** `[PITCH DECK LINK PLACEHOLDER]` (Rahul: paste exported PDF deck URL before submitting)
+- **One-command run:** `docker compose up --build` -> open `http://localhost:3000` (needs no `.env` file and no API keys)
 
 > Sample data. Not medical advice. Not a medical device or emergency service. In an emergency call 112.
 
@@ -48,17 +49,18 @@ npm run check    # syntax, pure-JS deps, env vars, secrets, dashes, design token
 Open `http://localhost:3000` to explore both the public product website and the live clinical application (every screen shares the same live state and polls every 2 seconds):
 
 ### Product views (top bar)
-- **Website (`#home`):** Editorial product landing page explaining the problem, deterministic clinical rules vs optional keyed adapters, the 3-stage discharge-to-review rail, an embedded interactive tour, side-by-side comparison table, and FAQ.
-- **Guided tour (`#tour`):** Three-track interactive walkthrough (**For patients and families**, **For doctors and nurses**, and **How it works overall**) with live spoken-phrase and prescription-dictation testers.
+- **Overview (`#home`):** Editorial product landing page with an interactive hero phone call demonstrating the pending-to-confirmed dose chip (`ct-dose-chip`), Care cards for Nurse, Doctor, and Family, a 4-step scroll story per role, an interactive 11-language circle, and FAQ.
+- **Features menu:** Quick dropdown linking all five clinical role screens (**Hospital desk**, **Nurse board**, **Patient phone**, **Family**, **Doctor**) and **Health devices**.
+- **Tour (`#tour`):** Three-track interactive walkthrough (**For patients and families**, **For doctors and nurses**, and **How it works overall**) with live spoken-phrase, read-back dose chip, and prescription-dictation testers.
 - **Mobile app (`#mobile`):** Dual-persona mobile application prototype (**Patient & family app** and **Doctor & nurse app**) covering **1. Onboarding tour**, **2. Sample OTP / staff PIN login**, **3. First-time setup**, and **4. Live 4-tab mobile workspace** wired to `/api/*`.
 
-### Five clinical role screens (segmented switcher)
+### Five clinical role screens (under Features)
 
 1. **Hospital desk (`#desk`):** Register a patient, pick call language and phone type, add family contact and sharing preference, dictate or type the prescription, and record the two required patient consent checks before sending for verification.
-2. **Nurse board (`#nurse`):** Verify new prescriptions (unverified patients never get slots), work through open flags sorted `Urgent > Stopped early > Not reachable > Missed`, close flags with **Called back**, inspect live safety measures (including **Doses logged without a yes: Must be 0**), review misheard phrases, toggle family sharing, or **Reset sample data**.
-3. **Patient phone (`#phone`):** Keypad-phone simulator with **Answer**, **Decline**, keys **1** (Taken), **2** (Later), **3** (Nurse), and **9** (Stop calls), mic level meter, live transcript, `"Heard: {words} -> {intent}"`, and **Next slot** to advance the simulated clock.
-4. **Family (`#family`):** Read-only 7-day dose record and weekly summary built from the patient's own spoken words, visible only when **Share with family** is enabled on the patient record.
-5. **Doctor (`#doctor`):** Course completion percentage, adherence on due doses, and flags with the patient's exact words quoted for the next clinical review.
+2. **Nurse board (`#nurse`):** Verify new prescriptions (unverified patients never get slots), work through open flags sorted `Urgent > Stopped early > Not reachable > Missed` with live waiting time (`Waiting X min/h`) and one-tap `tel:` call links, close flags with **Called back**, inspect live safety measures (including **Doses logged without a yes: Must be 0**), review misheard phrases, toggle family sharing, or **Reset sample data**.
+3. **Patient phone (`#phone`):** Keypad-phone simulator with **Answer**, **Decline**, keys **1** (Taken), **2** (Later), **3** (Nurse), and **9** (Stop calls, also bound to physical keyboard keys `1`, `2`, `3`, `9`), mic level meter, live transcript, `"Heard: {words} -> {intent}"`, the read-back confirmation chip (`Waiting for your yes` -> `Taken` with drawn checkmark and soft chime), and **Next slot** to advance the simulated clock.
+4. **Family (`#family`):** Top-of-page today headline (`"{Name}'s doses today: {confirmed} of {due} confirmed, last at {HH:MM} IST."`), **Print or save this week** button (`@media print`), read-only 7-day dose record, and weekly summary built from the patient's own spoken words, visible only when **Share with family** is enabled on the patient record.
+5. **Doctor (`#doctor`):** Course completion table sorted by clinical need (stopped early first, then lowest confirmed share) with the patient's latest spoken quote inline, **Print or save this week** button, devices and vitals with customizable alert ranges, and flags with the patient's exact words quoted for the next clinical review.
 
 ## Health devices
 

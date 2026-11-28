@@ -117,3 +117,23 @@ Choices made during the build where the specification left room for interpretati
 ## 26. No CI pipeline
 - **Context:** The owner asked to remove the GitHub Actions pipeline as not needed.
 - **Decision:** `.github/workflows/ci.yml` is deleted. `npm test`, `npm run check` and `npm run smoke` run locally before every push, as CLAUDE.md already requires.
+
+## 27. Vercel Mumbai (`bom1`) region, parallel fetches, and synchronous skeletons
+- **Context:** On the deployed Vercel site, serverless functions defaulted to `iad1` (Washington) while traffic arrived at `bom1` (Mumbai), adding ~300ms per `/api/*` request. Sequential waterfall fetches in `family.js` and `doctor.js` left card bodies empty for nearly a second on first load.
+- **Decision:** Added `vercel.json` pinning `"regions": ["bom1"]`, parallelised `/api/report/:id` and `/api/health/:id` in `family.js` (using `lang` from `/api/patients`) and per-patient health fetches in `doctor.js`, and added synchronous `ct-skeleton` placeholders (`aria-busy="true"`) plus `ct-error-box` with a `Retry` button across `#nurse`, `#family`, `#doctor`, `#desk`, and `#devices`.
+
+## 28. Unmistakable read-back confirmation (`ct-dose-chip`) and confirm chime
+- **Context:** When a patient replies `"వేసుకున్నాను"` (`taken`), `#ph-heard` shows `Heard: వేసుకున్నాను -> Taken` while Care Taker asks the read-back question. A judge or patient glancing at the phone needed an unmistakable visual distinction between "heard taken, waiting for your yes" and "confirmed and logged".
+- **Decision:** Added `doseChipState(call)` and `renderDoseChip(call, { animate })` in `public/js/screens/phone.js` (and reused it in `mobile.js`, `tour.js`, and `hero-call.js`). During `stage === 'confirm'` (or `keypad` with `pendingTaken`), `#ph-chip` renders a marigold pending chip (`Waiting for your yes` / `Waiting for key 1`). Only when `status === 'ended' && outcome === 'taken'` does it become a green `Taken` chip with a 240ms stroke-drawn checkmark and a soft two-note Web Audio chime (`playConfirmTone`), while `#ph-state` (`role="status"`) announces `"Dose confirmed and logged"` once.
+
+## 29. Family `todaySummary`, printable weekly reports (`print.css`), and clinician triage sorting
+- **Context:** Distant family members need one sentence at the top telling them whether today's doses were confirmed, and both family and doctors need a clean one-page summary they can print or save as PDF. Nurses need to see how long a flagged patient has waited and call them in one tap; doctors need courses sorted by clinical urgency with the patient's own words right in the table.
+- **Decision:** Extended `server/report.js` with `todaySummary: { due, confirmed, lastTakenAt }` and rendered `#fa-today-summary` at the top of `#family`. Added **Print or save this week** buttons on `#family` and `#doctor` backed by `public/css/print.css`. Added `waitLabel(createdAt)` and `tel:` call links on `#nurse` open flags, and sorted `#doctor` course rows by `stopped > confirmedPct > name` with `latestQuote` rendered inline.
+
+## 30. Font preloading and Indic `unicode-range` descriptors
+- **Context:** Above-the-fold Latin copy on `#home` uses Noto Sans (400, 700) and Newsreader (400 normal and italic), while Indic `.woff2` files should only download when their script codepoints appear on screen.
+- **Decision:** Added `<link rel="preload" as="font" type="font/woff2" crossorigin>` for those four Latin font files in `public/index.html` and updated `scripts/copy-assets.js` to emit `unicode-range` on every Indic `@font-face` rule in `public/css/fonts.css`.
+
+## 31. Universal Docker Compose environment block
+- **Context:** `env_file` with `required: false` in `docker-compose.yml` requires Docker Compose 2.24.0+, causing older `docker compose` installations to reject the file when `.env` is absent.
+- **Decision:** Replaced `env_file` with an `environment:` block using `${VAR:-}` empty defaults for all 11 optional variables so `docker compose up` works on every Compose version with no `.env` file.

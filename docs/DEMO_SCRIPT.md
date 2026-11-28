@@ -1,92 +1,75 @@
-# Care Taker: 3-minute demo video script
+# Care Taker: 2 minute 50 second demo video script
 
 ## Setup before recording
 
 1. Run `docker compose up --build` and open `http://localhost:3000` in Google Chrome at `1280x800` (keep DevTools device toolbar ready to toggle `360x800` once during the keypad segment).
 2. Allow microphone access on `http://localhost:3000`.
-3. Open **Nurse board** and click **Reset sample data** so the simulated clock starts at `08:55, Fri` with `Lakshmi Devi`, `Arjun`, and `Meena` in their clean starting states.
-4. Navigate to **Hospital desk** (`#desk`) before hitting record.
+3. Open **Features -> Nurse board** (`#nurse`) and click **Reset sample data** so `Lakshmi Devi`, `Arjun`, and `Meena` start in their clean seeded states.
+4. Navigate to **Patient phone** (`#phone`, click **Call** in the top bar) with **Lakshmi Devi** selected before hitting record.
 
 ---
 
-## 0:00 to 0:20: Story and problem
+## 0:00 to 0:20: Founder hook and the read-back confirmation beat
 
 **On screen:**
-- Start on **Hospital desk** showing the top banner (`Sample data. Not medical advice.`), the Care Taker app bar, simulated clock (`08:55`), and the role switcher (`Hospital desk`, `Nurse board`, `Patient phone`, `Family`, `Doctor`).
-- Briefly hover **Recent patients** (`Lakshmi Devi` in Telugu on a keypad phone, `Arjun` in Hindi on day 15 of 60, `Meena` in Tamil on day 5 of 10).
+1. Start on **Patient phone** (`#phone`) with **Lakshmi Devi** (67, Telugu `te-IN`, keypad phone, Amoxiclav 625 mg, day 3 of 14).
+2. Click **Next slot**, then click **Answer**. Care Taker greets Lakshmi in Telugu and asks if she has eaten and taken her after-breakfast tablets.
+3. Speak or click the sample chip `వేసుకున్నాను`.
+4. Point to `#ph-chip` right below `#ph-heard`: the marigold pending dose chip appears (`After breakfast, 09:00 : Waiting for your yes`). Nothing is logged yet.
+5. Speak or click `అవును` (or press key `1`). Watch the dose chip turn green (`After breakfast, 09:00 : Taken`), draw its checkmark stroke, and hear the soft confirm chime while `#ph-state` announces `Dose confirmed and logged`.
 
 **Narration:**
-> "Every day, patients leave Indian hospitals with a bag of medicines and an English discharge sheet. At home, meals run late, elders on keypad phones cannot use health apps, and people stop courses early the moment they feel fine. Care Taker calls each patient at dose time in their own language, listens by voice or keypad, and never logs a dose until the read-back is confirmed."
+> "I was told to take a skin tablet for two months, stopped after fifteen days once my skin looked healed, and still forget doses. For my parents and grandparents in India, apps do not work, phone calls do. When Care Taker calls Lakshmi in Telugu and she says 'vesukunnanu', the chip stays 'Waiting for your yes'. Only when she confirms with 'avunu' does Care Taker draw the check and log the dose."
 
 ---
 
-## 0:20 to 0:40: Nurse setup, dictation and consent
+## 0:20 to 0:55: Family view and Hospital desk dictation with consent
 
 **On screen:**
-1. On **Hospital desk**, type **Full name:** `Kiran Rao`, **Age:** `62`, **Call language:** `Telugu`, **Phone type:** `Keypad phone`.
-2. In **Prescription -> Dictate**, click **Dictate** and speak:
-   `"Paracetamol 650, after breakfast and dinner, 5 days"`
-   Watch Medicine (`Paracetamol`), Dose (`650 mg`), Meal slots (`After breakfast`, `After dinner`), and Days (`5`) fill automatically.
-3. Scroll to **Consent**: point out that **Save** is disabled until both boxes are ticked (`Patient agreed to receive dose calls in Telugu` and `Patient knows they can stop calls at any time by saying "stop calls" or pressing 9`). Tick both, enter `Nurse Priya`, and click **Save and send for verification**.
-4. Switch to **Nurse board** and click **Verify** on `Kiran Rao`.
+1. Open **Features -> Family** (`#family`). Point to the top headline (`#fa-today-summary`): `"Lakshmi Devi's doses today: 1 of 1 confirmed, last at 09:00 IST."`, the **Print or save this week** button, and `"వేసుకున్నాను"` under **In Lakshmi's own words**.
+2. Switch the patient selector to **Arjun** to show the privacy notice explaining that sharing is off and a nurse can turn it on with his consent.
+3. Open **Features -> Hospital desk** (`#desk`). Type **Full name:** `Kiran Rao`, **Age:** `62`, **Call language:** `Telugu`, **Phone type:** `Keypad phone`.
+4. In **Prescription -> Dictate**, click **Dictate** (or type) `"Paracetamol 650, after breakfast and dinner, 5 days"` and click **Fill form**. Watch Medicine (`Paracetamol`), Dose (`650 mg`), Meal slots (`After breakfast`, `After dinner`), and Days (`5`) fill automatically.
+5. Tick both **Consent** checkboxes, enter `Nurse Priya`, and click **Save and send for verification**.
 
 **Narration:**
-> "At discharge, the nurse dictates 'Paracetamol 650, after breakfast and dinner, 5 days' and the schedule fills by rules. Nothing starts without explicit consent to receive calls and to opt out anytime with 'stop calls' or key 9. Only after a nurse clicks Verify on the Nurse board are dose slots created."
+> "Her son Ravi in London sees one sentence at the top: one of one confirmed today at nine o'clock IST, with a print button for the clinic visit, while Arjun's page stays private because he has not opted in. At discharge on the Hospital desk, a nurse dictates 'Paracetamol 650, after breakfast and dinner, 5 days', records explicit consent for calls and key 9 opt-out, and sends the schedule for verification."
 
 ---
 
-## 0:40 to 1:40: Lakshmi Devi's Telugu call and read-back confirmation
+## 0:55 to 1:40: Unwell priority, stopped-early check, and keypad fallback
 
 **On screen:**
-1. Switch to **Patient phone** and select **Lakshmi Devi** (67, Telugu `te-IN`, keypad phone, lives alone, son Ravi abroad).
-2. Click **Next slot**. The simulated clock advances to `09:00` and the keypad phone rings.
-3. Click **Answer**. Care Taker greets Lakshmi in Telugu and asks if she has eaten and taken her after-breakfast tablets (with English translation shown below each bot bubble for the care team).
-4. Speak into the mic (or tap sample chip): `వేసుకున్నాను`.
-5. Point out the **Heard** bar: `Heard: వేసుకున్నాను -> Taken`, while Care Taker reads back:
-   `"You took your after-breakfast tablets at 09:00. Is that right? Say yes or press 1."`
-6. Speak `అవును` (or press `1`). Toast appears: `Dose logged`. Care Taker says goodbye with the next call time (`13:30`).
-7. Click **Family** in the top bar (`Lakshmi Devi` selected). Show `Taken 09:00` under **Today** and `"వేసుకున్నాను"` in **In Lakshmi's own words**.
+1. Click **Call** in the top bar (`#phone`) and select **Arjun** (24, Hindi-English `hi-IN`, Isotretinoin 20 mg, day 15 of 60).
+2. Click **Next slot** (`22:00`) and **Answer**. Click `khana nahi khaya, aadha ghanta baad` to reschedule to `22:30`.
+3. Click **Next slot** (`22:30`) and **Answer**. Click `haan le li, lekin chakkar aa raha hai`. Point out `Heard: haan le li, lekin chakkar aa raha hai -> Feels unwell` and `Urgent: a nurse will call`: zero dose is logged.
+4. Select **Meena** (20, Tamil `ta-IN`, day 5 of 10). Click **Next slot** and **Answer** to show the halfway course reminder. Type `I feel fine, I have stopped`, then reply `fever is gone`.
+5. Click **Next slot** and **Answer** again for **Meena**. Type `hmm` twice to trigger **keypad mode**, toggle `360x800` mobile width briefly to show the responsive phone layout, and press key `9` on the keyboard (`Stop calls`).
 
 **Narration:**
-> "Lakshmi is 67, lives alone with a keypad phone, and speaks Telugu. At nine o'clock her phone rings. Care Taker asks in Telugu if she has eaten and taken her morning tablets. When she says 'vesukunnanu', Care Taker does not log the dose yet. It reads back the slot and time and asks her to confirm. Only when she says 'avunu' is the dose recorded, and her son Ravi abroad sees her week in her own words because she chose to share it."
+> "When Arjun says 'aadha ghanta', Care Taker calls back in thirty minutes. When he says 'haan le li, lekin chakkar aa raha hai', safety outranks 'le li': no dose is logged and an urgent nurse flag is raised. When Meena stops her antibiotic on day five because her fever is gone, Care Taker records her reason in her own words without lecturing. And if speech is unclear twice, it switches to keypad tones, where pressing 9 stops future calls immediately."
 
 ---
 
-## 1:40 to 2:20: Arjun's postpone, unwell priority, and stopped-early check
+## 1:40 to 2:20: Nurse board waiting time and one-tap call
 
 **On screen:**
-1. Switch to **Patient phone** and select **Arjun** (24, Hindi-English mix `hi-IN`, Isotretinoin 20 mg nightly, day 15 of 60).
-2. Click **Next slot** (`22:00`) and **Answer**. Speak or type: `aadha ghanta`. Show toast: `Call rescheduled to 22:30`.
-3. Click **Next slot** (`22:30`) and **Answer**. Speak or tap: `haan le li, lekin chakkar aa raha hai`.
-   Point out `Heard: haan le li, lekin chakkar aa raha hai -> Feels unwell`: even though he said `"le li"`, `unwell` wins priority, nothing is logged as taken, and Care Taker says a nurse will call in a few minutes.
-4. Select **Meena** (day 5 of 10). Click **Next slot** and **Answer**: point out the halfway course reminder (`"You are on day 5 of 10. Your doctor asked you to complete the course."`). Reply `I feel fine, I have stopped`, then answer the follow-up reason with `fever is gone`. Show `Stopped early: care team told`.
+1. Open **Features -> Nurse board** (`#nurse`).
+2. Point to **Measures**: `Doses logged without a yes: 0 (Must be 0)`.
+3. Point to **Flags**: Arjun's **Urgent** flag sits at the top showing his exact words, the waiting badge (`Waiting 0 min`), the one-tap `Call Arjun` (`tel:`) button, and **Called back**.
+4. Click **Verify** on `Kiran Rao` under **Waiting for verification**, and click **Called back** on Arjun's urgent flag.
 
 **Narration:**
-> "With Arjun at night, saying 'aadha ghanta' reschedules the call by 30 minutes. On the callback he says 'haan le li, lekin chakkar aa raha hai'. Safety wins over 'le li': zero dose is logged, and an urgent nurse flag is raised with his exact words. And when Meena, halfway through a 10-day antibiotic course, says 'I feel fine, I have stopped', Care Taker gives no medical lecture: it asks why, records her words, and alerts her care team."
+> "On the Nurse board, 'Doses logged without a yes' stays at zero. Open flags are sorted by clinical urgency, showing how long each patient has waited, their exact spoken words, and a one-tap phone link right beside 'Called back'."
 
 ---
 
-## 2:20 to 2:45: Keypad fallback, Nurse board, and mobile check
+## 2:20 to 2:50: Doctor view sorted by clinical need and close
 
 **On screen:**
-1. Still on **Patient phone** with **Meena**, click **Next slot** and **Answer**. Type `hmm` twice (two unclear replies). Show Care Taker switching to **keypad mode** with a 10-second countdown, lighting keys `1`, `2`, `3`, and `9`. Press `2` (`Later`).
-2. Briefly toggle `360px` mobile width to show the phone and stacked layout fitting cleanly with 48px tap targets, then return to desktop width.
-3. Switch to **Nurse board**:
-   - Point to **Measures**: `Doses logged without a yes: 0 (Must be 0)`.
-   - Point to **Flags** sorted `Urgent` (Arjun's `"haan le li, lekin chakkar aa raha hai"`) above `Stopped early` (Meena's `"fever is gone"`) above `Missed`.
-   - Click **Called back** on Arjun's urgent flag to close it, and point to **Misheard replies** (`"hmm"` logged for rule review) and `"key not set"` on optional keyed buttons.
+1. Open **Features -> Doctor** (`#doctor`).
+2. Point to **Course completion**: `Meena` (who stopped early) and `Arjun` (lowest confirmed share) sort above `Lakshmi Devi`, with each patient's latest spoken quote shown directly under their row.
+3. Point to **Print or save this week**, **Devices and vitals** with customizable alert ranges, and the footer notice (`Sample data. Not medical advice.`).
 
 **Narration:**
-> "If speech is noisy twice, Care Taker falls back to keypad tones: 1 for taken, 2 for later, 3 for a nurse, 9 to stop calls. On the Nurse board, 'Doses logged without a yes' stays at zero, urgent flags sit at the top with the patient's exact words, misheard phrases are queued for rule updates, and nurses close flags as they call back."
-
----
-
-## 2:45 to 3:00: Doctor view, Family privacy, and close
-
-**On screen:**
-1. Click **Family**, switch dropdown to **Arjun**, showing the lock state (`Arjun has not chosen to share their record with family`).
-2. Click **Devices**, pick **Lakshmi Devi**: her blood pressure monitor and glucose meter, with yesterday's 162/98 marked "Nurse told". Type `BP 130 by 85` and press **Add**. Switch to **Arjun** to show his watch: steps against the doctor's goal of 7,000, calories and sleep.
-3. Click **Doctor**, showing course completion bars, **Devices and vitals**, the alert ranges, and quoted flags, plus the footer links (`Terms`, `Privacy`, `Medical disclaimer`, `Voice and AI notice`).
-
-**Narration:**
-> "Family members only see records when the patient opts in. Blood pressure monitors and sugar meters pair over Bluetooth, watches and rings bring steps, calories and sleep, and any reading outside the doctor's range goes to the nurse, with no advice from the app. Doctors review real course completion alongside what patients actually said. Care Taker runs in one `docker compose up` with zero API keys, works on any phone through voice or keypad, and keeps humans in charge of care."
+> "On the Doctor screen, courses sort automatically by clinical need: patients who stopped early appear first, with their latest spoken words right underneath and a one-click print view for the review visit. Care Taker starts in one `docker compose up` with zero API keys, works across eleven languages by voice or keypad, and never logs a dose without the patient's yes."
