@@ -57,11 +57,14 @@
 ## Section 3: What it depends on, cost, and failure plan
 
 ### Slide 8: Dependencies and unit economics
-- **Core prototype dependencies (zero external cost):** Node 20, Express, self-hosted Noto Sans and Newsreader fonts, deterministic rule-based intent engine, atomic JSON store. Runs locally or in Docker (`docker compose up`) with zero API keys.
+- **Core prototype dependencies (zero external cost):** Node 20, Express, self-hosted Noto Sans and Newsreader fonts, deterministic rule-based intent engine, atomic JSON store. Runs locally or in Docker (`docker compose up`) with zero API keys. The prototype speaks lines with the browser voice (`speechSynthesis`) or Sarvam TTS when `SARVAM_API_KEY` is set, and otherwise shows text on screen; recorded `.mp3` clips are planned in Stage 1 (`public/audio/*` currently ships with no `.mp3` files).
 - **Real-world telephony and speech dependencies (for a live hospital pilot):**
   - Outbound PSTN voice and DTMF gateway (Twilio or an India-licensed cloud telephony operator) using standard per-minute domestic outbound voice call rates.
-  - Indian-language TTS/STT: pre-recorded native studio `.mp3` clips for the 20 fixed bot prompts cost Rs 0 per call at runtime; live speech-to-text via Sarvam AI (`saarika:v2`) is published at Rs 30 per audio hour, or **Rs 0.50 per audio minute** billed per second (Sarvam AI, 2025).
-  - **Speech recognition cost per 14-day, twice-daily course:** 28 short calls of up to 45 seconds each equal 21 minutes of audio, or **Rs 10.50 in Sarvam AI STT cost per course** (plus standard carrier voice call charges).
+  - Indian-language TTS and STT via Sarvam AI: text-to-speech (`Bulbul v3`) is published at **Rs 30 per 10,000 characters** (Rs 0.003 per character), and live speech-to-text (`saarika:v2`) is published at **Rs 30 per audio hour**, or **Rs 0.50 per audio minute** billed per second (Sarvam AI API pricing: https://www.sarvam.ai/api-pricing).
+  - **Speech API (TTS + STT) cost per 14-day, twice-daily course (28 calls):**
+    - **TTS cost:** 28 calls x 300 characters per call (greeting, progress/dose prompt, read-back, confirmation, goodbye) = 8,400 characters; `(8,400 / 10,000) x Rs 30 = Rs 25.20`.
+    - **STT cost:** 28 calls x 45 seconds per call = 1,260 seconds = 21 minutes of audio; `21 minutes x Rs 0.50/min (21 / 60 x Rs 30) = Rs 10.50`.
+    - **Total speech cost per 14-day course:** `Rs 25.20 (TTS) + Rs 10.50 (STT) = Rs 35.70` per course (plus standard carrier voice call charges).
 - **Regulatory and legal dependencies before any real patient call:** DPDP Act 2023 notice and consent review, TRAI transactional voice regulations, Telemedicine Practice Guidelines 2020 boundary confirmation, and hospital data-processing agreements (tracked in `docs/LEGAL_NOTES.md`).
 
 ### Slide 9: Failure modes and fallbacks
@@ -70,7 +73,7 @@
 |---|---|
 | Speech recognition fails, noisy room, or confidence `< 0.5` | Never guesses `taken`. Marks `unclear`, asks once more, then switches to keypad DTMF (`1` taken, `2` later, `3` nurse, `9` stop). |
 | Patient says `"took it"` AND mentions a symptom (`"le li, lekin chakkar"`) | `unwell` outranks `taken` in `PRIORITY`. Dose is **not** logged; raises an **Urgent** nurse flag with exact words. |
-| Browser has no Indic TTS voice or Sarvam API is down/unset | Falls back to pre-recorded `public/audio/{lang}/{lineId}.mp3`, then on-screen native + English text. |
+| Browser has no Indic TTS voice or Sarvam API is down/unset | The prototype speaks lines with the browser voice or Sarvam TTS when a key is set, and otherwise shows native + English text on screen (recorded fallback `.mp3` clips are planned in Stage 1). |
 | Patient does not answer or declines | Retries up to 3 rings (10 minutes apart), then marks `missed` + flag; 2 missed slots in a row raise `Not reachable` with family contact details. |
 | Patient postpones repeatedly | Allows up to 3 postpones (10 to 90 minutes, default 30); a 4th postpone marks `missed` and flags the nurse. |
 | Dialect phrase not in keyword list | Logged to **Misheard replies** on the Nurse board; optional keyed LLM can only suggest a fixed intent label for human review, never logs a dose or writes advice. |
@@ -94,11 +97,11 @@
 2. **How does the patient know which tablets the read-back means?** Care Taker names the meal slot (`after-breakfast`, `after-dinner`) matching how Indian discharge sheets group medicines, and reads back the slot and time before asking for a yes.
 3. **What if the patient says yes falsely?** Care Taker prevents accidental or misheard logging by requiring an explicit read-back confirmation and quotes the patient's exact spoken words for the doctor, rather than claiming invasive camera surveillance.
 4. **How are privacy and consent handled?** No calls start until a nurse records two explicit consent checks and verifies the prescription, family view is locked unless `shareWithFamily` is enabled, and saying `"stop calls"` or pressing `9` stops all future calls immediately.
-5. **What is the cost per patient per course?** Pre-recorded bot prompts cost Rs 0 at runtime, and live Indian-language speech recognition via Sarvam AI costs Rs 0.50 per audio minute, or Rs 10.50 across 28 calls of 45 seconds in a 14-day twice-daily course, plus carrier call charges.
+5. **What is the cost per patient per course?** Across a 14-day twice-daily course (28 calls), Sarvam AI TTS (`Bulbul v3`, Rs 30 per 10,000 characters) costs Rs 25.20 (`28 calls x 300 characters = 8,400 characters; (8,400 / 10,000) x Rs 30`), and Sarvam AI STT (`saarika:v2`, Rs 30 per audio hour or Rs 0.50 per minute) costs Rs 10.50 (`28 calls x 45 seconds = 21 minutes; 21 x Rs 0.50`), giving a combined speech cost of **Rs 35.70 per 14-day course** (`Rs 25.20 + Rs 10.50`), plus standard carrier voice call charges.
 6. **How does a hospital adopt it?** A discharge nurse dictates the prescription in one sentence on the Hospital desk screen, ticks consent, and clicks Verify on the Nurse board with zero EHR integration required on day one.
 
 ### Slide 12: Primary sources
 - **World Health Organization (WHO), 2003:** *Adherence to Long-Term Therapies: Evidence for Action* (long-term medication adherence averages 50% in developed countries and lower in developing nations). URL: https://iris.who.int/handle/10665/42682
 - **Ministry of Statistics and Programme Implementation (MoSPI), Government of India, 2019:** *Key Indicators of Social Consumption in India: Health, NSS 75th Round (July 2017 to June 2018)* (55.3% private vs 42.0% public inpatient hospitalisation share; Rs 4,452 public and Rs 31,845 private average medical expenditure per hospitalisation case; 80.3% rural and 83.7% urban cases financed from household income/savings). URL: https://mospi.gov.in
 - **Office of the Registrar General & Census Commissioner, India, 2018:** *Census of India 2011, Paper 1 of 2018: Language and Multilingualism* (0.02% of India's population reports English as mother tongue; 10.62% overall including second and third language speakers). URL: https://censusindia.gov.in
-- **Sarvam AI, 2025:** *Published API Pricing for Saarika Speech-to-Text* (Rs 30 per audio hour / Rs 0.50 per audio minute, billed per second). URL: https://www.sarvam.ai
+- **Sarvam AI, 2025:** *Published API Pricing for Bulbul v3 Text-to-Speech (Rs 30 per 10,000 characters) and Saarika Speech-to-Text (Rs 30 per audio hour / Rs 0.50 per audio minute, billed per second)*. URL: https://www.sarvam.ai/api-pricing
