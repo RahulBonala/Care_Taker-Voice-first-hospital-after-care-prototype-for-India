@@ -1,0 +1,43 @@
+/* Print stylesheet for Family and Doctor weekly reports (P3). Tokens only. */
+@media print {
+  body {
+    background: var(--color-surface);
+    color: var(--color-ink);
+  }
+  .skip-link,
+  .ct-pill-header,
+  .ct-app-bar,
+  .ct-simclock,
+  .ct-btn,
+  .ct-toasts,
+  .ct-signature,
+  .ct-footer__cols,
+  .ct-footer__bottom nav,
+  #dr-ranges {
+    display: none !important;
+  }
+  .ct-page {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+  .ct-grid {
+    display: block;
+  }
+  .ct-card,
+  .ct-flag-item,
+  .ct-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    border-color: var(--color-border-strong);
+    margin-bottom: var(--space-4);
+  }
+  .ct-footer {
+    border-top: 1px solid var(--color-border-strong);
+    margin-top: var(--space-5);
+  }
+  .ct-footer__inner {
+    padding: var(--space-3) 0;
+  }
+}

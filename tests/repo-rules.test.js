@@ -19,6 +19,13 @@ test('tokens.css defines motion duration and stagger tokens', () => {
   }
 });
 
+test('index.html links print.css and print.css has @media print', () => {
+  const html = read('public/index.html');
+  assert.ok(html.includes('/css/print.css'), 'index.html must link /css/print.css');
+  const printCss = read('public/css/print.css');
+  assert.ok(printCss.includes('@media print'), 'print.css must contain @media print');
+});
+
 test('scripts/check.js SKIP_DIRS includes .impeccable and .polish', () => {
   const check = read('scripts/check.js');
   assert.ok(check.includes("'.impeccable'") && check.includes("'.polish'"));

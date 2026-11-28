@@ -1,5 +1,5 @@
 // Family: read-only record and weekly report, built from the patient's own words. Only shown when shared.
-import { api, esc, icon, toast, config, empty, skeleton, errorBox, progress, slotStatus, intentStatus, when, dayName, SLOT_LABEL, flagStatus, store } from '../lib.js';
+import { api, esc, icon, toast, config, empty, skeleton, errorBox, progress, slotStatus, intentStatus, when, hm, dayName, SLOT_LABEL, flagStatus, store } from '../lib.js';
 
 let el;
 let cfg;
@@ -23,10 +23,14 @@ export async function mount(root) {
   <div class="ct-stack--lg">
     <div class="ct-row ct-row--between">
       <div><h1>Family</h1><p class="muted">A read-only view for family members, in the patient's own words.</p></div>
-      <label class="ct-field"><span class="ct-field__label">Patient</span><select class="ct-select" id="fa-patient"></select></label>
+      <div class="ct-row">
+        <label class="ct-field"><span class="ct-field__label">Patient</span><select class="ct-select" id="fa-patient"></select></label>
+        <button type="button" class="ct-btn ct-btn--secondary" id="fa-print">${icon('calendar')}Print or save this week</button>
+      </div>
     </div>
     <div id="fa-body" aria-busy="true"><section class="ct-card">${skeleton(5)}</section></div>
   </div>`;
+  el.querySelector('#fa-print').addEventListener('click', () => window.print());
   el.querySelector('#fa-patient').addEventListener('change', (e) => {
     pid = e.target.value;
     store('ct.family.pid', pid);
@@ -79,12 +83,18 @@ export async function refresh() {
     }
     const rx = r.courses[0];
     const today = r.week[r.week.length - 1].date;
+    const ts = r.todaySummary || { due: 0, confirmed: 0, lastTakenAt: null };
+    const todayLine = ts.due === 0
+      ? 'No doses due yet today.'
+      : `${r.patient.name}'s doses today: ${ts.confirmed} of ${ts.due} confirmed${ts.lastTakenAt ? `, last at ${hm(ts.lastTakenAt)} IST` : ''}.`;
     const nextWeek = new Map();
     const nextToday = new Map();
     const nextQuotes = new Set();
     const nextFlags = new Set();
     body.innerHTML = `
-  <div class="ct-grid">
+  <div class="ct-stack--lg">
+    <p class="ct-card ct-card--sunken" id="fa-today-summary"><strong>${esc(todayLine)}</strong></p>
+    <div class="ct-grid">
     <section class="ct-card ct-card--raised ct-col-7 ct-stack">
       <div class="ct-card__head"><h2>This week</h2><p>${esc(r.patient.name)}</p></div>
       ${r.summary.map((s) => `<p>${esc(s)}</p>`).join('')}
@@ -134,6 +144,7 @@ export async function refresh() {
       <ul class="ct-feedback">${h.feedback.map((f) => `<li class="ct-feedback__item ct-feedback__item--${esc(f.kind)}">${icon(f.kind === 'flag' ? 'alert' : f.kind === 'ok' ? 'check' : 'info')}${feedbackLines(f, h.lang)}</li>`).join('')}</ul>
       <a class="ct-btn ct-btn--ghost ct-btn--sm" href="#devices">Open health devices</a>
     </section>` : ''}
+    </div>
   </div>`;
     prevWeek = nextWeek;
     prevToday = nextToday;

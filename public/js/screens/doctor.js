@@ -19,7 +19,10 @@ export async function mount(root) {
   prevFlags = null;
   el.innerHTML = `
   <div class="ct-stack--lg">
-    <div><h1>Doctor</h1><p class="muted">Course completion and what patients said, for the next review.</p></div>
+    <div class="ct-row ct-row--between">
+      <div><h1>Doctor</h1><p class="muted">Course completion and what patients said, for the next review.</p></div>
+      <button type="button" class="ct-btn ct-btn--secondary" id="dr-print">${icon('calendar')}Print or save this week</button>
+    </div>
     <section class="ct-card">
       <div class="ct-card__head"><h2 class="ct-section-title">${icon('chart')}Course completion</h2><p>Confirmed doses out of all doses in the course</p></div>
       <div class="ct-table-wrap"><table class="ct-table">
@@ -45,6 +48,7 @@ export async function mount(root) {
       <ul class="ct-flag-list" id="dr-flags" aria-busy="true"><li>${skeleton(3)}</li></ul>
     </section>
   </div>`;
+  el.querySelector('#dr-print').addEventListener('click', () => window.print());
   el.addEventListener('click', (e) => { if (e.target.closest('button[data-retry]')) refresh(); });
   refresh();
 }
