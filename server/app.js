@@ -289,7 +289,8 @@ function createApp() {
   }));
   app.post('/api/parse-reading', (req, res) => res.json(parseReading((req.body || {}).text)));
   app.get('/api/health/:patientId', (req, res) => {
-    const s = H.summary(db(), req.params.patientId);
+    // ?lang=<code> translates the feedback lines; without it they stay English for clinician screens.
+    const s = H.summary(db(), req.params.patientId, { lang: typeof req.query.lang === 'string' ? req.query.lang : 'en' });
     if (!s) return res.status(404).json({ error: 'Patient not found' });
     if (req.query.view === 'family' && !s.patient.shareWithFamily) return res.status(403).json({ error: 'not shared', shared: false });
     res.json(s);

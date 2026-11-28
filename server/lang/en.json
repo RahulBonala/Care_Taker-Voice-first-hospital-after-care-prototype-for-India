@@ -223,5 +223,31 @@
     "mBp": "Blood pressure",
     "mSugar": "Sugar",
     "mHeart": "Heart rate"
+  },
+  "feedback": {
+    "stepsToday": "{steps} steps today. Your doctor's goal is {goal} a day.",
+    "stepsTodayMet": "{steps} steps today. Your doctor's goal is {goal} a day: reached.",
+    "stepsAverage": "Last {days} days: {avg} steps a day on average, goal reached on {met} of {days} days.",
+    "activeCalories": "{active} active calories burned today.",
+    "activeCaloriesTotal": "{active} active calories burned today, {total} in total.",
+    "sleep": "Slept {hours} h {minutes} min last night.",
+    "heartRate": "Heart rate {bpm} at {time}.",
+    "heartRateOut": "Heart rate {bpm} at {time}, outside your doctor's range. A nurse will look at it.",
+    "bpIn": "Last blood pressure {sys}/{dia} at {time}, inside your doctor's range.",
+    "bpOut": "Last blood pressure {sys}/{dia} at {time}, outside your doctor's range. A nurse will look at it.",
+    "sugarIn": "Last sugar {mgdl} mg/dL at {time}, inside your doctor's range.",
+    "sugarInContext": "Last sugar {mgdl} mg/dL ({context}) at {time}, inside your doctor's range.",
+    "sugarOut": "Last sugar {mgdl} mg/dL at {time}, outside your doctor's range. A nurse will look at it.",
+    "sugarOutContext": "Last sugar {mgdl} mg/dL ({context}) at {time}, outside your doctor's range. A nurse will look at it.",
+    "oxygenOut": "Oxygen {pct}% at {time}, outside your doctor's range. A nurse will look at it.",
+    "weekOneIn": "{count} blood pressure and sugar reading this week, inside your doctor's range. It is shared with your care team.",
+    "weekOneOut": "{count} blood pressure and sugar reading this week, {out} outside your doctor's range. It is shared with your care team.",
+    "weekAllIn": "{count} blood pressure and sugar readings this week, all inside your doctor's range. All are shared with your care team.",
+    "weekSomeOut": "{count} blood pressure and sugar readings this week, {out} outside your doctor's range. All are shared with your care team.",
+    "deviceNotSynced": "{device} has not synced for {days} days.",
+    "devicePaired": "{device} is paired. Readings appear when it takes one.",
+    "noDevice": "No device connected yet. Readings can also be added by voice or typed.",
+    "fasting": "fasting",
+    "afterMeal": "after meal"
   }
 }

@@ -236,7 +236,7 @@ async function loadData(t = token) {
     const [rep, calls, health] = await Promise.all([
       api(`/api/report/${encodeURIComponent(pid)}`),
       api(`/api/calls?patientId=${encodeURIComponent(pid)}&limit=1`),
-      api(`/api/health/${encodeURIComponent(pid)}`),
+      api(`/api/health/${encodeURIComponent(pid)}?lang=${encodeURIComponent((patients.find((x) => x.id === pid) || {}).lang || 'en')}`),
     ]);
     if (t !== token || !el) return;
     patientReport = rep;
@@ -637,7 +637,7 @@ function renderPatientApp() {
         </div>
         <div class="ct-card ct-stack">
           <strong>${esc(ui.healthShows)}</strong>
-          <ul class="ct-feedback">${h.feedback.slice(0, 5).map((f) => `<li class="ct-feedback__item ct-feedback__item--${esc(f.kind)}">${icon(f.kind === 'flag' ? 'alert' : f.kind === 'ok' ? 'check' : 'info')}<span class="small">${esc(f.text)}</span></li>`).join('')}</ul>
+          <ul class="ct-feedback">${h.feedback.slice(0, 5).map((f) => `<li class="ct-feedback__item ct-feedback__item--${esc(f.kind)}">${icon(f.kind === 'flag' ? 'alert' : f.kind === 'ok' ? 'check' : 'info')}<span class="small" lang="${esc(h.lang || 'en')}">${esc(f.text)}</span></li>`).join('')}</ul>
         </div>
         <div class="ct-card ct-stack">
           <strong>${esc(ui.connected)}</strong>

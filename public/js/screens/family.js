@@ -41,7 +41,7 @@ export async function refresh() {
   }
   const rx = r.courses[0];
   const today = r.week[r.week.length - 1].date;
-  const h = await api(`/api/health/${encodeURIComponent(pid)}?view=family`).catch(() => null);
+  const h = await api(`/api/health/${encodeURIComponent(pid)}?view=family&lang=${encodeURIComponent(r.patient.lang || 'en')}`).catch(() => null);
   if (!el) return;
   body.innerHTML = `
   <div class="ct-grid">
@@ -73,8 +73,16 @@ export async function refresh() {
     </section>
     ${h ? `<section class="ct-card ct-col-12">
       <div class="ct-card__head"><h2 class="ct-section-title">${icon('watch')}Activity and readings</h2><p>${h.devices.length ? esc(h.devices.map((d) => d.name).join(', ')) : 'No device connected'}</p></div>
-      <ul class="ct-feedback">${h.feedback.map((f) => `<li class="ct-feedback__item ct-feedback__item--${esc(f.kind)}">${icon(f.kind === 'flag' ? 'alert' : f.kind === 'ok' ? 'check' : 'info')}<span>${esc(f.text.replace(/\bYour doctor's\b/g, 'The doctor\'s').replace(/\byour doctor's\b/g, 'the doctor\'s').replace(/\byour care team\b/g, 'the care team'))}</span></li>`).join('')}</ul>
+      <ul class="ct-feedback">${h.feedback.map((f) => `<li class="ct-feedback__item ct-feedback__item--${esc(f.kind)}">${icon(f.kind === 'flag' ? 'alert' : f.kind === 'ok' ? 'check' : 'info')}${feedbackLines(f, h.lang)}</li>`).join('')}</ul>
       <a class="ct-btn ct-btn--ghost ct-btn--sm" href="#devices">Open health devices</a>
     </section>` : ''}
   </div>`;
+}
+
+// One feedback line: in the patient's language, with the English line underneath for family who read English.
+// The English is reworded from "your" to "the" because family, not the patient, is reading it.
+function feedbackLines(f, lang) {
+  const en = (f.en || f.text).replace(/\bYour doctor's\b/g, 'The doctor\'s').replace(/\byour doctor's\b/g, 'the doctor\'s').replace(/\byour care team\b/g, 'the care team');
+  if (!lang || lang === 'en' || !f.en || f.text === f.en) return `<span>${esc(en)}</span>`;
+  return `<span><span lang="${esc(lang)}">${esc(f.text)}</span><br><span class="small muted" lang="en">${esc(en)}</span></span>`;
 }

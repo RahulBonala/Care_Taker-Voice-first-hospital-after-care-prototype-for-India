@@ -4,6 +4,10 @@
 // anything outside a range goes to a nurse.
 const T = require('./time');
 const M = require('./model');
+const Lang = require('./lang');
+
+const EN_FB = Lang.get('en').feedback;
+const CONTEXT_KEY = { fasting: 'fasting', 'after meal': 'afterMeal' };
 
 const KINDS = {
   bp: { label: 'Blood pressure monitor', metrics: ['bp', 'heartRate'], via: 'bluetooth', service: 'blood_pressure' },
@@ -193,7 +197,7 @@ function dayTotal(list, type, date) {
 }
 const fmt = (n) => Number(n).toLocaleString('en-IN');
 
-function summary(db, patientId) {
+function summary(db, patientId, { lang = 'en' } = {}) {
   const p = M.patient(db, patientId);
   if (!p) return null;
   const r = ranges(p);
@@ -216,32 +220,45 @@ function summary(db, patientId) {
   const devices = db.devices.filter((d) => d.patientId === patientId);
 
   // Feedback: facts only. Out of range always ends with who will act on it.
+  // Each line is a template from the "feedback" block of server/lang/<code>.json; en stays English for the care team.
+  const fb = Lang.get(lang).feedback || EN_FB;
   const feedback = [];
-  const add = (kind, text) => feedback.push({ kind, text });
+  const add = (kind, key, vars = {}) => {
+    const fill = (f) => Lang.fill(f[key] || EN_FB[key], { ...vars, context: vars.context && (f[CONTEXT_KEY[vars.context]] || EN_FB[CONTEXT_KEY[vars.context]] || vars.context) });
+    feedback.push({ kind, text: fill(fb), en: fill(EN_FB) });
+  };
   if (todayRow.steps !== null) {
     const met = todayRow.steps >= r.stepsGoal;
-    add(met ? 'ok' : 'info', `${fmt(todayRow.steps)} steps today. Your doctor's goal is ${fmt(r.stepsGoal)} a day${met ? ': reached.' : '.'}`);
+    add(met ? 'ok' : 'info', met ? 'stepsTodayMet' : 'stepsToday', { steps: fmt(todayRow.steps), goal: fmt(r.stepsGoal) });
     const stepsDays = week.slice(0, 6).filter((d) => d.steps !== null);
     if (stepsDays.length >= 3) {
       const avg = Math.round(stepsDays.reduce((a, d) => a + d.steps, 0) / stepsDays.length);
       const metDays = stepsDays.filter((d) => d.steps >= r.stepsGoal).length;
-      add('info', `Last ${stepsDays.length} days: ${fmt(avg)} steps a day on average, goal reached on ${metDays} of ${stepsDays.length} days.`);
+      add('info', 'stepsAverage', { days: stepsDays.length, avg: fmt(avg), met: metDays });
     }
   }
-  if (todayRow.activeCalories !== null) add('info', `${fmt(todayRow.activeCalories)} active calories burned today${todayRow.calories !== null ? `, ${fmt(todayRow.calories)} in total` : ''}.`);
-  if (todayRow.sleep !== null) add('info', `Slept ${Math.floor(todayRow.sleep / 60)} h ${todayRow.sleep % 60} min last night.`);
-  if (lastHr) add(lastHr.outOfRange ? 'flag' : 'info', `Heart rate ${lastHr.value.bpm} at ${T.timeOf(lastHr.at)}${lastHr.outOfRange ? ', outside your doctor\'s range. A nurse will look at it.' : '.'}`);
-  if (lastBp) add(lastBp.outOfRange ? 'flag' : 'ok', `Last blood pressure ${lastBp.value.sys}/${lastBp.value.dia} at ${T.timeOf(lastBp.at)}, ${lastBp.outOfRange ? 'outside your doctor\'s range. A nurse will look at it.' : 'inside your doctor\'s range.'}`);
-  if (lastSugar) add(lastSugar.outOfRange ? 'flag' : 'ok', `Last sugar ${lastSugar.value.mgdl} mg/dL${lastSugar.value.context ? ` (${lastSugar.value.context})` : ''} at ${T.timeOf(lastSugar.at)}, ${lastSugar.outOfRange ? 'outside your doctor\'s range. A nurse will look at it.' : 'inside your doctor\'s range.'}`);
-  if (lastSpo2 && lastSpo2.outOfRange) add('flag', `Oxygen ${lastSpo2.value.pct}% at ${T.timeOf(lastSpo2.at)}, outside your doctor's range. A nurse will look at it.`);
+  if (todayRow.activeCalories !== null) {
+    add('info', todayRow.calories !== null ? 'activeCaloriesTotal' : 'activeCalories', { active: fmt(todayRow.activeCalories), total: todayRow.calories !== null ? fmt(todayRow.calories) : undefined });
+  }
+  if (todayRow.sleep !== null) add('info', 'sleep', { hours: Math.floor(todayRow.sleep / 60), minutes: todayRow.sleep % 60 });
+  if (lastHr) add(lastHr.outOfRange ? 'flag' : 'info', lastHr.outOfRange ? 'heartRateOut' : 'heartRate', { bpm: lastHr.value.bpm, time: T.timeOf(lastHr.at) });
+  if (lastBp) add(lastBp.outOfRange ? 'flag' : 'ok', lastBp.outOfRange ? 'bpOut' : 'bpIn', { sys: lastBp.value.sys, dia: lastBp.value.dia, time: T.timeOf(lastBp.at) });
+  if (lastSugar) {
+    const key = `sugar${lastSugar.outOfRange ? 'Out' : 'In'}${lastSugar.value.context ? 'Context' : ''}`;
+    add(lastSugar.outOfRange ? 'flag' : 'ok', key, { mgdl: lastSugar.value.mgdl, context: lastSugar.value.context || undefined, time: T.timeOf(lastSugar.at) });
+  }
+  if (lastSpo2 && lastSpo2.outOfRange) add('flag', 'oxygenOut', { pct: lastSpo2.value.pct, time: T.timeOf(lastSpo2.at) });
   const outWeek = list.filter((x) => x.outOfRange && T.dateOf(x.at) >= days[0]).length;
   const countWeek = list.filter((x) => (x.type === 'bp' || x.type === 'glucose') && T.dateOf(x.at) >= days[0]).length;
-  if (countWeek) add(outWeek ? 'flag' : 'ok', `${countWeek} blood pressure and sugar ${countWeek === 1 ? 'reading' : 'readings'} this week, ${outWeek ? `${outWeek} outside your doctor's range` : (countWeek === 1 ? 'inside your doctor\'s range' : 'all inside your doctor\'s range')}. ${countWeek === 1 ? 'It is' : 'All are'} shared with your care team.`);
-  for (const d of devices) {
-    if (!d.lastSync) add('info', `${d.name} is paired. Readings appear when it takes one.`);
-    else if (T.daysBetween(T.dateOf(d.lastSync), today) >= 2) add('info', `${d.name} has not synced for ${T.daysBetween(T.dateOf(d.lastSync), today)} days.`);
+  if (countWeek) {
+    const key = countWeek === 1 ? (outWeek ? 'weekOneOut' : 'weekOneIn') : (outWeek ? 'weekSomeOut' : 'weekAllIn');
+    add(outWeek ? 'flag' : 'ok', key, { count: countWeek, out: outWeek });
   }
-  if (!devices.length && !list.length) add('info', 'No device connected yet. Readings can also be added by voice or typed.');
+  for (const d of devices) {
+    if (!d.lastSync) add('info', 'devicePaired', { device: d.name });
+    else if (T.daysBetween(T.dateOf(d.lastSync), today) >= 2) add('info', 'deviceNotSynced', { device: d.name, days: T.daysBetween(T.dateOf(d.lastSync), today) });
+  }
+  if (!devices.length && !list.length) add('info', 'noDevice');
 
   return {
     patient: { id: p.id, name: p.name, age: p.age, shareWithFamily: !!p.shareWithFamily },
@@ -249,7 +266,7 @@ function summary(db, patientId) {
     devices, today: todayRow, week,
     last: { bp: lastBp, glucose: lastSugar, heartRate: lastHr, spo2: lastSpo2 },
     bpWeek: recent('bp'), glucoseWeek: recent('glucose'),
-    feedback,
+    feedback, lang: Lang.get(lang).code,
   };
 }
 
