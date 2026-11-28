@@ -1,0 +1,10 @@
+{
+  "slots": {
+    "doctor":                { "type": "svg" },
+    "keypad-grandmother":    { "type": "svg" },
+    "listening-grandfather": { "type": "svg" },
+    "grandchildren-setup":   { "type": "svg" },
+    "family-daughter":       { "type": "svg" },
+    "footer-loop":           { "type": "svg" }
+  }
+}
