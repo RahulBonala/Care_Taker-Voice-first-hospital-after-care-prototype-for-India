@@ -59,7 +59,7 @@ let queued = 0;
 // The doctor at a desk, writing on an Rx pad. Own line art, colours from hero.css classes.
 export function doctorMarkup(variant) {
   return `
-  <svg class="ct-doc ct-doc--${variant}" viewBox="0 0 200 150" focusable="false" aria-hidden="true">
+  <svg class="ct-doc ct-doc--${variant}" viewBox="0 0 200 150" width="200" height="150" focusable="false" aria-hidden="true">
     <rect class="d-soft" x="34" y="40" width="78" height="84" rx="16"/>
     <path class="d-coat" d="M38 126 C38 98 45 84 61 79 L87 79 C103 84 110 98 110 126 Z"/>
     <path class="d-teal" d="M66 79 L74 95 L82 79 Z"/>

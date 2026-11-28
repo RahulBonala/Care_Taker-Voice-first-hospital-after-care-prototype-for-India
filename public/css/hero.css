@@ -88,8 +88,8 @@
 .ct-flow__in { fill: var(--color-primary); stroke: var(--color-primary-soft); stroke-width: 4; paint-order: stroke; }
 
 /* ---------- Phone ---------- */
-.ct-hcall { display: grid; grid-template-columns: auto auto; grid-template-areas: none; column-gap: var(--space-5); row-gap: 0; align-items: center; justify-content: center; }
-.ct-hcall__phone { position: relative; grid-area: auto; width: 248px; aspect-ratio: 9 / 19.5; }
+.ct-hcall { display: grid; grid-template-columns: auto auto; grid-template-areas: none; column-gap: var(--space-5); row-gap: 0; align-items: center; justify-content: center; min-height: 500px; }
+.ct-hcall__phone { position: relative; grid-area: auto; width: 248px; min-height: 480px; aspect-ratio: 9 / 19.5; }
 .ct-hcall__phone::before,
 .ct-hcall__phone::after {
   content: ""; position: absolute; width: 3px; border-radius: var(--radius-sm); background: var(--color-ink); pointer-events: none;

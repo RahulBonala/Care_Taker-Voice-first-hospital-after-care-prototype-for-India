@@ -132,7 +132,8 @@ export async function mount(root) {
 }
 
 function field(id, label, control, help = '', extra = '') {
-  return `<label class="ct-field ${extra}"><span class="ct-field__label">${esc(label)}</span>${control}${help ? `<span class="ct-field__help">${esc(help)}</span>` : ''}<span class="ct-field__error" id="err-${id}"></span></label>`;
+  const withDesc = control.replace('<input ', `<input aria-describedby="err-${id}" `);
+  return `<label class="ct-field ${extra}"><span class="ct-field__label">${esc(label)}</span>${withDesc}${help ? `<span class="ct-field__help">${esc(help)}</span>` : ''}<span class="ct-field__error" id="err-${id}" role="alert"></span></label>`;
 }
 
 export async function refresh() {
@@ -210,9 +211,9 @@ async function save(form) {
   const v = (id) => form.querySelector(`#f-${id}`).value.trim();
   const slots = [...form.querySelectorAll('#f-slots input:checked')].map((i) => i.value);
   const errors = {
-    name: v('name') ? '' : 'Enter the patient name',
-    med: v('med') ? '' : 'Enter the medicine',
-    days: Number(v('days')) >= 1 ? '' : 'Enter the number of days',
+    name: v('name') ? '' : 'Enter the patient full name',
+    med: v('med') ? '' : 'Enter the medicine name from the discharge sheet',
+    days: Number(v('days')) >= 1 ? '' : 'Enter the number of days (1 to 365)',
     slots: slots.length ? '' : 'Choose at least one meal slot',
     nurse: v('nurse') ? '' : 'Enter the name of the nurse recording consent',
   };

@@ -151,6 +151,14 @@ export function mount(root) {
   el.querySelector('#ph-answer').addEventListener('click', answer);
   el.querySelector('#ph-decline').addEventListener('click', () => decline('Declined'));
   el.querySelectorAll('[data-key]').forEach((b) => b.addEventListener('click', () => pressKey(b.dataset.key)));
+  el.addEventListener('keydown', (e) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+    if (['1', '2', '3', '9'].includes(e.key)) {
+      e.preventDefault();
+      pressKey(e.key);
+    }
+  });
   el.querySelector('#ph-type').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = el.querySelector('#ph-text');

@@ -257,7 +257,7 @@ function deviceIcon(kind) {
     tablet: '<rect x="7" y="5" width="34" height="38" rx="4"/><path d="M21 38h6"/><path d="M14 14h20M14 20h14M14 26h17"/>',
     laptop: '<rect x="9" y="9" width="30" height="21" rx="2.5"/><path d="M4 37h40l-3-7H7z"/><path d="M14 16h20M14 22h12"/>',
   };
-  return `<svg class="ct-every__icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">${paths[kind]}</svg>`;
+  return `<svg class="ct-every__icon" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" focusable="false">${paths[kind]}</svg>`;
 }
 
 export async function refresh() {}

@@ -150,7 +150,7 @@ export function peopleMarkup() {
           <li>
             <figure class="ct-people__fig" data-photo="${esc(p.photo)}" data-alt="${esc(p.alt)}">
               <div class="ct-people__media">
-                <svg class="ct-ill" viewBox="0 0 320 240" role="img" aria-label="${esc(p.alt)}" focusable="false">${ART[p.photo]}</svg>
+                <svg class="ct-ill" viewBox="0 0 320 240" width="320" height="240" role="img" aria-label="${esc(p.alt)}" focusable="false">${ART[p.photo]}</svg>
               </div>
               <figcaption><strong>${esc(p.who)}</strong><span>${esc(p.text)}</span></figcaption>
             </figure>
