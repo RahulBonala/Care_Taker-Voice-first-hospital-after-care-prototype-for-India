@@ -1,5 +1,5 @@
 // Nurse board: verify patients, work through flags (most urgent first), watch the measures, review misheard replies.
-import { api, post, esc, icon, toast, busy, config, langTag, empty, skeleton, errorBox, flagStatus, when, hm, progress, store } from '../lib.js';
+import { api, post, esc, icon, toast, busy, config, langTag, empty, skeleton, errorBox, flagStatus, when, hm, progress, store, setClock, clockIso, waitLabel } from '../lib.js';
 
 let el;
 let cfg;
@@ -101,7 +101,11 @@ export async function refresh() {
   try {
     if (!cfg) cfg = await config();
     const [m, flags, patients, misheard] = await Promise.all([
-      api('/api/measures'), api(`/api/flags${showClosed ? '' : '?status=open'}`), api('/api/patients'), api('/api/misheard'),
+      api('/api/measures'),
+      api(`/api/flags${showClosed ? '' : '?status=open'}`),
+      api('/api/patients'),
+      api('/api/misheard'),
+      clockIso() ? Promise.resolve() : api('/api/clock').then(setClock),
     ]);
     if (!el) return;
     failCount = 0;
@@ -115,9 +119,10 @@ export async function refresh() {
       }
     }
     renderMetrics(m);
+    const phoneByPid = new Map(patients.map((p) => [p.id, p.phone || '']));
     const newFlagIds = prevFlags ? new Set(flags.filter((f) => !prevFlags.has(f.id)).map((f) => f.id)) : new Set();
     prevFlags = new Set(flags.map((f) => f.id));
-    el.querySelector('#nb-flags').innerHTML = flags.length ? flags.map((f) => flagItem(f, newFlagIds.has(f.id))).join('') : `<li>${empty('No open flags. Everyone is on track.')}</li>`;
+    el.querySelector('#nb-flags').innerHTML = flags.length ? flags.map((f) => flagItem(f, newFlagIds.has(f.id), phoneByPid.get(f.patientId))).join('') : `<li>${empty('No open flags. Everyone is on track.')}</li>`;
 
     const waiting = patients.filter((p) => !p.verified);
     el.querySelector('#nb-verify').innerHTML = waiting.length ? `<ul class="ct-list">${waiting.map(verifyItem).join('')}</ul>` : empty('Nobody is waiting.', 'shield');
@@ -183,15 +188,20 @@ function renderMetrics(m) {
   prevMetrics = next;
 }
 
-function flagItem(f, isNew = false) {
+function flagItem(f, isNew = false, phone = '') {
   const closed = f.status === 'closed';
   const words = f.words ? `<blockquote class="ct-quote" lang="und">${esc(f.words)}</blockquote>` : '';
   const why = f.why ? `<p>Reason given: <span class="ct-quote">${esc(f.why)}</span></p>` : '';
+  const wait = !closed ? waitLabel(f.createdAt) : '';
+  const telHref = phone ? `tel:${phone.replace(/\s+/g, '')}` : '';
+  const callLink = !closed && telHref
+    ? `<a class="ct-btn ct-btn--secondary ct-btn--sm" href="${esc(telHref)}" aria-label="Call ${esc(f.patientName || 'patient')}">${icon('phone')}Call ${esc((f.patientName || 'patient').split(' ')[0])}</a>`
+    : '';
   return `<li class="ct-flag-item ${f.type === 'urgent' && !closed ? 'ct-flag-item--urgent' : ''} ${closed ? 'ct-flag-item--closed' : ''}${isNew ? ' ct-flag-item--enter' : ''}">
-    <div class="ct-flag-item__head">${flagStatus(f)}<span class="ct-flag-item__name">${esc(f.patientName || '')}</span><span class="small muted">${when(f.createdAt)}</span></div>
+    <div class="ct-flag-item__head">${flagStatus(f)}<span class="ct-flag-item__name">${esc(f.patientName || '')}</span>${wait ? `<span class="ct-tag tabular">${esc(wait)}</span>` : ''}<span class="small muted">${when(f.createdAt)}</span></div>
     <div class="ct-flag-item__body"><p>${esc(f.reason)}</p>${words}${why}
       ${closed ? `<p class="small muted">${esc(f.note || 'Closed')} by ${esc(f.closedBy || 'nurse')}, ${when(f.closedAt)}</p>` : ''}</div>
-    <div class="ct-flag-item__action">${closed ? '' : `<button class="ct-btn ct-btn--secondary" type="button" data-act="close" data-id="${esc(f.id)}">${icon('phone')}Called back</button>`}</div>
+    <div class="ct-flag-item__action">${closed ? '' : `${callLink}<button class="ct-btn ct-btn--secondary ct-btn--sm" type="button" data-act="close" data-id="${esc(f.id)}">${icon('check')}Called back</button>`}</div>
   </li>`;
 }
 

@@ -125,7 +125,14 @@ export function store(key, value) {
 }
 
 // Simulated clock, set by app.js on every poll.
-let clock = { time: '--:--', date: '' };
+let clock = { clock: '', time: '--:--', date: '' };
 export function setClock(c) { clock = c; }
+export const clockIso = () => clock.clock || '';
 export const clockTime = () => clock.time;
 export const clockLabel = () => (clock.date ? `${clock.time}, ${new Date(clock.date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })}` : clock.time);
+
+export function waitLabel(createdAt) {
+  if (!createdAt || !clock.clock) return '';
+  const mins = Math.max(0, Math.round((Date.parse(clock.clock) - Date.parse(createdAt)) / 60000));
+  return mins >= 60 ? `Waiting ${Math.round(mins / 60)} h` : `Waiting ${mins} min`;
+}

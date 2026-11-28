@@ -205,7 +205,7 @@
 .ct-flag-item__head { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 .ct-flag-item__name { font-weight: var(--weight-bold); }
 .ct-flag-item__body { grid-column: 1 / 2; display: flex; flex-direction: column; gap: var(--space-1); }
-.ct-flag-item__action { grid-column: 2 / 3; grid-row: 1 / span 2; align-self: center; }
+.ct-flag-item__action { grid-column: 2 / 3; grid-row: 1 / span 2; align-self: center; display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 @media (max-width: 559px) {
   .ct-flag-item { grid-template-columns: minmax(0, 1fr); }
   .ct-flag-item__action { grid-column: 1; grid-row: auto; }

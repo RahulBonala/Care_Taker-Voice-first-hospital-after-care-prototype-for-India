@@ -61,9 +61,12 @@ function createApp() {
   function patientView(d, p) {
     const rxs = d.prescriptions.filter((r) => r.patientId === p.id);
     const next = flow.nextSlotFor(d, p.id);
+    const rep = report(d, p.id);
+    const latestQuote = rep && rep.quotes && rep.quotes[0] ? rep.quotes[0] : null;
     return { ...p, prescriptions: rxs.map((rx) => courseStats(d, rx)), nextDue: next ? next.due : null,
       openFlags: d.flags.filter((f) => f.patientId === p.id && f.status === 'open').length,
-      activeCall: flow.activeCall(d, p.id) ? flow.activeCall(d, p.id).id : null };
+      activeCall: flow.activeCall(d, p.id) ? flow.activeCall(d, p.id).id : null,
+      latestQuote };
   }
   app.get('/api/patients', (req, res) => res.json(db().patients.map((p) => patientView(db(), p))));
   app.get('/api/patients/:id', (req, res) => {

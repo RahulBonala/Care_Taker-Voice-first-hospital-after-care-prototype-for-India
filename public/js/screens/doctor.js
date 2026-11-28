@@ -115,19 +115,37 @@ export async function refresh() {
     }
     const rows = [];
     const nextCourses = new Map();
+    const courseItems = [];
     for (const p of patients.filter((x) => x.verified)) {
-      const l = cfg.langs.find((x) => x.code === p.lang);
+      const pFlags = flags.filter((f) => f.patientId === p.id);
+      const stopped = p.callsStopped || pFlags.some((f) => f.type === 'stoppedEarly');
+      const flagQuote = pFlags.find((f) => f.why || f.words);
+      const quoteText = (flagQuote && (flagQuote.why || flagQuote.words)) || (p.latestQuote && p.latestQuote.words) || '';
+      const quoteAt = (flagQuote && flagQuote.createdAt) || (p.latestQuote && p.latestQuote.at) || '';
       for (const rx of p.prescriptions) {
-        const cKey = `${rx.taken}:${rx.missed}:${rx.completionPct}`;
-        const changed = prevCourses && prevCourses.has(rx.prescriptionId) && prevCourses.get(rx.prescriptionId) !== cKey;
-        nextCourses.set(rx.prescriptionId, cKey);
-        rows.push(`<tr class="${changed ? 'ct-row-changed' : ''}">
-          <td data-label="Patient"><strong>${esc(p.name)}</strong>${p.age ? `, ${esc(p.age)}` : ''}<br><span class="small muted">${esc(l ? l.name : p.lang)}</span> ${langTag(l)}</td>
-          <td data-label="Medicine">${esc(rx.medicine)} ${esc(rx.dose)}<br><span class="small muted">Day ${rx.day} of ${rx.days}</span></td>
-          <td data-label="Completion">${progress(rx.taken, rx.totalDoses, `${rx.completionPct}%`, `${rx.taken} of ${rx.totalDoses} doses`)}</td>
-          <td data-label="Confirmed when due" class="tabular">${rx.adherencePct === null ? 'No doses due yet' : `${rx.adherencePct}%`}</td>
-          <td data-label="Not confirmed" class="tabular">${rx.missed}</td></tr>`);
+        const share = rx.adherencePct !== null ? rx.adherencePct : rx.completionPct;
+        courseItems.push({ p, rx, stopped, share, quoteText, quoteAt });
       }
+    }
+    courseItems.sort((a, b) => (a.stopped === b.stopped ? 0 : a.stopped ? -1 : 1)
+      || a.share - b.share
+      || a.rx.completionPct - b.rx.completionPct
+      || a.p.name.localeCompare(b.p.name));
+
+    for (const { p, rx, stopped, quoteText, quoteAt } of courseItems) {
+      const l = cfg.langs.find((x) => x.code === p.lang);
+      const cKey = `${rx.taken}:${rx.missed}:${rx.completionPct}:${stopped}:${quoteText}`;
+      const changed = prevCourses && prevCourses.has(rx.prescriptionId) && prevCourses.get(rx.prescriptionId) !== cKey;
+      nextCourses.set(rx.prescriptionId, cKey);
+      const quoteHtml = quoteText
+        ? `<div class="small muted">Latest words (${quoteAt ? when(quoteAt) : 'recorded'}): <span class="ct-quote">${esc(quoteText)}</span></div>`
+        : '';
+      rows.push(`<tr class="${changed ? 'ct-row-changed' : ''}">
+        <td data-label="Patient"><strong>${esc(p.name)}</strong>${p.age ? `, ${esc(p.age)}` : ''}${stopped ? ` <span class="ct-status ct-status--stopped">${icon('stop')}Stopped early</span>` : ''}<br><span class="small muted">${esc(l ? l.name : p.lang)}</span> ${langTag(l)}${quoteHtml}</td>
+        <td data-label="Medicine">${esc(rx.medicine)} ${esc(rx.dose)}<br><span class="small muted">Day ${rx.day} of ${rx.days}</span></td>
+        <td data-label="Completion">${progress(rx.taken, rx.totalDoses, `${rx.completionPct}%`, `${rx.taken} of ${rx.totalDoses} doses`)}</td>
+        <td data-label="Confirmed when due" class="tabular">${rx.adherencePct === null ? 'No doses due yet' : `${rx.adherencePct}%`}</td>
+        <td data-label="Not confirmed" class="tabular">${rx.missed}</td></tr>`);
     }
     prevCourses = nextCourses;
     const verified = patients.filter((x) => x.verified);
