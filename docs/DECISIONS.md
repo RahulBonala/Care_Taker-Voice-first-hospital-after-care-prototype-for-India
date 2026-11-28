@@ -137,3 +137,9 @@ Choices made during the build where the specification left room for interpretati
 ## 31. Universal Docker Compose environment block
 - **Context:** `env_file` with `required: false` in `docker-compose.yml` requires Docker Compose 2.24.0+, causing older `docker compose` installations to reject the file when `.env` is absent.
 - **Decision:** Replaced `env_file` with an `environment:` block using `${VAR:-}` empty defaults for all 11 optional variables so `docker compose up` works on every Compose version with no `.env` file.
+
+## 32. Device frames fit the pinned screen, borderless Care cards, original footer loop, no swap on refresh
+- **Context:** The owner reported four regressions from the illustration pass: the How it works phone ran past the dark band (a fixed 9:19.5 phone was 607px tall, so its bottom sat 140 to 160px below the screen at 1180x740, 1366x768 and 1534x894), Care cards had borders, the footer loop had been replaced by an SVG, and refreshing showed the old drawings and footer first and then swapped in the new art 300 to 500ms later.
+- **Decision:** Phone and tablet frames in the pinned story take their height from the space under the step line (phone `clamp(26rem, calc(100vh - 17rem), 32rem)`, short screens scale the phone screen to 0.94); Care cards drop border and shadow but keep the emoji, name, line and state chip; the coded `ct-sig` footer loop is restored and `footer-loop.svg` removed; the doctor and people art is set in the same task as the markup (no manifest fetch or HEAD requests), and the hero doctor art is preloaded.
+- **Checks:** `ui-check` group 9 measures every How it works step at 1024x700, 1180x740, 1366x768, 1534x894 and 1920x1080 (frame inside the screen, no Care card clipped); `tests/repo-rules.test.js` guards the footer, the synchronous art and the borderless card.
+

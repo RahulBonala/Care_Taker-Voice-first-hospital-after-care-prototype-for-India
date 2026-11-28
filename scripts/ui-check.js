@@ -334,6 +334,33 @@ function fail(msg) { failed += 1; console.error(`FAIL  ${msg}`); }
     if (fit) pass('8. Long scripts (Tamil and Malayalam) at 360px fit chip, state line, and Heard line without overflow');
     else fail('8. Long scripts at 360px overflowed chip, state line, or Heard line');
     await mlCtx.close();
+
+    // 9. How it works: every device frame sits inside the pinned screen at common laptop sizes,
+    //    and the step 4 phone shows all three Care cards (nurse, doctor, family) without clipping.
+    let group9Bad = 0;
+    for (const [w, h] of [[1024, 700], [1180, 740], [1366, 768], [1534, 894], [1920, 1080]]) {
+      const ctx9 = await browser.newContext({ viewport: { width: w, height: h } });
+      const p9 = await ctx9.newPage();
+      await p9.goto(`${BASE}/#home`, { waitUntil: 'networkidle' });
+      const box = await p9.evaluate(() => { const r = document.querySelector('#how').getBoundingClientRect(); return { top: r.top + scrollY, h: r.height }; });
+      for (let i = 0; i < 4; i++) {
+        await p9.evaluate((y) => window.scrollTo(0, y), box.top + (box.h - h) * (i + 0.5) / 4);
+        await p9.waitForTimeout(2600);
+        const r9 = await p9.evaluate((vh) => {
+          const panel = document.querySelector('#how .ct-story__panel.is-active');
+          if (!panel) return 'no active panel';
+          const f = panel.querySelector('.ct-frame').getBoundingClientRect();
+          const scr = panel.querySelector('.ct-frame__screen').getBoundingClientRect();
+          if (f.bottom > vh + 1) return `frame bottom ${Math.round(f.bottom)} > ${vh}`;
+          const cards = [...panel.querySelectorAll('.ct-frame__screen .ct-care-card')];
+          const clipped = cards.filter((c) => c.getBoundingClientRect().bottom > scr.bottom + 1);
+          return clipped.length ? `${clipped.length} Care card(s) clipped` : '';
+        }, h);
+        if (r9) { group9Bad++; fail(`9. #how step ${i + 1} at ${w}x${h}: ${r9}`); }
+      }
+      await ctx9.close();
+    }
+    if (!group9Bad) pass('9. How it works frames fit the pinned screen at 5 laptop sizes, all Care cards visible');
   } catch (err) {
     fail(`ui-check crashed: ${err.message}`);
   } finally {
@@ -341,6 +368,6 @@ function fail(msg) { failed += 1; console.error(`FAIL  ${msg}`); }
     server.close();
   }
 
-  console.log(failed ? `\n${failed} UI check(s) failed` : '\nui-check: all 8 groups passed');
+  console.log(failed ? `\n${failed} UI check(s) failed` : '\nui-check: all 9 groups passed');
   process.exit(failed ? 1 : 0);
 })();

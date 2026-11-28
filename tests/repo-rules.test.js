@@ -57,3 +57,21 @@ test('DEMO_SCRIPT.md and PITCH_DECK.md match Round 2 polish requirements', () =>
   const deck = read('docs/PITCH_DECK.md');
   assert.ok(!deck.includes('[SOURCE NEEDED'), 'PITCH_DECK.md must not contain [SOURCE NEEDED');
 });
+
+test('Home art and footer render without a late swap (no jitter on refresh)', () => {
+  const manifest = JSON.parse(read('public/img/manifest.json'));
+  assert.ok(!manifest.slots['footer-loop'], 'footer uses the coded signature loop, not an SVG swap');
+  assert.ok(!read('public/js/signature.js').includes('footer-loop'), 'signature.js must not swap in footer-loop.svg');
+  const hero = read('public/js/home/hero.js');
+  assert.ok(!/fetch\(\s*['"]\/img\/(photos\/)?manifest\.json/.test(hero), 'hero art is set synchronously, not after a manifest fetch');
+  for (const key of ['doctor', 'keypad-grandmother', 'listening-grandfather', 'grandchildren-setup', 'family-daughter']) {
+    assert.ok(fs.existsSync(path.join(ROOT, 'public/img/anim', `${key}.svg`)), `missing public/img/anim/${key}.svg`);
+    assert.ok(fs.existsSync(path.join(ROOT, 'public/img/photos', `${key}.webp`)), `missing public/img/photos/${key}.webp`);
+  }
+});
+
+test('Care cards have no border', () => {
+  const css = read('public/css/care-card.css');
+  const rule = css.slice(css.indexOf('.ct-care-card {'), css.indexOf('}', css.indexOf('.ct-care-card {')));
+  assert.match(rule, /border:\s*0/, '.ct-care-card must set border: 0');
+});
