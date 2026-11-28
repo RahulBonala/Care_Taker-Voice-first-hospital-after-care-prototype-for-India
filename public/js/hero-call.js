@@ -40,11 +40,29 @@ const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matc
 let root = null;
 let token = 0;
 
+const MOBILE_STREAM = "ఆ... వేసుకున్నాను, ఉదయం మాత్రలు వేసుకున్నాను  •  Yes, I took my breakfast tablet at 09:02  •  haan, maine subah ki dawai le li  •  అవును, సరే  •  மாத்திரை எடுத்துட்டேன்  •  ";
+
 export function markup() {
   const bars = Array.from({ length: 9 }, () => '<span></span>').join('');
+  const streamText = esc(MOBILE_STREAM.repeat(3));
   return `
   <div class="ct-hcall" data-state="ringing" aria-label="A Care Taker dose call turning into reports">
+    <div class="ct-hcall__mobile-stream" aria-hidden="true">
+      <svg class="ct-hcall__mobile-stream-svg" viewBox="0 0 360 150" focusable="false">
+        <defs>
+          <path id="ct-mobile-loop-path" d="M -20,92 C 45,98 98,92 135,72 C 172,52 180,18 152,8 C 124,-2 84,10 78,44 C 72,78 108,112 162,124 C 176,127 180,136 180,150" />
+        </defs>
+        <text class="ct-hero2__stream-text">
+          <textPath href="#ct-mobile-loop-path" startOffset="-50%">
+            ${streamText}
+            <animate attributeName="startOffset" from="-50%" to="0%" dur="15s" repeatCount="indefinite" />
+          </textPath>
+        </text>
+      </svg>
+      <span class="ct-hcall__in-dot"></span>
+    </div>
     <div class="ct-hcall__phone" aria-hidden="true">
+      <span class="ct-hcall__desktop-dot"></span>
       <div class="ct-hcall__notch"></div>
       <div class="ct-hcall__screen">
         <div class="ct-hcall__status"><span>9:02</span><span class="ct-hcall__net"><span></span><span></span><span></span></span></div>

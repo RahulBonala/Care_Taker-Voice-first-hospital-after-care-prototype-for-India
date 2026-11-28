@@ -242,11 +242,14 @@ function story(id, title, eyebrow, items, cardFn, sizeClass) {
   </section>`;
 }
 
+const HERO_STREAM = "ఆ... వేసుకున్నాను, ఉదయం మాత్రలు వేసుకున్నాను  •  Yes, I took my breakfast tablet at nine o'clock  •  haan, maine subah ki dawai le li  •  అవును, సరే  •  மாத்திரை எடுத்துட்டேன்  •  ";
+
 export async function mount(root, params) {
   el = root;
   const cfg = await config();
   if (!el) return;
   const langs = cfg.langs || [];
+  const streamText = esc(HERO_STREAM.repeat(3));
   el.innerHTML = `
     <section class="ct-hero2" aria-labelledby="home-title">
       <div class="ct-hero2__copy">
@@ -255,6 +258,19 @@ export async function mount(root, params) {
           <span class="ct-hero__sentence">Just answer the call.</span>
           <span class="ct-hero__sentence"><em class="ct-hero__serif-italic">Every dose, confirmed.</em></span>
         </h1>
+        <div class="ct-hero2__stream" aria-hidden="true">
+          <svg class="ct-hero2__stream-svg" viewBox="0 0 680 156" focusable="false">
+            <defs>
+              <path id="ct-hero-loop-path" d="M -20,108 C 55,114 115,108 158,86 C 202,64 212,24 180,10 C 148,-4 102,10 94,48 C 86,86 122,122 195,132 C 305,146 475,124 680,108" />
+            </defs>
+            <text class="ct-hero2__stream-text">
+              <textPath href="#ct-hero-loop-path" startOffset="-50%">
+                ${streamText}
+                <animate attributeName="startOffset" from="-50%" to="0%" dur="16s" repeatCount="indefinite" />
+              </textPath>
+            </text>
+          </svg>
+        </div>
         <p class="ct-hero2__one">In your language, by voice or keypad, on any phone.</p>
         <p class="ct-hero2__lead">Care Taker calls patients at every dose time after they leave hospital. It reads each dose back, logs it only after a yes, and turns every call into reports for the nurse, doctor and family.</p>
         <div class="ct-hero__ctas">

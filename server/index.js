@@ -1,4 +1,5 @@
 'use strict';
+require('../scripts/copy-assets');
 const { createApp } = require('./app');
 const store = require('./store');
 

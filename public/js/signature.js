@@ -21,12 +21,24 @@ const LINES = [
 
 const letters = (word, cls) => [...word].map((ch, i) => `<span class="${cls}" data-i="${i}">${ch === ' ' ? '&nbsp;' : esc(ch)}</span>`).join('');
 
+const SIG_STREAM = "I took my tablet at 1:00 pm  •  మాత్ర వేసుకున్నాను, 1 గంటకు  •  haan, ek baje dawai le li  •  மாத்திரை எடுத்துட்டேன்  •  ";
+
 function markup() {
+  const streamText = esc(SIG_STREAM.repeat(3));
   return `
     <div class="ct-sig" data-phase="rest" aria-hidden="true">
       <div class="ct-sig__lane">
-        <span class="ct-sig__rule"></span>
-        <span class="ct-sig__dots">${'<span></span>'.repeat(9)}</span>
+        <svg class="ct-sig__loop-svg" viewBox="0 0 420 140" focusable="false">
+          <defs>
+            <path id="ct-sig-loop-path" d="M -20,96 C 40,102 88,96 122,78 C 158,58 166,22 138,10 C 110,-2 72,10 66,44 C 60,78 90,110 150,118 C 230,128 325,104 420,92" />
+          </defs>
+          <text class="ct-sig__loop-text">
+            <textPath href="#ct-sig-loop-path" startOffset="-50%">
+              ${streamText}
+              <animate attributeName="startOffset" from="-50%" to="0%" dur="14s" repeatCount="indefinite" />
+            </textPath>
+          </text>
+        </svg>
         <span class="ct-sig__words"><span class="ct-sig__text" lang="en">${esc(LINES[0][1])}</span></span>
       </div>
       <div class="ct-sig__track">

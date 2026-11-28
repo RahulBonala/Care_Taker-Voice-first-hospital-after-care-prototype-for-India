@@ -88,7 +88,7 @@ const narrow = () => window.matchMedia('(max-width: 899px)').matches;
 
 function setFeatures(open) {
   ddBtn.setAttribute('aria-expanded', String(open));
-  ddPanel.hidden = !open;
+  ddPanel.classList.toggle('is-open', open);
 }
 function setMenu(open) {
   menuBtn.setAttribute('aria-expanded', String(open));
@@ -114,7 +114,7 @@ document.addEventListener('keydown', (e) => {
 // Desktop: the Features menu also opens on hover, and closes when the pointer leaves.
 const dd = document.querySelector('.ct-nav-dd');
 let hoverTimer = null;
-dd.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' && !narrow()) { clearTimeout(hoverTimer); if (ddPanel.hidden) hoverOpenedAt = Date.now(); setFeatures(true); } });
+dd.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' && !narrow()) { clearTimeout(hoverTimer); if (!ddPanel.classList.contains('is-open')) hoverOpenedAt = Date.now(); setFeatures(true); } });
 dd.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && !narrow()) hoverTimer = setTimeout(() => setFeatures(false), 180); });
 
 initMotion();
