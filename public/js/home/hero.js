@@ -160,67 +160,31 @@ export function peopleMarkup() {
     </section>`;
 }
 
-// Swap a drawing for an animated SVG or still photo when listed in public/img/manifest.json
-// (or fallback public/img/photos/manifest.json). Under prefers-reduced-motion, prefer the
-// calm still photo (.webp) when available, falling back to the SVG (which disables animation via CSS).
-async function usePhotos(el) {
-  let slots = {};
-  let names = [];
+// Art for the doctor and the four people: the animated SVG, or the still photo under reduced
+// motion. Set in the same task as the markup, before the first paint, so the coded drawings
+// never show first and then jump to the new art on refresh. Files listed in public/img/manifest.json.
+const SCENES = ['doctor', 'keypad-grandmother', 'listening-grandfather', 'grandchildren-setup', 'family-daughter'];
+const sceneSrc = (key, reduce) => (reduce ? `/img/photos/${key}.webp` : `/img/anim/${key}.svg`);
+
+function usePhotos(el) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  try {
-    const mRes = await fetch('/img/manifest.json', { cache: 'no-cache' });
-    if (mRes.ok) slots = (await mRes.json()).slots || {};
-  } catch { /* optional */ }
-  try {
-    const res = await fetch('/img/photos/manifest.json', { cache: 'no-cache' });
-    if (res.ok) names = (await res.json()).photos || [];
-  } catch { /* optional */ }
-
-  // Doctor slot (S1)
-  const docSlot = slots.doctor;
-  if (docSlot) {
-    const docSrc = (!reduce && docSlot.type === 'svg') ? '/img/anim/doctor.svg' : '/img/photos/doctor.webp';
-    try {
-      let head = await fetch(docSrc, { method: 'HEAD' });
-      let finalDocSrc = docSrc;
-      if (!head.ok && docSrc.endsWith('.webp')) {
-        finalDocSrc = '/img/anim/doctor.svg';
-        head = await fetch(finalDocSrc, { method: 'HEAD' });
-      }
-      if (head.ok) {
-        el.querySelectorAll('.ct-doc').forEach((svg) => {
-          const anchor = svg.querySelector('.ct-doc__anchor');
-          svg.innerHTML = `<image href="${finalDocSrc}" x="0" y="0" width="200" height="150" preserveAspectRatio="xMidYMid meet"/>`;
-          if (anchor) svg.appendChild(anchor);
-          svg.classList.add('has-scene');
-        });
-      }
-    } catch { /* keep inline doctor */ }
-  }
-
-  el.querySelectorAll('.ct-people__fig[data-photo]').forEach(async (fig) => {
+  el.querySelectorAll('.ct-doc').forEach((svg) => {
+    const anchor = svg.querySelector('.ct-doc__anchor');
+    svg.innerHTML = `<image href="${sceneSrc('doctor', reduce)}" x="0" y="0" width="200" height="150" preserveAspectRatio="xMidYMid meet"/>`;
+    if (anchor) svg.appendChild(anchor);
+    svg.classList.add('has-scene');
+  });
+  el.querySelectorAll('.ct-people__fig[data-photo]').forEach((fig) => {
     const key = fig.dataset.photo;
-    const slot = slots[key];
-    if (!slot && !names.includes(key)) return;
-    const preferSvg = slot && slot.type === 'svg' && !reduce;
-    const candidates = preferSvg
-      ? [`/img/anim/${key}.svg`, `/img/photos/${key}.webp`]
-      : [`/img/photos/${key}.webp`, `/img/anim/${key}.svg`];
-    for (const src of candidates) {
-      try {
-        const res = await fetch(src, { method: 'HEAD' });
-        if (!res.ok || !(res.headers.get('content-type') || '').startsWith('image/')) continue;
-        const img = new Image(1600, 1200);
-        img.className = 'ct-people__photo';
-        img.alt = fig.dataset.alt;
-        img.decoding = 'async';
-        img.loading = 'lazy';
-        img.src = src;
-        fig.querySelector('.ct-people__media').replaceChildren(img);
-        fig.classList.add('has-photo');
-        break;
-      } catch { /* try next candidate */ }
-    }
+    if (!SCENES.includes(key)) return;
+    const img = new Image(1600, 1200);
+    img.className = 'ct-people__photo';
+    img.alt = fig.dataset.alt;
+    img.decoding = 'async';
+    img.loading = 'lazy';
+    img.src = sceneSrc(key, reduce);
+    fig.querySelector('.ct-people__media').replaceChildren(img);
+    fig.classList.add('has-photo');
   });
 }
 
