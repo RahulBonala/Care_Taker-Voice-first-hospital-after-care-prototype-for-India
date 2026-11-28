@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Care Taker">
+  <title>Care Taker</title>
+  <g transform="translate(0 0) scale(1)">
+    <rect x="8.5" y="3" width="15" height="26" rx="3.6" fill="none" stroke="#0F5C5A" stroke-width="2.2"/>
+    <path d="M16 19.6l-3.7-3.5a2.4 2.4 0 0 1 3.3-3.4l.4.4.4-.4a2.4 2.4 0 0 1 3.3 3.4z" fill="#0F5C5A"/>
+    <path d="M14 25.3h4" fill="none" stroke="#0F5C5A" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+</svg>

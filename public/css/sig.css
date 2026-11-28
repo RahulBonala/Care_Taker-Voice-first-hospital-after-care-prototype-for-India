@@ -1,0 +1,102 @@
+/* ==========================================================================
+   Footer signature loop (public/js/signature.js). Loads after components.css
+   and replaces its older .ct-sig block. Tokens only. Sizes are em of .ct-sig,
+   so the phone and the wordmark scale as one piece.
+   ========================================================================== */
+.ct-signature { width: 100%; }
+.ct-sig {
+  position: relative; isolation: isolate;
+  display: flex; align-items: center; justify-content: flex-start; gap: 0;
+  max-width: 100%; padding: 0.45em 0 0.3em;
+  font-size: clamp(2rem, 6vw, 5rem); line-height: 1;
+  color: var(--color-ink); user-select: none;
+}
+
+/* The reply line: drawn by script into the room left of the phone */
+.ct-sig__stream { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+.ct-sig__room { flex: none; width: min(5em, 34vw); align-self: stretch; }
+.ct-sig__say {
+  font-family: var(--font-sans); font-size: var(--text-lg); font-weight: var(--weight-medium);
+  fill: var(--color-ink-muted); letter-spacing: 0.01em;
+}
+.ct-sig__track { font-size: var(--text-lg); fill: none; stroke: var(--color-ink-muted); stroke-width: 0.2em; stroke-linecap: round; opacity: 0.7; }
+
+/* The phone: same geometry as public/js/logo.js, with a filled screen so dots pass behind it */
+.ct-sig__device { position: relative; z-index: 2; flex: none; display: block; width: 0.95em; height: 1.5em; }
+.ct-sig__phone { display: block; width: 100%; height: 100%; overflow: visible; }
+.ct-sig__frame { fill: var(--color-surface); stroke: var(--color-primary); stroke-width: 2.2; }
+.ct-sig__slot { fill: none; stroke: var(--color-primary); stroke-width: 2.2; stroke-linecap: round; }
+.ct-sig__beat, .ct-sig__heart, .ct-sig__badge { transform-box: fill-box; transform-origin: center; }
+.ct-sig__heart { fill: var(--color-primary); transition: opacity 320ms var(--ease-out), transform 320ms var(--ease-out); }
+.ct-sig__tick {
+  fill: none; stroke: var(--status-taken); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; transition: opacity 200ms var(--ease-out);
+}
+.ct-sig__badge { opacity: 0; transform: scale(0.6); transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out); }
+.ct-sig__badge circle { fill: var(--status-taken); stroke: var(--color-surface); stroke-width: 1.4; }
+.ct-sig__badge path { fill: none; stroke: var(--color-ink-inverse); stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+
+/* The label: the wordmark and "Checked in" share one cell */
+.ct-sig__label { position: relative; z-index: 1; display: grid; margin-left: 0.3em; font-weight: var(--weight-bold); letter-spacing: -0.03em; white-space: nowrap; }
+.ct-sig__name, .ct-sig__status { grid-area: 1 / 1; align-self: center; }
+.ct-sig__glyph { display: inline-block; transform-origin: 50% 60%; }
+.ct-sig__status { display: inline-flex; align-items: center; gap: 0.14em; opacity: 0; }
+.ct-sig__mark { flex: none; width: 0.6em; height: 0.6em; fill: none; stroke: var(--status-taken); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ct-sig__mark circle, .ct-sig__mark path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.ct-sig__checked { color: var(--color-ink); clip-path: inset(0 100% 0 0); }
+
+/* Dots the letters turn into; moved by script */
+.ct-sig__dots { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.ct-sig__dot { position: absolute; left: 0; top: 0; }
+.ct-sig__dot b {
+  position: absolute; width: max(0.09em, var(--space-1)); height: max(0.09em, var(--space-1));
+  left: calc(max(0.09em, var(--space-1)) * -0.5); top: calc(max(0.09em, var(--space-1)) * -0.5);
+  border-radius: var(--radius-pill); background: var(--color-primary); opacity: 0;
+}
+
+/* ---- phases ---- */
+.ct-sig[data-phase="dissolve"] .ct-sig__glyph,
+.ct-sig[data-phase="tick"] .ct-sig__glyph,
+.ct-sig[data-phase="heart"] .ct-sig__glyph,
+.ct-sig[data-phase="checked"] .ct-sig__glyph { opacity: 0; }
+
+/* Tick: the heart steps back and a tick draws on the screen */
+.ct-sig[data-phase="tick"] .ct-sig__heart { opacity: 0; transform: scale(0.8); }
+.ct-sig[data-phase="tick"] .ct-sig__tick { opacity: 1; stroke-dashoffset: 0; transition: opacity 150ms var(--ease-out), stroke-dashoffset 450ms var(--ease-out) 100ms; }
+.ct-sig[data-phase="heart"] .ct-sig__tick { stroke-dashoffset: 0; }
+
+/* Heart: back with one soft beat */
+.ct-sig[data-phase="heart"] .ct-sig__beat { animation: ct-sig-beat 720ms var(--ease-out) 180ms; }
+@keyframes ct-sig-beat { 0%, 100% { transform: scale(1); } 35% { transform: scale(1.14); } }
+
+/* Checked in: a badge on the phone, the mark draws and the words wipe in */
+.ct-sig[data-phase="checked"] .ct-sig__badge { opacity: 1; transform: none; transition: opacity 300ms var(--ease-out), transform 300ms var(--ease-out); }
+.ct-sig[data-phase="checked"] .ct-sig__badge path,
+.ct-sig[data-phase="reset"] .ct-sig__badge path { stroke-dashoffset: 0; transition: stroke-dashoffset 320ms var(--ease-out) 180ms; }
+.ct-sig[data-phase="checked"] .ct-sig__status { opacity: 1; transition: opacity 200ms var(--ease-out); }
+.ct-sig[data-phase="checked"] .ct-sig__mark circle { stroke-dashoffset: 0; transition: stroke-dashoffset 520ms var(--ease-out); }
+.ct-sig[data-phase="checked"] .ct-sig__mark path { stroke-dashoffset: 0; transition: stroke-dashoffset 320ms var(--ease-out) 320ms; }
+.ct-sig[data-phase="checked"] .ct-sig__checked { clip-path: inset(0 0 0 0); transition: clip-path 640ms var(--ease-out) 140ms; }
+
+/* Reset: Checked in lifts away, the badge goes, the wordmark comes back (letters by script) */
+.ct-sig[data-phase="reset"] .ct-sig__status { opacity: 0; transform: translateY(-0.08em); transition: opacity 260ms var(--ease-out), transform 260ms var(--ease-out); }
+.ct-sig[data-phase="reset"] .ct-sig__mark circle,
+.ct-sig[data-phase="reset"] .ct-sig__mark path { stroke-dashoffset: 0; }
+.ct-sig[data-phase="reset"] .ct-sig__checked { clip-path: inset(0 0 0 0); }
+
+/* Middle widths: a smaller reply line so it fits the shorter loop */
+@media (max-width: 959px) {
+  .ct-sig { padding-top: 0.8em; }
+  .ct-sig__say, .ct-sig__track { font-size: var(--text-sm); }
+}
+
+/* Phones: the loop rises above the row, the lockup sits at the right, nothing overflows */
+@media (max-width: 559px) {
+  .ct-sig { width: 100%; font-size: var(--text-2xl); padding: 1.4em 0 0.2em; }
+  .ct-sig__room { flex: 1 1 auto; width: auto; min-width: 0; }
+  .ct-sig__say, .ct-sig__track { font-size: var(--text-xs); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-sig, .ct-sig * { animation: none !important; transition: none !important; }
+}
