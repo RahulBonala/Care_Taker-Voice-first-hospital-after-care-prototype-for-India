@@ -7,7 +7,7 @@ Calm, trustworthy, warm. Clinical without being cold. It should feel like the af
 - Clean paper background, white cards, thin warm borders.
 - One deep teal for every action. Marigold only as a warm highlight (the banner, quote rules, progress accents).
 - Clear status colors, always paired with an icon and a text label.
-- No gradients, no glassmorphism, no emoji, no stock illustrations.
+- No gradients, no glassmorphism, no stock illustrations. Emoji appear only as the role mark on Care cards (decision 25); nowhere else.
 - Plain words. Short, second person, sentence case.
 
 ## Files
@@ -239,8 +239,10 @@ Phone outline and heart in `--color-primary`, voice waves in `--color-accent`. U
 Brand, links (Overview, Features menu `ct-nav-dd`, Tour, Mobile app, Devices) and Call. `ct-nav-dd__panel` is a two-column menu, one line of explanation per role. Under 900px a `ct-nav-menu` button opens the links as a panel. No clock and no progress line.
 
 ### `ct-hcall` (hero call)
-A smartphone on a dose call: caller, chat bubbles (`--bot`, `--patient`) with an English gloss, a waveform and a state line, then `ct-hcall__report` cards for the nurse board, doctor and family that light up one by one. `data-state` drives it: ringing, speaking, listening, processing, done, urgent.
+A line-art doctor writes a prescription on an Rx pad; the handwriting lifts off as words that travel along a dotted stream to the phone, which rings. The phone shows the dose call: chat bubbles (`--bot`, `--patient`) with an English gloss, and a voice-wave overlay that rises over the lower screen while the patient speaks. Three Care cards (Nurse, Doctor, Family) to the right change state during the call: Lakshmi's taken dose goes received then logged; Arjun's "dizzy" goes urgent, with the family card private. `data-state` drives it: ringing, speaking, listening, processing, done, urgent. Under 960px it stacks, and the travelling words are hidden (only the stream moves). Reduced motion shows the finished call. Styles in `hero.css`.
 
+### `ct-people` (people strip)
+"Made for the people who need it most": four figures in our own line art (a grandmother on a keypad phone, a grandfather on his dose call, grandchildren setting up the phone, a daughter seeing the Family card), each with a caption and alt text. A photo listed in `public/img/photos/manifest.json` replaces its drawing; `public/img/README.md` lists the photo for each slot and the license rule.
 ### `ct-story` (pinned scroll story)
 Dark band. `ct-story--4` and `ct-story--6` set the scroll length. Left: `ct-story__tab` list with the active step as a white pill. Right: `ct-story__panel` with copy and a `ct-ui` card whose `ct-ui__step` rows arrive in turn when the panel becomes active.
 

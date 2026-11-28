@@ -1,0 +1,21 @@
+/* Care cards (public/js/care-card.js): the one widget for what a call produced, per role. */
+.ct-care-card {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "emoji body" "emoji meta";
+  gap: var(--space-1) var(--space-3); align-items: center;
+  padding: var(--space-3) var(--space-4); background: var(--color-surface);
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-1);
+  transition: opacity 300ms var(--ease-out), transform 300ms var(--ease-out), border-color 300ms var(--ease-out);
+}
+.ct-care-card:not(.is-on) { opacity: 0.4; transform: translateX(-8px); }
+.ct-care-card.is-on { border-color: var(--color-border-strong); box-shadow: var(--shadow-2); }
+.ct-care-card[data-state="urgent"].is-on { border-color: var(--status-urgent); }
+.ct-care-card__emoji { grid-area: emoji; font-size: var(--text-2xl); line-height: 1; width: 1.6em; height: 1.6em; display: grid; place-items: center; border-radius: var(--radius-md); background: var(--color-surface-sunken); }
+.ct-care-card.is-on .ct-care-card__emoji { animation: ct-care-bob 2.4s var(--ease-in-out) infinite; }
+.ct-care-card[data-state="urgent"].is-on .ct-care-card__emoji { animation: ct-care-shake 900ms var(--ease-in-out) infinite; }
+@keyframes ct-care-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes ct-care-shake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+.ct-care-card__body { grid-area: body; display: flex; flex-direction: column; min-width: 0; }
+.ct-care-card__body span { font-size: var(--text-sm); color: var(--color-ink-muted); }
+.ct-care-card__meta { grid-area: meta; display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.ct-care-card__meta time { font-size: var(--text-xs); color: var(--color-ink-muted); }
+@media (prefers-reduced-motion: reduce) { .ct-care-card, .ct-care-card__emoji { animation: none !important; transition: none !important; transform: none !important; } }

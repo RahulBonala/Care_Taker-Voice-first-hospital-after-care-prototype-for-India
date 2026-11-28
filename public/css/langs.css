@@ -1,0 +1,251 @@
+/* langs styles: owned by one change set at a time. Tokens only. */
+
+/* ct-lring: the languages ring on the home page (public/js/home/languages.js).
+   Each pill sits on a circle round the Care Taker phone. The ring class sets the count
+   (--n), nth-child rules set each index (--i), so every angle is pure CSS.
+   Placement: rotate(angle) translateY(-radius) rotate(-angle) keeps text upright.
+   Radius follows the ring's own width through container units, so it shrinks with the column.
+   8 or more languages on a narrow ring, or 13 or more anywhere: two staggered rings
+   (even items inner). Motion: pills settle outward in sequence once, then the ring stays still
+   (no idle loop, so no pause control is needed under WCAG 2.2.2). Reduced motion: no motion. */
+
+.ct-langsplit { align-items: center; }
+
+.ct-lring {
+  --off-st: 0deg;
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+/* Sizes live on the container's children, so container queries can change them */
+.ct-lring__stage,
+.ct-lring__line {
+  --edge: 3.4rem;          /* stage edge to the centre of an outer pill */
+  --gap-rings: 3.7rem;     /* outer ring to inner ring, when staggered */
+  --hub: 5.5rem;
+  --off: 0deg;
+  --size: min(100cqi, 34rem);
+  --r1: calc(var(--size) / 2 - var(--edge));
+  --r2: calc(var(--r1) - var(--gap-rings));
+  --step: calc(360deg / var(--n));
+}
+.ct-lring--odd { --off-st: calc(90deg + 180deg / var(--n)); }
+
+.ct-lring--n4 { --n: 4; }   .ct-lring--n5 { --n: 5; }   .ct-lring--n6 { --n: 6; }
+.ct-lring--n7 { --n: 7; }   .ct-lring--n8 { --n: 8; }   .ct-lring--n9 { --n: 9; }
+.ct-lring--n10 { --n: 10; } .ct-lring--n11 { --n: 11; } .ct-lring--n12 { --n: 12; }
+.ct-lring--n13 { --n: 13; } .ct-lring--n14 { --n: 14; } .ct-lring--n15 { --n: 15; }
+.ct-lring--n16 { --n: 16; }
+
+.ct-lring__stage {
+  position: relative;
+  width: var(--size);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+/* Dashed guide circles behind the pills */
+.ct-lring__track {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: calc(var(--r1) * 2);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  pointer-events: none;
+}
+.ct-lring__track--inner { width: calc(var(--r2) * 2); border-color: var(--color-border); display: none; }
+
+/* The phone in the middle */
+.ct-lring__hub {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: var(--hub);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  box-shadow: 0 0 0 var(--space-3) var(--color-surface), 0 0 0 calc(var(--space-3) + 1px) var(--color-border);
+}
+.ct-lring__hub .ct-lring__logo { width: 55%; height: 55%; }
+
+.ct-lring__line {
+  position: absolute;
+  top: calc(50% + var(--hub) / 2 + var(--space-5));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(var(--r2) * 1.4);
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+.ct-lring__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  inset: 0;
+}
+
+.ct-lring__item {
+  --r: var(--r1);
+  --a: calc(var(--off) + var(--i) * var(--step));
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(var(--a)) translateY(calc(-1 * var(--r))) rotate(calc(-1 * var(--a)));
+}
+.ct-lring__item:nth-child(1) { --i: 0; }   .ct-lring__item:nth-child(2) { --i: 1; }
+.ct-lring__item:nth-child(3) { --i: 2; }   .ct-lring__item:nth-child(4) { --i: 3; }
+.ct-lring__item:nth-child(5) { --i: 4; }   .ct-lring__item:nth-child(6) { --i: 5; }
+.ct-lring__item:nth-child(7) { --i: 6; }   .ct-lring__item:nth-child(8) { --i: 7; }
+.ct-lring__item:nth-child(9) { --i: 8; }   .ct-lring__item:nth-child(10) { --i: 9; }
+.ct-lring__item:nth-child(11) { --i: 10; } .ct-lring__item:nth-child(12) { --i: 11; }
+.ct-lring__item:nth-child(13) { --i: 12; } .ct-lring__item:nth-child(14) { --i: 13; }
+.ct-lring__item:nth-child(15) { --i: 14; } .ct-lring__item:nth-child(16) { --i: 15; }
+
+.ct-lring__turn { display: flex; flex: none; }
+
+.ct-lring__pill {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-width: 5.75rem;
+  min-height: 3.375rem;   /* two lines, so a one-line pill (English) matches the rest */
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-2);
+  white-space: nowrap;
+  text-align: center;
+  transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+}
+.ct-lring__pill:hover { border-color: var(--color-primary); }
+.ct-lring__pill:focus-visible { border-radius: var(--radius-pill); box-shadow: var(--focus-ring); outline: none; }
+.ct-lring__native { font-size: var(--text-lg); font-weight: var(--weight-medium); line-height: var(--leading-tight); color: var(--color-ink); }
+.ct-lring__en { font-size: var(--text-xs); line-height: var(--leading-tight); color: var(--color-ink-muted); }
+
+/* Under review: a small marigold dot, with the words in a tooltip and for screen readers */
+.ct-lring__dot {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-2);
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  box-shadow: 0 0 0 calc(var(--space-1) / 2) var(--color-surface);
+}
+.ct-lring__pill--review { cursor: help; }
+.ct-lring__pill--review::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  transform: translate(-50%, var(--space-1));
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: var(--color-ink-inverse);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms var(--ease-out), transform 150ms var(--ease-out);
+  z-index: 2;
+}
+.ct-lring__pill--review:hover::after,
+.ct-lring__pill--review:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+.ct-lring__item:hover,
+.ct-lring__item:focus-within { z-index: 3; }
+
+/* Two staggered rings */
+.ct-lring--lots .ct-lring__stage,
+.ct-lring--lots .ct-lring__line { --off: var(--off-st); --hub: 4.5rem; }
+.ct-lring--lots .ct-lring__item:nth-child(even) { --r: var(--r2); }
+.ct-lring--lots .ct-lring__track--inner { display: block; }
+.ct-lring--lots .ct-lring__line { font-size: var(--text-md); max-width: 8em; top: calc(50% + var(--hub) / 2 + var(--space-3)); }
+.ct-lring--lots .ct-lring__pill { min-width: 5.25rem; min-height: 3.25rem; padding: var(--space-2) var(--space-3); }
+.ct-lring--lots .ct-lring__native { font-size: var(--text-md); }
+
+/* Medium column (1024 wide desktops): slightly smaller pills */
+@container (max-width: 31rem) {
+  .ct-lring__stage, .ct-lring__line { --edge: 3.1rem; --gap-rings: 3.4rem; --hub: 5rem; }
+  .ct-lring__pill { min-width: 5.25rem; min-height: 3.25rem; padding: var(--space-2) var(--space-3); }
+  .ct-lring__native { font-size: var(--text-md); }
+  .ct-lring--lots .ct-lring__stage, .ct-lring--lots .ct-lring__line { --hub: 4rem; --gap-rings: 3.8rem; }
+  .ct-lring--lots .ct-lring__pill { min-height: 3rem; padding: var(--space-1) var(--space-3); }
+}
+
+/* Phones: small pills, caption moves under the ring, many languages stagger */
+@container (max-width: 26rem) {
+  .ct-lring__stage, .ct-lring__line { --edge: 2.4rem; --gap-rings: 3.4rem; --hub: 2.5rem; }
+  .ct-lring__pill { min-width: 4rem; min-height: 2.75rem; padding: var(--space-1) var(--space-2); box-shadow: var(--shadow-1); }
+  .ct-lring__native { font-size: var(--text-md); }
+  .ct-lring__dot { top: 0; right: var(--space-1); }
+  .ct-lring__hub { box-shadow: 0 0 0 var(--space-1) var(--color-surface), 0 0 0 calc(var(--space-1) + 1px) var(--color-border); }
+  .ct-lring__line {
+    position: static;
+    transform: none;
+    width: auto;
+    max-width: none;
+    margin-top: var(--space-4);
+    font-size: var(--text-md);
+  }
+  .ct-lring--many .ct-lring__stage { --off: var(--off-st); }
+  .ct-lring--many .ct-lring__item:nth-child(even) { --r: var(--r2); }
+  .ct-lring--many .ct-lring__track--inner { display: block; }
+}
+
+/* 13 or more on a phone: too many for any ring that fits, so the pills wrap in a
+   centred cluster under the phone instead. Nothing overlaps, nothing scrolls sideways. */
+@container (max-width: 26rem) {
+  .ct-lring--lots .ct-lring__stage { aspect-ratio: auto; display: flex; flex-direction: column; align-items: center; gap: var(--space-4); }
+  .ct-lring--lots .ct-lring__track { display: none; }
+  .ct-lring--lots .ct-lring__hub { position: relative; top: auto; left: auto; transform: none; --hub: 3.25rem; }
+  .ct-lring--lots .ct-lring__list { position: static; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+  .ct-lring--lots .ct-lring__item,
+  .ct-lring--lots[data-armed]:not([data-in]) .ct-lring__item { position: static; width: auto; height: auto; transform: none; }
+  .ct-lring--lots .ct-lring__pill { min-width: 4rem; min-height: 2.75rem; padding: var(--space-1) var(--space-2); }
+}
+
+/* Entrance: pills fade in and settle outward onto the circle, one after another */
+.ct-lring[data-armed] .ct-lring__item {
+  transition: opacity 500ms var(--ease-out), transform 800ms var(--ease-out);
+  transition-delay: calc(var(--i) * 70ms + 150ms);
+}
+.ct-lring[data-armed]:not([data-in]) .ct-lring__item {
+  opacity: 0;
+  transform: rotate(var(--a)) translateY(calc(-0.62 * var(--r))) rotate(calc(-1 * var(--a)));
+}
+.ct-lring[data-armed] .ct-lring__hub,
+.ct-lring[data-armed] .ct-lring__line { transition: opacity 600ms var(--ease-out); }
+.ct-lring[data-armed]:not([data-in]) .ct-lring__hub,
+.ct-lring[data-armed]:not([data-in]) .ct-lring__line,
+.ct-lring[data-armed]:not([data-in]) .ct-lring__track { opacity: 0; }
+.ct-lring[data-armed] .ct-lring__track { transition: opacity 900ms var(--ease-out) 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-lring .ct-lring__item,
+  .ct-lring .ct-lring__hub,
+  .ct-lring .ct-lring__line,
+  .ct-lring .ct-lring__track,
+  .ct-lring__pill,
+  .ct-lring__pill--review::after { transition: none; }
+}

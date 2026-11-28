@@ -2,43 +2,14 @@
 // one screen per role (pinned), every device, the fixed rules, tour, apps, comparison and FAQ.
 import { esc, icon, config } from '../lib.js';
 import { renderTourWidget } from './tour.js';
-import { markup as heroCallMarkup, mountHeroCall, stopHeroCall } from '../hero-call.js';
+import { heroMarkup, mountHero, unmountHero } from '../home/hero.js';
+import { howMarkup, mountHow, unmountHow } from '../home/how.js';
+import { featuresMarkup } from '../home/features.js';
+import { languagesMarkup, mountLanguages, unmountLanguages } from '../home/languages.js';
 import { mountStories, unmountStories } from '../story.js';
 import { scrollToY } from '../motion.js';
 
 let el = null;
-
-const HOW = [
-  {
-    key: 'capture', title: 'Capture the voice', lead: 'Care Taker calls at every dose time.',
-    text: 'The patient just answers, on a keypad phone or a smartphone, and replies in the language they speak at home.',
-    points: ['Rings up to 3 times, 10 minutes apart', 'Listens only after it finishes speaking', 'Detects the language the patient answers in'],
-  },
-  {
-    key: 'confirm', title: 'Confirm with a yes', lead: 'Nothing is logged until the patient says yes.',
-    text: 'Care Taker reads the dose and the time back. A spoken yes or a pressed 1 logs it. Anything else asks again.',
-    points: ['Read back before every log', 'Never guesses taken', 'Keypad fallback after two unclear replies'],
-  },
-  {
-    key: 'analyze', title: 'Understand and flag', lead: 'Fixed rules decide what a reply means.',
-    text: 'Feeling unwell outranks everything else, so a nurse hears about it at once. Unclear words are saved for review.',
-    points: ['Unwell, stop calls and stopped early come first', 'The exact words go to the care team', 'No medical advice, ever'],
-  },
-  {
-    key: 'adapt', title: 'Adapt and update', lead: 'The plan changes with the answer.',
-    text: 'Later moves the call, stop calls ends them, and every report updates on its own: nurse board, doctor and family.',
-    points: ['Reschedules by the minutes heard', 'Reports update for every role', 'Switches language if the patient does'],
-  },
-];
-
-const ROLES = [
-  { key: 'desk', icon: 'user', title: 'Hospital desk', lead: 'Register a patient in under a minute.', points: ['Dictate the prescription, the form fills itself', 'Two consent boxes before anything starts', 'Choose the language, or let the patient speak'] },
-  { key: 'nurse', icon: 'flag', title: 'Nurse board', lead: 'Verify, then call back whoever needs a person.', points: ['Flags sorted: urgent first', 'Exact words in every flag', 'Doses logged without a yes: always 0'] },
-  { key: 'phone', icon: 'phone', title: 'Patient phone', lead: 'The call itself, by voice or keypad.', points: ['Live transcript and what was heard', 'Keys 1, 2, 3 and 9 always work', 'Same call on a real phone with Twilio keys'] },
-  { key: 'family', icon: 'users', title: 'Family', lead: 'A week of doses, in the patient\'s words.', points: ['Only when the patient shares it', 'Seven-day strip and today\'s doses', 'Activity from watches and monitors'] },
-  { key: 'doctor', icon: 'stethoscope', title: 'Doctor', lead: 'Course completion and what patients said.', points: ['Completion and adherence per course', 'Vitals and alert ranges', 'Every flag with the patient\'s words'] },
-  { key: 'devices', icon: 'watch', title: 'Health devices', lead: 'Monitors, watches and rings, next to the doses.', points: ['Blood pressure and sugar over Bluetooth', 'Steps, calories and sleep from watches and rings', 'Outside the doctor\'s range goes to a nurse'] },
-];
 
 const DEVICES = [
   ['keypad', 'Keypad phone', 'Voice and keys 1, 2, 3, 9'],
@@ -126,185 +97,19 @@ const FAQS = [
 ];
 
 
-function howCard(key) {
-  if (key === 'capture') return `
-    <div class="ct-ui">
-      <div class="ct-ui__head"><span class="ct-ui__title">${icon('phone')}Calling Lakshmi Devi</span><span class="ct-status ct-status--pending">${icon('clock')}09:00</span></div>
-      <div class="ct-ui__row"><span>Ring 1 of 3</span><span class="ct-ui__wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></div>
-      <p class="ct-ui__bubble ct-ui__bubble--bot ct-ui__step">మీ ఉదయం మాత్రలు వేసుకున్నారా?<span>Have you taken your breakfast tablets?</span></p>
-      <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">ఆ... వేసుకున్నాను<span>Yes, I have taken it</span></p>
-      <div class="ct-ui__row ct-ui__step"><span class="muted">Heard in</span><strong>Telugu</strong></div>
-    </div>`;
-  if (key === 'confirm') return `
-    <div class="ct-ui">
-      <div class="ct-ui__head"><span class="ct-ui__title">${icon('mic')}Read-back</span><span class="ct-status ct-status--unclear">${icon('pending')}Waiting for yes</span></div>
-      <p class="ct-ui__bubble ct-ui__bubble--bot ct-ui__step">You took your breakfast tablets at 09:02. Is that right? Say yes or press 1.</p>
-      <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">అవును<span>Yes</span></p>
-      <div class="ct-ui__row ct-ui__ok ct-ui__step"><span>${icon('check')}Dose logged, 09:02</span><span class="ct-status ct-status--taken">${icon('check')}Taken</span></div>
-      <div class="ct-ui__row ct-ui__step"><span class="muted">Doses logged without a yes</span><strong class="tabular">0</strong></div>
-    </div>`;
-  if (key === 'analyze') return `
-    <div class="ct-ui">
-      <div class="ct-ui__head"><span class="ct-ui__title">${icon('ear')}Heard</span><span class="muted small">Hindi</span></div>
-      <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">haan le li, lekin chakkar aa raha hai<span>Took it, but feeling dizzy</span></p>
-      <div class="ct-ui__chips ct-ui__step">
-        <span class="ct-ui__chip is-hit">${icon('alert')}Unwell</span><span class="ct-ui__chip">Stop calls</span><span class="ct-ui__chip">Wants a person</span><span class="ct-ui__chip">Stopped</span><span class="ct-ui__chip">Later</span><span class="ct-ui__chip is-skip">Taken</span>
-      </div>
-      <div class="ct-ui__row ct-ui__step"><span class="muted">First rule that matches wins</span><span class="ct-status ct-status--urgent">${icon('alert')}Urgent</span></div>
-      <div class="ct-ui__row ct-ui__step"><span>A nurse calls back in minutes</span><span class="muted small">Dose not logged</span></div>
-    </div>`;
-  return `
-    <div class="ct-ui">
-      <div class="ct-ui__head"><span class="ct-ui__title">${icon('refresh')}Updated just now</span></div>
-      <div class="ct-ui__row ct-ui__step"><span>${icon('clock')}Next call moved to 09:20</span><span class="muted small">"call in 20 minutes"</span></div>
-      <div class="ct-ui__row ct-ui__step"><span>${icon('flag')}Nurse board</span><span class="ct-status ct-status--urgent">${icon('alert')}Urgent on top</span></div>
-      <div class="ct-ui__row ct-ui__step"><span>${icon('stethoscope')}Doctor</span><span class="ct-status ct-status--taken">${icon('chart')}62% confirmed</span></div>
-      <div class="ct-ui__row ct-ui__step"><span>${icon('users')}Family</span><span class="ct-status ct-status--taken">${icon('check')}Week updated</span></div>
-      <div class="ct-ui__row ct-ui__step"><span>${icon('globe')}Language</span><span class="ct-status ct-status--unclear">${icon('globe')}Now Tamil</span></div>
-    </div>`;
-}
-
-function roleCard(key) {
-  const tile = (v, l) => `<div class="ct-ui__tile"><strong>${esc(v)}</strong><span>${esc(l)}</span></div>`;
-  if (key === 'desk') return `
-    <div class="ct-ui">
-      <div class="ct-ui__head"><span class="ct-ui__title">${icon('user')}New patient</span><span class="ct-status ct-status--later">${icon('clock')}Awaiting nurse</span></div>
-      <div class="ct-ui__row ct-ui__step"><span class="muted">Patient</span><strong>Lakshmi Devi, 67</strong></div>
-      <div class="ct-ui__row ct-ui__step"><span class="muted">Language</span><strong>తెలుగు Telugu</strong></div>
-      <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">${icon('mic')} Paracetamol 650, after breakfast and dinner, 5 days</p>
-      <div class="ct-ui__chips ct-ui__step"><span class="ct-ui__chip is-ok">Paracetamol</span><span class="ct-ui__chip is-ok">650 mg</span><span class="ct-ui__chip is-ok">Breakfast, dinner</span><span class="ct-ui__chip is-ok">5 days</span></div>
-      <div class="ct-ui__row ct-ui__step"><span>${icon('shield')}Consent recorded by Nurse Priya</span><span class="ct-status ct-status--taken">${icon('check')}2 of 2</span></div>
-    </div>`;
-  if (key === 'nurse') return `
-    <div class="ct-ui">
-      <div class="ct-ui__head"><span class="ct-ui__title">${icon('flag')}Flags</span><span class="ct-ui__metric"><strong>0</strong> logged without a yes</span></div>
-      <div class="ct-ui__flag ct-ui__step"><span class="ct-status ct-status--urgent">${icon('alert')}Urgent</span><strong>Arjun</strong><span class="ct-quote">haan le li, lekin chakkar aa raha hai</span></div>
-      <div class="ct-ui__flag ct-ui__step"><span class="ct-status ct-status--later">${icon('alert')}Reading to review</span><strong>Lakshmi Devi</strong><span>Blood pressure 162/98</span></div>
-      <div class="ct-ui__flag ct-ui__step"><span class="ct-status ct-status--missed">${icon('missed')}Missed</span><strong>Meena</strong><span>Rang 3 times, no answer</span></div>
-    </div>`;
-  if (key === 'phone') return `
-    <div class="ct-ui ct-ui--keypad">
-      <div class="ct-ui__lcd">
-        <p class="ct-ui__bubble ct-ui__bubble--bot ct-ui__step">Have you taken your night tablet?</p>
-        <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">le li<span>Heard: le li, Taken</span></p>
-      </div>
-      <div class="ct-ui__keys ct-ui__step"><span><b>1</b>Taken</span><span><b>2</b>Later</span><span><b>3</b>Nurse</span><span class="ct-ui__key-wide"><b>9</b>Stop calls</span></div>
-    </div>`;
-  if (key === 'family') return `
-    <div class="ct-ui">
-      <div class="ct-ui__head"><span class="ct-ui__title">${icon('users')}Lakshmi's week</span><span class="ct-status ct-status--taken">${icon('check')}Shared</span></div>
-      <div class="ct-ui__week ct-ui__step">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => `<span class="${i < 4 ? 'is-ok' : i === 4 ? 'is-some' : ''}"><b>${d}</b>${i < 4 ? '3/3' : i === 4 ? '2/3' : ''}</span>`).join('')}</div>
-      <p class="ct-ui__bubble ct-ui__bubble--patient ct-ui__step">వేసుకున్నాను<span>Taken, Thursday 13:32</span></p>
-      <div class="ct-ui__row ct-ui__step"><span>${icon('watch')}2,940 steps today</span><span class="muted small">Doctor's goal 2,500</span></div>
-    </div>`;
-  if (key === 'doctor') return `
-    <div class="ct-ui">
-      <div class="ct-ui__head"><span class="ct-ui__title">${icon('chart')}Course completion</span></div>
-      ${[['Lakshmi Devi', 12, 'Amoxiclav'], ['Arjun', 22, 'Isotretinoin'], ['Meena', 40, 'Cefuroxime']].map(([n, p, m]) => `<div class="ct-ui__bar ct-ui__step"><span><strong>${n}</strong> ${m}</span><progress max="100" value="${p}">${p}%</progress><span class="tabular">${p}%</span></div>`).join('')}
-      <div class="ct-ui__row ct-ui__step"><span>${icon('gauge')}Last blood pressure</span><strong class="tabular">129/86</strong></div>
-    </div>`;
-  return `
-    <div class="ct-ui">
-      <div class="ct-ui__head"><span class="ct-ui__title">${icon('watch')}Today from devices</span></div>
-      <div class="ct-ui__tiles ct-ui__step">${tile('7,778', 'Steps')}${tile('310', 'Active kcal')}${tile('129/86', 'Blood pressure')}${tile('121', 'Sugar mg/dL')}</div>
-      <div class="ct-ui__row ct-ui__step"><span>${icon('check')}Goal of 7,000 steps reached</span></div>
-      <div class="ct-ui__row ct-ui__step"><span>${icon('alert')}162/98 yesterday, outside the range</span><span class="muted small">Nurse told</span></div>
-    </div>`;
-}
-
-function story(id, title, eyebrow, items, cardFn, sizeClass) {
-  return `
-  <section class="ct-story ${sizeClass}" data-story id="${id}" aria-labelledby="${id}-title">
-    <div class="ct-story__sticky">
-      <div class="ct-story__head">
-        <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>${esc(eyebrow)}</span>
-        <h2 id="${id}-title" class="ct-section-title-lg">${esc(title)}</h2>
-      </div>
-      <div class="ct-story__body">
-        <ol class="ct-story__tabs" aria-label="${esc(title)}">
-          ${items.map((it, i) => `<li><button type="button" class="ct-story__tab${i === 0 ? ' is-active' : ''}" data-i="${i}">${icon(it.icon || ['phone', 'check', 'ear', 'refresh'][i])}<span>${esc(it.title)}</span></button></li>`).join('')}
-        </ol>
-        <div class="ct-story__stage">
-          ${items.map((it, i) => `
-          <article class="ct-story__panel${i === 0 ? ' is-active' : ''}" data-i="${i}">
-            <div class="ct-story__copy">
-              <span class="ct-story__step">${i + 1} of ${items.length}</span>
-              <h3>${esc(it.lead)}</h3>
-              ${it.text ? `<p>${esc(it.text)}</p>` : ''}
-              <ul>${it.points.map((p) => `<li>${icon('tick')}<span>${esc(p)}</span></li>`).join('')}</ul>
-              ${it.key && sizeClass === 'ct-story--6' ? `<a class="ct-btn ct-btn--on-dark" href="#${it.key}">Open ${esc(it.title)}${icon('arrow-right')}</a>` : ''}
-            </div>
-            <div class="ct-story__visual">${cardFn(it.key)}</div>
-          </article>`).join('')}
-        </div>
-      </div>
-    </div>
-  </section>`;
-}
-
-const HERO_STREAM = "ఆ... వేసుకున్నాను, ఉదయం మాత్రలు వేసుకున్నాను  •  Yes, I took my breakfast tablet at nine o'clock  •  haan, maine subah ki dawai le li  •  అవును, సరే  •  மாத்திரை எடுத்துட்டேன்  •  ";
-
 export async function mount(root, params) {
   el = root;
   const cfg = await config();
   if (!el) return;
   const langs = cfg.langs || [];
-  const streamText = esc(HERO_STREAM.repeat(3));
   el.innerHTML = `
-    <section class="ct-hero2" aria-labelledby="home-title">
-      <div class="ct-hero2__copy">
-        <div class="ct-voice-badge"><span class="ct-voice-badge__pulse" aria-hidden="true"></span><span>Voice-first after-care for India</span></div>
-        <h1 id="home-title" class="ct-hero2__title">
-          <span class="ct-hero__sentence">Just answer the call.</span>
-          <span class="ct-hero__sentence"><em class="ct-hero__serif-italic">Every dose, confirmed.</em></span>
-        </h1>
-        <div class="ct-hero2__stream" aria-hidden="true">
-          <svg class="ct-hero2__stream-svg" viewBox="0 0 680 156" focusable="false">
-            <defs>
-              <path id="ct-hero-loop-path" d="M -20,108 C 55,114 115,108 158,86 C 202,64 212,24 180,10 C 148,-4 102,10 94,48 C 86,86 122,122 195,132 C 305,146 475,124 680,108" />
-            </defs>
-            <text class="ct-hero2__stream-text">
-              <textPath href="#ct-hero-loop-path" startOffset="-50%">
-                ${streamText}
-                <animate attributeName="startOffset" from="-50%" to="0%" dur="16s" repeatCount="indefinite" />
-              </textPath>
-            </text>
-          </svg>
-        </div>
-        <p class="ct-hero2__one">In your language, by voice or keypad, on any phone.</p>
-        <p class="ct-hero2__lead">Care Taker calls patients at every dose time after they leave hospital. It reads each dose back, logs it only after a yes, and turns every call into reports for the nurse, doctor and family.</p>
-        <div class="ct-hero__ctas">
-          <a class="ct-btn ct-btn--hero-cta" href="#phone">${icon('phone')}<span>Try a call</span><span class="ct-btn__pill-badge">Live</span></a>
-          <a class="ct-btn ct-btn--secondary" href="#how">${icon('compass')}<span>See how it works</span></a>
-        </div>
-        <p class="ct-hero2__note">${icon('info')}Sample data. Not medical advice.</p>
-      </div>
-      <div class="ct-hero2__visual">${heroCallMarkup()}</div>
-    </section>
+    ${heroMarkup()}
 
-    ${story('how', 'From one call to every report.', 'How it works', HOW, howCard, 'ct-story--4')}
+    ${howMarkup()}
 
-    <section class="ct-band ct-band--surface" id="languages" aria-labelledby="lang-title">
-      <div class="ct-page">
-        <div class="ct-split2">
-          <div data-reveal="up">
-            <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>Your language</span>
-            <h2 id="lang-title" class="ct-section-title-lg">Speak your language. Care Taker answers in it.</h2>
-            <p class="ct-section-lead">Choose a language from the list, or just start talking. Care Taker detects the language you answer in, switches the call to it, and shows the patient app in it too. Adding a language is adding one file.</p>
-            <ul class="ct-checks">
-              <li>${icon('tick')}<span>${langs.filter((l) => l.code !== 'en').length} Indian languages and English, mixed the way people speak</span></li>
-              <li>${icon('tick')}<span>Detects the language from the reply and switches mid-call</span></li>
-              <li>${icon('tick')}<span>Lines checked by a native speaker are marked reviewed</span></li>
-            </ul>
-          </div>
-          <ul class="ct-langs" data-reveal-group aria-label="Languages">
-            ${langs.map((l) => `<li class="ct-langs__item"><strong lang="${esc(l.code)}">${esc(l.nativeName)}</strong><span>${esc(l.name)}</span>${l.ask ? `<span class="ct-langs__ask" lang="${esc(l.code)}">${esc(l.ask)}</span>` : ''}</li>`).join('')}
-          </ul>
-        </div>
-      </div>
-    </section>
+    ${languagesMarkup(langs)}
 
-    ${story('features', 'One screen for every role.', 'Features', ROLES, roleCard, 'ct-story--6')}
+    ${featuresMarkup()}
 
     <section class="ct-band" id="devices-band" aria-labelledby="every-title">
       <div class="ct-page">
@@ -335,9 +140,9 @@ export async function mount(root, params) {
       <div class="ct-band__inner">
         <div class="ct-section-head ct-reveal">
           <div class="ct-section-head__copy">
-            <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>Interactive Application Tour</span>
-            <h2 id="tour-band-title">See how patients use it, how doctors use it, and how it works overall.</h2>
-            <p class="muted">Switch tracks below to test live spoken phrases, parse dictated prescriptions, and step through every clinical boundary.</p>
+            <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>Interactive tour</span>
+            <h2 id="tour-band-title">See Care Taker in three minutes.</h2>
+            <p class="muted">Four short chapters: patients, families, nurses and doctors. Sample data, nothing to install.</p>
           </div>
           <a class="ct-btn ct-btn--ghost" href="#tour">Open full-screen tour${icon('arrow-right')}</a>
         </div>
@@ -433,7 +238,9 @@ export async function mount(root, params) {
   `;
 
   renderTourWidget(el.querySelector('#home-tour-mount'), { initialTrack: 'patients' });
-  mountHeroCall(el);
+  mountHero(el);
+  mountHow(el);
+  mountLanguages(el);
   mountStories(el);
   if (params && params.get('section')) {
     const target = el.querySelector(`#${CSS.escape(params.get('section'))}`);
@@ -454,7 +261,9 @@ function deviceIcon(kind) {
 export async function refresh() {}
 
 export function unmount() {
-  stopHeroCall();
+  unmountHero();
+  unmountHow();
+  unmountLanguages();
   unmountStories();
   el = null;
 }
