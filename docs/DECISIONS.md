@@ -100,5 +100,5 @@ Choices made during the build where the specification left room for interpretati
 
 ## 24. Working method: plan first, subagents, project agents, pass or fail
 - **Context:** The owner asked for four habits on every task: plan mode first, subagents for parallel jobs, reusable agents saved in the repo, and a test that returns pass or fail so mistakes are fixed before they reach the owner.
-- **Decision:** `.claude/settings.json` starts sessions in plan mode. Four agents live in `.claude/agents/` (ui-verifier, intent-tester, language-builder, submission-checker). `npm run smoke` starts the app and checks every page, asset and browser module, the notice, "key not set", and that a dose is logged only after a yes; it exits 1 on any failure and runs in CI after `npm run check`. CLAUDE.md lists the habits under "How to work".
+- **Decision:** `.claude/settings.json` starts sessions in plan mode. Four agents live in `.claude/agents/` (ui-verifier, intent-tester, language-builder, submission-checker). `npm run smoke` starts the app and checks every page, asset and browser module, the notice, "key not set", and that a dose is logged only after a yes; it exits 1 on any failure. There is no CI pipeline (removed on request): the three commands are run locally before every push. CLAUDE.md lists the habits under "How to work".
 

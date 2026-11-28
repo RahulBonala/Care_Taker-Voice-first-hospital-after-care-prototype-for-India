@@ -41,7 +41,7 @@ Use this checklist before the final push on 28 November 2026 (IST) and during hu
 - [x] External statistics in `docs/PITCH_DECK.md` marked `[SOURCE NEEDED: ...]` with zero invented citations.
 
 ## 4. Human pre-submission items (29 November testing)
-- [ ] Confirm the GitHub repository is set to **Public** and GitHub Actions CI is green on `main`.
+- [ ] Confirm the GitHub repository is set to **Public** and `npm test`, `npm run check` and `npm run smoke` pass locally on `main`.
 - [ ] Deploy the live HTTPS link (for example via `render.yaml` on Render), confirm `https://<live-url>/healthz` returns `{"ok":true}`, test microphone access in Chrome over HTTPS, and paste the URL into `README.md`.
 - [ ] Record the demo video following `docs/DEMO_SCRIPT.md`, confirm length is **3 minutes or less**, upload as **Public or Unlisted**, and paste the link into `README.md`.
 - [ ] Export the pitch deck from `docs/PITCH_DECK.md` (after filling or removing any `[SOURCE NEEDED]` placeholders) as a **PDF of 10 MB or less and 30 pages or less**, and add the link to `README.md`.
