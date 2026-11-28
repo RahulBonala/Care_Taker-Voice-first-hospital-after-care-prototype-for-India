@@ -145,6 +145,13 @@ function bubble(l) {
   return `<p class="ct-hcall__bubble ct-hcall__bubble--${l.from}"><span>${esc(l.text)}</span><span class="ct-hcall__gloss">${esc(l.gloss)}</span></p>`;
 }
 
+function resultChip([kind, ic, label], animate = true) {
+  const checkSvg = kind === 'taken'
+    ? '<svg class="ct-icon ct-dose-chip__check" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="ct-dose-chip__stroke" pathLength="1" d="M8 12.5l2.5 2.5L16 9.5"/></svg>'
+    : icon(ic);
+  return `<span class="ct-dose-chip ct-dose-chip--hero ct-status ct-status--${esc(kind)}${animate ? ' is-entering' : ''}" data-state="${esc(kind)}">${checkSvg}<strong class="ct-dose-chip__label">${esc(label)}</strong></span>`;
+}
+
 function setState(state, label) {
   root.dataset.state = state;
   root.querySelector('#hc-state').innerHTML = label;
@@ -240,7 +247,7 @@ async function play(t) {
       scene.querySelector('#ct-flow-text').setAttribute('startOffset', '4%');
       talk.innerHTML = call.lines.slice(-3).map(bubble).join('');
       root.querySelector('#hc-sub').textContent = `Called ${call.who}, ${call.slot}`;
-      setState('done', `${icon(call.result[1])}${esc(call.result[2])}`);
+      setState('done', resultChip(call.result, false));
       for (const key of Object.keys(call.cards).filter((k) => k !== 'start')) applyCards(call.cards[key]);
       return;
     }
@@ -272,7 +279,7 @@ async function play(t) {
     }
     setState('processing', `${icon('pending')}Writing the report`);
     await wait(900); if (!live()) return;
-    setState(call.result[0] === 'taken' ? 'done' : 'urgent', `${icon(call.result[1])}${esc(call.result[2])}`);
+    setState(call.result[0] === 'taken' ? 'done' : 'urgent', resultChip(call.result, true));
     applyCards(call.cards.report);
     await wait(1400); if (!live()) return;
     applyCards(call.cards.settle);

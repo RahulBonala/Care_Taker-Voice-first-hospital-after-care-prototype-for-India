@@ -129,16 +129,22 @@
 .ct-hcall__card { position: relative; }
 .ct-hcall__card::before {
   content: ""; position: absolute; right: 100%; top: 50%; width: var(--space-5);
-  border-top: 2px dashed var(--color-border-strong); transition: border-color 300ms var(--ease-out);
+  border-top: 2px dashed var(--color-border-strong); transition: border-color var(--dur-2) var(--ease-out);
 }
 .ct-hcall__card.is-on::before { border-top-color: var(--color-primary); }
 .ct-hcall__card .ct-care-card { padding: var(--space-3); column-gap: var(--space-3); }
 .ct-hcall__card .ct-care-card:not(.is-on) { opacity: 0.62; transform: none; }
 .ct-hcall__card .ct-care-card__body strong { font-size: var(--text-sm); }
 .ct-hcall__card .ct-care-card__body span { line-height: var(--leading-tight); }
-.ct-hcall__card .ct-care-card__meta .ct-status { animation: ct-chip-in 260ms var(--ease-out); }
-.ct-hcall__card .ct-care-card[data-state="urgent"].is-on .ct-care-card__emoji { animation: ct-care-shake 900ms var(--ease-in-out) 2; }
+.ct-hcall__card .ct-care-card__meta .ct-status { animation: ct-chip-in var(--dur-2) var(--ease-out); }
+.ct-hcall__card .ct-care-card[data-state="urgent"].is-on .ct-care-card__emoji { animation: ct-care-shake var(--dur-3) var(--ease-in-out) 2; }
 @keyframes ct-chip-in { from { opacity: 0; transform: scale(0.92); } }
+.ct-dose-chip--hero {
+  min-height: var(--space-6);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  justify-content: center;
+}
 
 /* ---------- 960 to 1199: a slightly smaller phone and cards ---------- */
 @media (max-width: 1199px) {
