@@ -15,10 +15,18 @@
   .ct-story--how .ct-story__tabs { display: none; }
   .ct-story--how .ct-story__body { grid-template-columns: minmax(0, 1fr); }
   .ct-story--how .ct-story__stage { min-height: min(34rem, calc(100vh - 15rem)); }
+  /* The frame always fits under the step line: phone and tablet take their height from the space
+     left in the pinned screen (heading, step line and caption take about 17rem), not a fixed shape. */
+  .ct-story--how .ct-frame--phone .ct-frame__body { aspect-ratio: auto; height: clamp(26rem, calc(100vh - 17rem), 32rem); }
+  .ct-story--how .ct-frame--tablet .ct-frame__body { aspect-ratio: auto; max-height: calc(100vh - 17rem); }
   .ct-story--how .ct-story__panel { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: var(--space-7); }
   .ct-story--how .ct-story__copy h3 { font-size: clamp(1.5rem, 2.3vw, 2.1rem); }
   .ct-story--how .ct-story__copy p { font-size: var(--text-md); }
   .ct-story--features .ct-story__panel { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: var(--space-5); }
+}
+/* Short screens: the step 4 phone shows all three Care cards at 700px tall. */
+@media (min-width: 900px) and (max-height: 720px) and (prefers-reduced-motion: no-preference) {
+  .ct-story--how .ct-frame--phone .ct-frame__screen { zoom: 0.94; }
 }
 @media (min-width: 900px) and (max-width: 1099px) and (prefers-reduced-motion: no-preference) {
   .ct-story--how .ct-story__panel { grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: var(--space-5); }
