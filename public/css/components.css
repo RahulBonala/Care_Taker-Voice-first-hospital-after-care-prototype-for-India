@@ -1640,3 +1640,74 @@ html.lenis, html.lenis body { height: auto; }
   .ct-skeleton__bar, .ct-loaded-fade { animation: none !important; }
 }
 
+/* ==========================================================================
+   Dose confirmation chip (ct-dose-chip, P1)
+   ========================================================================== */
+.ct-phone__chip:empty { display: none; }
+.ct-dose-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
+  line-height: var(--leading-tight);
+  white-space: normal;
+  word-break: break-word;
+  border: 1px solid var(--color-border-strong);
+  view-transition-name: dose-chip;
+}
+.ct-dose-chip[data-state="taken"] {
+  border-color: var(--status-taken);
+}
+.ct-dose-chip[data-state="urgent"] {
+  border-color: var(--status-urgent);
+}
+.ct-dose-chip__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  min-width: 0;
+}
+.ct-dose-chip__label {
+  font-weight: var(--weight-bold);
+}
+.ct-dose-chip.is-entering[data-state="pending"] {
+  animation: ct-chip-rise var(--dur-2) var(--ease-out);
+}
+.ct-dose-chip.is-entering[data-state="taken"] {
+  animation: ct-chip-rise var(--dur-2) var(--ease-out);
+}
+.ct-dose-chip.is-entering[data-state="taken"] .ct-dose-chip__stroke {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ct-check-stroke var(--dur-3) var(--ease-out) forwards;
+}
+.ct-dose-chip.is-entering[data-state="taken"] .ct-dose-chip__time {
+  display: inline-block;
+  animation: ct-time-pop var(--dur-3) var(--ease-out);
+}
+@keyframes ct-chip-rise {
+  from { opacity: 0; transform: translateY(var(--space-2)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ct-check-stroke {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes ct-time-pop {
+  0% { opacity: 0; transform: translateY(var(--space-1)) scale(0.92); }
+  60% { opacity: 1; transform: translateY(-1px) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ct-dose-chip, .ct-dose-chip * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+

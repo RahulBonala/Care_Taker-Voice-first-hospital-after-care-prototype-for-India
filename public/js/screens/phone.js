@@ -1,5 +1,5 @@
 // Patient phone: a keypad phone that rings at each dose time and talks in the patient's language.
-import { api, post, esc, icon, hm, toast, busy, config, langTag, intentStatus, store, clockTime } from '../lib.js';
+import { api, post, esc, icon, hm, toast, busy, config, langTag, intentStatus, SLOT_LABEL, store, clockTime } from '../lib.js';
 import * as voice from '../voice.js';
 
 const RING_TIMEOUT_MS = 20000;
@@ -21,11 +21,60 @@ let heard = null;
 let micNote = '';
 let voiceLabel = '';
 let lastTranscriptLen = -1;
+let lastChipState = 'none';
+let lastChipLabel = '';
+let lastChipCallId = null;
 
 const OUTCOME = {
   taken: 'Dose logged', postponed: 'Call rescheduled', urgent: 'Urgent: a nurse will call',
   stopped: 'Stopped early: care team told', missed: 'Missed: care team told', optOut: 'Calls stopped: care team told',
 };
+
+const OUTCOME_CHIP = {
+  taken: 'taken',
+  postponed: 'later',
+  urgent: 'urgent',
+  stopped: 'stopped',
+  missed: 'missed',
+  optOut: 'optOut',
+};
+
+export function doseChipState(c) {
+  if (!c) return 'none';
+  if (c.status === 'active' && c.pendingTaken) return 'pending';
+  if (c.status === 'ended') return OUTCOME_CHIP[c.outcome] || 'none';
+  return 'none';
+}
+
+export function renderDoseChip(c, { animate = false } = {}) {
+  const state = doseChipState(c);
+  if (state === 'none') return '';
+  const slotMatch = c && c.transcript && c.transcript[0] && /for the (\w+) dose/.exec(c.transcript[0].text || '');
+  const slotKey = (c && c.slot) || (slotMatch && slotMatch[1]) || '';
+  const slotText = SLOT_LABEL[slotKey] || 'Dose';
+  const timeText = state === 'pending'
+    ? hm(c.pendingTaken && c.pendingTaken.at)
+    : hm((state === 'taken' && c.pendingTaken && c.pendingTaken.at) || c.endedAt || c.startedAt);
+  const slotTime = timeText ? `${slotText}, <time class="ct-dose-chip__time tabular">${esc(timeText)}</time>` : esc(slotText);
+
+  const map = {
+    pending: ['pending', 'pending', c.stage === 'keypad' ? 'Waiting for key 1' : 'Waiting for your yes'],
+    taken: ['taken', 'check', 'Dose confirmed'],
+    later: ['later', 'clock', OUTCOME.postponed],
+    urgent: ['urgent', 'alert', OUTCOME.urgent],
+    stopped: ['stopped', 'stop', OUTCOME.stopped],
+    missed: ['missed', 'missed', OUTCOME.missed],
+    optOut: ['stopped', 'stop', OUTCOME.optOut],
+  };
+  const [kind, ic, label] = map[state] || map.pending;
+  const checkSvg = state === 'taken'
+    ? '<svg class="ct-icon ct-dose-chip__check" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="ct-dose-chip__stroke" pathLength="1" d="M8 12.5l2.5 2.5L16 9.5"/></svg>'
+    : icon(ic);
+  return `<div class="ct-dose-chip ct-status ct-status--${kind}${animate ? ' is-entering' : ''}" data-state="${esc(state)}" aria-hidden="true">
+    ${checkSvg}
+    <span class="ct-dose-chip__body"><span class="ct-dose-chip__slot">${slotTime}</span><span class="ct-dose-chip__sep" aria-hidden="true">&middot;</span><strong class="ct-dose-chip__label">${esc(label)}</strong></span>
+  </div>`;
+}
 
 export function mount(root) {
   el = root;
@@ -49,6 +98,7 @@ export function mount(root) {
             <div class="ct-phone__transcript" id="ph-transcript" aria-live="polite"></div>
             <div class="ct-phone__live" id="ph-live"></div>
             <div class="ct-phone__heard" id="ph-heard"></div>
+            <div class="ct-phone__chip" id="ph-chip" aria-hidden="true"></div>
           </div>
           <div class="ct-phone__state" id="ph-state" role="status"></div>
           <div class="ct-phone__call-keys">
@@ -152,6 +202,7 @@ async function selectPatient(id) {
   const p = patients.find((x) => x.id === id);
   L = cfg.langs.find((l) => l.code === (p && p.lang)) || cfg.langs[0];
   call = null; phase = 'idle'; heard = null; interim = ''; lastTranscriptLen = -1;
+  lastChipState = 'none'; lastChipLabel = ''; lastChipCallId = null;
   const out = await voice.outputMode(L.speechCode, cfg.keys.sarvam);
   voiceLabel = out.label;
   micNote = voice.canRecognize() ? '' : (cfg.keys.sarvam ? 'This browser has no speech recognition. Sarvam speech to text will be used.' : 'This browser has no speech recognition. Use Chrome, or type the reply here.');
@@ -209,8 +260,23 @@ function renderPhone() {
     ? `<strong>Heard:</strong> <span>${esc(heard.text || '(silence)')}</span> <span aria-hidden="true">&rarr;</span> ${intentStatus(heard.intent, heard.label)}${heard.minutes ? `<span class="tabular">${heard.minutes} min</span>` : ''}`
     : '';
 
+  // Dose confirmation chip (P1): animate only when doseChipState changes from the previous render
+  const chipBox = el.querySelector('#ph-chip');
+  const nextChipState = doseChipState(call);
+  const nextChipLabel = nextChipState === 'pending' ? (call && call.stage === 'keypad' ? 'keypad' : 'confirm') : nextChipState;
+  const callId = call ? call.id : null;
+  if (nextChipState !== lastChipState || nextChipLabel !== lastChipLabel || callId !== lastChipCallId) {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const stateChanged = nextChipState !== lastChipState || callId !== lastChipCallId;
+    chipBox.innerHTML = renderDoseChip(call, { animate: !reduce && stateChanged });
+    lastChipState = nextChipState;
+    lastChipLabel = nextChipLabel;
+    lastChipCallId = callId;
+  }
+
   // State line
   const state = el.querySelector('#ph-state');
+  const endedLabel = nextChipState === 'taken' ? `${icon('check')}Dose confirmed and logged` : `${icon('check')}Call ended`;
   const states = {
     idle: `${icon('clock')}Press Next slot to ring`,
     ringing: `${icon('phone')}Ringing`,
@@ -219,9 +285,10 @@ function renderPhone() {
     typing: `${icon('keypad')}Type a reply or press a key`,
     waitingKey: `${icon('keypad')}Press a key: <span class="tabular" id="ph-count">${Math.max(0, Math.ceil((keyDeadline - Date.now()) / 1000))}</span>s`,
     processing: `${icon('pending')}Understanding the reply`,
-    ended: `${icon('check')}Call ended`,
+    ended: endedLabel,
   };
-  if (state.dataset.phase !== phase) { state.innerHTML = states[phase]; state.dataset.phase = phase; }
+  const stateKey = phase === 'ended' ? `ended:${nextChipState}` : phase;
+  if (state.dataset.phase !== stateKey) { state.innerHTML = states[phase]; state.dataset.phase = stateKey; }
 
   // Controls
   const ringing = phase === 'ringing';
@@ -321,7 +388,9 @@ async function decline(reason) {
 }
 
 async function processTurn(c, t) {
+  const wasTaken = doseChipState(call) === 'taken';
   call = c;
+  if (!wasTaken && doseChipState(c) === 'taken') voice.playConfirmTone();
   // The patient answered in another language: follow them for the rest of the call.
   if (c.lang && L && c.lang !== L.code) {
     const next = cfg.langs.find((l) => l.code === c.lang);
@@ -346,7 +415,9 @@ async function processTurn(c, t) {
     const slots = await api(`/api/slots?patientId=${encodeURIComponent(pid)}`);
     const s = slots.find((x) => x.id === c.slotId);
     toast(`Call rescheduled to ${s ? hm(s.due) : 'later'}`);
-  } else toast(OUTCOME[c.outcome] || 'Call ended');
+  } else if (c.outcome !== 'taken') {
+    toast(OUTCOME[c.outcome] || 'Call ended');
+  }
   window.dispatchEvent(new Event('ct:refresh'));
 }
 

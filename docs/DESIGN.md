@@ -273,4 +273,8 @@ Left: eyebrow, headline, "Start the tour", step count and time, a thin progress 
 ### `ct-skeleton` and `ct-error-box` (Round 2 polish)
 `ct-skeleton` renders rows of soft bars (`ct-skeleton__bar`) in `--color-surface-sunken` inside async regions (`[aria-busy="true"]`) of Nurse, Family, Doctor, Hospital desk and Health devices until the first data arrives, reserving height so content fades in (`.ct-loaded-fade`, `--dur-3`) with no layout shift. A slow pulse runs only under `prefers-reduced-motion: no-preference`. If the initial load fails, `ct-error-box` shows "Could not load. Check your connection." with a `Retry` button (`data-retry="1"`).
 
+### `ct-dose-chip` (read-back confirmation chip)
+Rendered below `#ph-heard` on the patient phone (and in the mobile app, guided tour and hero call). Driven by `doseChipState(call)` (`none`, `pending`, `taken`, `later`, `urgent`, `stopped`, `missed`, `optOut`). Shows the meal slot, time, status icon and label at `--text-md`: "Waiting for your yes" in `confirm`, "Waiting for key 1" in `keypad`, and "Dose confirmed" with a drawn checkmark (`--dur-3`) and time pop-in on `taken`. Marked `aria-hidden="true"` so `#ph-state` announces "Dose confirmed and logged" once without duplicate live-region speech.
+
+
 

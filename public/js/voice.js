@@ -219,6 +219,28 @@ export function startRing() {
 }
 export function stopRing() { if (ringer) { ringer.stop(); ringer = null; } }
 
+// Soft two-note confirmation tone under 300ms, quieter than the ringer.
+export function playConfirmTone() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    for (const [f, start, dur] of [[523.25, 0, 0.11], [659.25, 0.11, 0.14]]) {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+      g.gain.exponentialRampToValueAtTime(0.022, ctx.currentTime + start + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(ctx.currentTime + start);
+      o.stop(ctx.currentTime + start + dur + 0.01);
+    }
+    setTimeout(() => { try { ctx.close(); } catch { /* ignore */ } }, 290);
+  } catch { /* audio unavailable */ }
+}
+
 // Finds the patient's language from their voice.
 // With a Sarvam key, the audio itself is sent for language detection. Without one, the browser
 // listens for the name of a language ("Tamil", "Kannada") or for words it can place.
