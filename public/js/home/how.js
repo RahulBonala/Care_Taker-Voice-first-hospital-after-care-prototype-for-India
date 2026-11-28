@@ -135,17 +135,16 @@ export const howMarkup = () => story({
   card: (key) => SCREENS[key](), size: 'ct-story--4',
 });
 
-// Navbar step line: four steps joined by a line that fills to the active one.
+// Section step line: four steps inside the How it works section joined by a line that fills to the active one.
+// Navbar never changes while scrolling, apart from the active link.
 let line = null;
 let section = null;
-let raf = 0;
-let shown = false;
 
 function lineMarkup() {
   return `<ol class="ct-stepline__list">${HOW.map((s, i) => `
     <li class="ct-stepline__item${i === 0 ? ' is-active' : ''}"${i === 0 ? ' aria-current="step"' : ''}>
       <button type="button" class="ct-stepline__btn" data-i="${i}"><span class="ct-stepline__icon">${icon(s.icon)}</span><span class="ct-stepline__label"><span class="visually-hidden">Step ${i + 1}: </span>${esc(s.title)}</span></button>
-      ${i < HOW.length - 1 ? `<span class="ct-stepline__link" aria-hidden="true"><span class="ct-stepline__fill"></span>${icon('chevron', 'ct-stepline__chev')}</span>` : ''}
+      ${i < HOW.length - 1 ? `<span class="ct-stepline__link" aria-hidden="true"><span class="ct-stepline__fill"></span><span class="ct-stepline__arrow">→</span></span>` : ''}
     </li>`).join('')}</ol>`;
 }
 
@@ -158,54 +157,33 @@ function setStep(idx) {
   });
 }
 
-function check() {
-  raf = 0;
-  if (!line || !section) return;
-  const r = section.getBoundingClientRect();
-  const vh = window.innerHeight;
-  const on = !isStacked() && r.top < vh * 0.4 && r.bottom > vh * 0.6;
-  if (on === shown) return;
-  shown = on;
-  const nav = line.parentElement;
-  nav.classList.toggle('has-steps', on);
-  line.setAttribute('aria-hidden', on ? 'false' : 'true');
-  line.inert = !on;
-}
-const onScroll = () => { if (!raf) raf = requestAnimationFrame(check); };
 const onStep = (e) => setStep(e.detail.index);
 
 export function mountHow(root) {
   section = root.querySelector('#how');
-  const nav = document.querySelector('.ct-pill-navbar');
-  if (!section || !nav) return;
+  const head = section && section.querySelector('.ct-story__head');
+  if (!section || !head) return;
   line = document.createElement('div');
   line.className = 'ct-stepline';
   line.setAttribute('role', 'group');
   line.setAttribute('aria-label', 'How it works, steps');
-  line.setAttribute('aria-hidden', 'true');
-  line.inert = true;
   line.innerHTML = lineMarkup();
-  nav.appendChild(line);
+  head.appendChild(line);
   line.querySelectorAll('.ct-stepline__btn').forEach((btn) => btn.addEventListener('click', () => {
-    scrollToY(storyStepY(section, Number(btn.dataset.i)));
+    const idx = Number(btn.dataset.i);
+    if (isStacked()) {
+      section.querySelectorAll('.ct-story__panel')[idx]?.scrollIntoView({ block: 'start' });
+      setStep(idx);
+      return;
+    }
+    scrollToY(storyStepY(section, idx));
   }));
   section.addEventListener('ct:story', onStep);
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll);
-  check();
 }
 
 export function unmountHow() {
-  window.removeEventListener('scroll', onScroll);
-  window.removeEventListener('resize', onScroll);
-  if (raf) cancelAnimationFrame(raf);
-  raf = 0;
   if (section) section.removeEventListener('ct:story', onStep);
-  if (line) {
-    line.parentElement?.classList.remove('has-steps');
-    line.remove();
-  }
+  if (line) line.remove();
   line = null;
   section = null;
-  shown = false;
 }

@@ -50,7 +50,7 @@ export function languagesMarkup(langs) {
         <div class="ct-split2 ct-langsplit">
           <div data-reveal="up">
             <span class="ct-eyebrow"><span class="ct-eyebrow__dot" aria-hidden="true"></span>Your language</span>
-            <h2 id="lang-title" class="ct-section-title-lg"><span class="ct-langtitle__line">Speak your language.</span> <span class="ct-langtitle__line">Care&nbsp;Taker answers in it.</span></h2>
+            <h2 id="lang-title" class="ct-section-title-lg"><span class="ct-langtitle__line">Speak your language.</span> <span class="ct-langtitle__line"><span class="ct-nowrap">Care Taker</span> answers in it.</span></h2>
             <p class="ct-section-lead">Pick a language or just start talking. Care Taker hears which one you answer in and switches the call and the app to it.</p>
             <ul class="ct-checks">
               <li>${icon('tick')}<span>${indian} Indian languages and English, mixed the way people speak</span></li>

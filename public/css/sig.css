@@ -4,6 +4,7 @@
    so the phone and the wordmark scale as one piece.
    ========================================================================== */
 .ct-signature { width: 100%; }
+.ct-sig-svg { display: block; width: 100%; height: auto; max-height: 14rem; margin: 0 auto; }
 .ct-sig {
   position: relative; isolation: isolate;
   display: flex; align-items: center; justify-content: flex-start; gap: 0;

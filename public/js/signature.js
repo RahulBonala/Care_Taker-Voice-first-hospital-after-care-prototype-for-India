@@ -294,14 +294,36 @@ export function mountSignature() {
   if (!host) return;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   staticHtml = host.innerHTML;
+  let extSvg = '';
   const mount = () => {
     if (reduce.matches) return; // the static logo and wordmark stay
+    if (extSvg) {
+      stop();
+      root = null;
+      geo = null;
+      host.innerHTML = `<img class="ct-sig-svg" src="${extSvg}" width="1440" height="360" alt="Care Taker closing loop ending in Checked in" decoding="async">`;
+      return;
+    }
     host.innerHTML = markup();
     root = host.querySelector('.ct-sig');
     phase = 'rest';
     layout();
   };
   mount();
+  (async () => {
+    try {
+      const mRes = await fetch('/img/manifest.json', { cache: 'no-cache' });
+      if (!mRes.ok) return;
+      const slots = (await mRes.json()).slots || {};
+      if (slots['footer-loop'] && slots['footer-loop'].type === 'svg') {
+        const hRes = await fetch('/brand/footer-loop.svg', { method: 'HEAD' });
+        if (hRes.ok) {
+          extSvg = '/brand/footer-loop.svg';
+          mount();
+        }
+      }
+    } catch { /* keep coded signature loop */ }
+  })();
   reduce.addEventListener('change', () => {
     if (reduce.matches) { stop(); root = null; geo = null; host.innerHTML = staticHtml; }
     else { mount(); start(); }

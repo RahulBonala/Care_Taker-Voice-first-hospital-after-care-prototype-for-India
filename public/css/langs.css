@@ -18,6 +18,7 @@
 .ct-langband { overflow-x: clip; }
 /* Heading: one sentence per line, and "Care Taker" never splits */
 .ct-langtitle__line { display: block; }
+.ct-nowrap { white-space: nowrap; }
 
 .ct-lring {
   --off-st: 0deg;

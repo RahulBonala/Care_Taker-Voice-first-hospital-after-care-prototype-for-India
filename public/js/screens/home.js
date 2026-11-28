@@ -2,7 +2,7 @@
 // one screen per role (pinned), every device, the fixed rules, tour, apps, comparison and FAQ.
 import { esc, icon, config } from '../lib.js';
 import { renderTourWidget } from './tour.js';
-import { heroMarkup, mountHero, unmountHero } from '../home/hero.js';
+import { heroMarkup, peopleMarkup, mountHero, unmountHero } from '../home/hero.js';
 import { howMarkup, mountHow, unmountHow } from '../home/how.js';
 import { featuresMarkup } from '../home/features.js';
 import { languagesMarkup, mountLanguages, unmountLanguages } from '../home/languages.js';
@@ -123,6 +123,8 @@ export async function mount(root, params) {
     </section>
 
     ${featuresMarkup()}
+
+    ${peopleMarkup()}
 
     <section class="ct-band ct-band--surface" id="promises-section" aria-labelledby="promises-title">
       <div class="ct-page">

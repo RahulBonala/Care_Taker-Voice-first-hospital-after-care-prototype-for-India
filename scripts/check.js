@@ -6,7 +6,7 @@ const { spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const SKIP_DIRS = new Set(['node_modules', '.git', 'data', 'fonts']);
-const BINARY_EXT = new Set(['.woff2', '.woff', '.ttf', '.mp3', '.wav', '.png', '.jpg', '.jpeg', '.ico']);
+const BINARY_EXT = new Set(['.woff2', '.woff', '.ttf', '.mp3', '.wav', '.png', '.jpg', '.jpeg', '.ico', '.webp', '.webm', '.mp4', '.zip']);
 
 let failed = false;
 function pass(msg) { console.log(`PASS  ${msg}`); }

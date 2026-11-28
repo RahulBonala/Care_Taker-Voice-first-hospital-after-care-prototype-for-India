@@ -1,0 +1,285 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200" role="img" aria-labelledby="s3-title s3-desc">
+  <title id="s3-title">Ramesh listening to his morning dose call in Telugu on his veranda</title>
+  <desc id="s3-desc">Ramesh, 79, sits in a cane chair on a sunlit veranda in India with potted plants and a steel almirah visible inside the doorway. His phone is on speaker in his palm, asking in Telugu if he took his morning tablets, with a green confirmation tick and a sparrow on the railing.</desc>
+  <defs>
+    <pattern id="s3-grain" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="0.8" fill="#1B1F24"/>
+      <circle cx="16" cy="6" r="0.7" fill="#1B1F24"/>
+      <circle cx="10" cy="15" r="0.9" fill="#1B1F24"/>
+      <circle cx="20" cy="19" r="0.8" fill="#1B1F24"/>
+      <circle cx="6" cy="21" r="0.6" fill="#1B1F24"/>
+    </pattern>
+  </defs>
+  <style>
+    .ink { stroke: #1B1F24; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .wave-1 {
+      transform-origin: 882px 620px;
+      animation: s3-wave 2s linear infinite;
+    }
+    .wave-2 {
+      transform-origin: 882px 620px;
+      animation: s3-wave 2s linear 0.6s infinite;
+    }
+    .ramesh-upper {
+      transform-origin: 690px 720px;
+      animation: s3-lean 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    .brows-rise {
+      animation: s3-brows 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    .mouth-speak {
+      transform-origin: 705px 446px;
+      animation: s3-mouth 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    .tick-appear {
+      transform-origin: 1362px 410px;
+      animation: s3-tick 8s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+    }
+    .sparrow-flight {
+      transform-origin: 245px 604px;
+      animation: s3-sparrow 8s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+    }
+    @keyframes s3-wave {
+      0% { opacity: 0.25; transform: scale(0.92); }
+      50% { opacity: 0.95; transform: scale(1.06); }
+      100% { opacity: 0.25; transform: scale(0.92); }
+    }
+    @keyframes s3-lean {
+      0%, 24% { transform: translate(0px, 0px) rotate(0deg); }
+      38%, 82% { transform: translate(6px, -2px) rotate(1.4deg); }
+      100% { transform: translate(0px, 0px) rotate(0deg); }
+    }
+    @keyframes s3-brows {
+      0%, 26% { transform: translateY(0px); }
+      36%, 80% { transform: translateY(-3px); }
+      100% { transform: translateY(0px); }
+    }
+    @keyframes s3-mouth {
+      0%, 36% { transform: scaleY(0.35); }
+      44% { transform: scaleY(1.15); }
+      52%, 100% { transform: scaleY(0.45); }
+    }
+    @keyframes s3-tick {
+      0%, 46% { opacity: 0; transform: scale(0.75); }
+      54%, 90% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.75); }
+    }
+    @keyframes s3-sparrow {
+      0%, 56% { opacity: 0; transform: translate(-140px, -95px) rotate(12deg); }
+      62.5%, 88% { opacity: 1; transform: translate(0px, 0px) rotate(0deg); }
+      94%, 100% { opacity: 0; transform: translate(110px, -110px) rotate(-14deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+      .tick-appear, .sparrow-flight { opacity: 1 !important; transform: none !important; }
+    }
+  </style>
+
+  <!-- Veranda background & warm morning light from the left -->
+  <rect width="1600" height="920" fill="#F7F5F0"/>
+  <rect y="920" width="1600" height="280" fill="#EFECE5"/>
+  <line x1="0" y1="920" x2="1600" y2="920" class="ink"/>
+
+  <!-- Left Veranda Opening & Morning Garden View -->
+  <rect x="0" y="0" width="460" height="630" fill="#FBF0DC"/>
+  <circle cx="145" cy="165" r="58" fill="#E8A33D" opacity="0.35"/>
+  <!-- Diagonal morning sunbeams across veranda -->
+  <polygon points="0,120 460,120 880,1200 120,1200" fill="#FBF0DC" opacity="0.55"/>
+
+  <!-- Veranda Pillar & Terracotta Balustrade Railing on Left -->
+  <rect x="440" y="0" width="54" height="920" fill="#EFECE5" class="ink"/>
+  <rect x="0" y="618" width="444" height="32" rx="6" fill="#C68B63" class="ink"/>
+  <rect x="0" y="650" width="444" height="270" fill="#EFECE5" class="ink"/>
+  <!-- Balusters -->
+  <g fill="#C68B63" class="ink">
+    <rect x="48" y="670" width="28" height="220" rx="8"/>
+    <rect x="138" y="670" width="28" height="220" rx="8"/>
+    <rect x="228" y="670" width="28" height="220" rx="8"/>
+    <rect x="318" y="670" width="28" height="220" rx="8"/>
+  </g>
+
+  <!-- House Sparrow landing on the veranda railing at ~5s and flying off at ~7.5s -->
+  <g class="sparrow-flight">
+    <!-- Legs -->
+    <line x1="238" y1="604" x2="234" y2="618" class="ink"/>
+    <line x1="250" y1="604" x2="252" y2="618" class="ink"/>
+    <!-- Tail -->
+    <polygon points="216,594 192,606 198,586" fill="#8D5A3B" class="ink"/>
+    <!-- Body & Wing -->
+    <ellipse cx="242" cy="590" rx="24" ry="15" fill="#C68B63" class="ink"/>
+    <path d="M 226 584 Q 244 576 256 592 Q 240 600 226 584 Z" fill="#8D5A3B" class="ink"/>
+    <!-- Head & Beak -->
+    <circle cx="262" cy="578" r="11" fill="#8D5A3B" class="ink"/>
+    <circle cx="265" cy="576" r="2.2" fill="#1B1F24"/>
+    <polygon points="272,576 284,580 272,583" fill="#E8A33D" class="ink"/>
+  </g>
+
+  <!-- Potted Plants on Veranda -->
+  <g id="veranda-plants">
+    <ellipse cx="350" cy="956" rx="68" ry="14" fill="#E3DED3"/>
+    <polygon points="296,825 404,825 386,955 314,955" fill="#A86F4C" class="ink"/>
+    <polygon points="350,825 404,825 386,955 350,955" fill="#8D5A3B"/>
+    <rect x="286" y="805" width="128" height="22" rx="6" fill="#C68B63" class="ink"/>
+    <!-- Broad tropical veranda leaves -->
+    <path d="M 350 805 C 310 735 268 705 245 720 C 268 765 312 792 350 805 Z" fill="#0F5C5A" class="ink"/>
+    <path d="M 350 805 C 338 710 342 650 364 635 C 384 680 374 748 350 805 Z" fill="#1E7B4F" class="ink"/>
+    <path d="M 350 805 C 392 730 434 702 456 718 C 430 762 388 790 350 805 Z" fill="#0F5C5A" class="ink"/>
+  </g>
+
+  <!-- Open Doorway on Right with Godrej-style Steel Almirah inside -->
+  <g id="doorway-almirah">
+    <rect x="1150" y="150" width="330" height="770" rx="8" fill="#8D5A3B" class="ink"/>
+    <rect x="1176" y="176" width="278" height="744" fill="#EFECE5" class="ink"/>
+    <!-- Godrej-style steel almirah inside the room -->
+    <rect x="1212" y="248" width="216" height="672" rx="6" fill="#E3DED3" class="ink"/>
+    <rect x="1212" y="248" width="108" height="672" fill="#EFECE5" class="ink"/>
+    <!-- Almirah top crown & handle latch -->
+    <line x1="1212" y1="274" x2="1428" y2="274" class="ink"/>
+    <rect x="1296" y="540" width="10" height="46" rx="4" fill="#1B1F24"/>
+    <circle cx="1332" cy="562" r="7" fill="#1B1F24"/>
+    <line x1="1332" y1="562" x2="1348" y2="574" class="ink"/>
+  </g>
+
+  <!-- Floor contact shadows -->
+  <ellipse cx="695" cy="1065" rx="260" ry="34" fill="#E3DED3"/>
+
+  <!-- Woven Cane Chair & Walking Stick -->
+  <g id="cane-chair">
+    <!-- Chair legs -->
+    <line x1="510" y1="820" x2="485" y2="1055" stroke="#8D5A3B" stroke-width="16" stroke-linecap="round"/>
+    <line x1="875" y1="820" x2="900" y2="1055" stroke="#74472D" stroke-width="16" stroke-linecap="round"/>
+    <!-- Rounded cane backrest -->
+    <ellipse cx="692" cy="595" rx="215" ry="235" fill="#EFECE5" stroke="#8D5A3B" stroke-width="14"/>
+    <ellipse cx="692" cy="595" rx="192" ry="212" fill="#FBF0DC" class="ink"/>
+    <!-- Cane lattice lines -->
+    <path d="M 530 520 H 854 M 510 595 H 874 M 530 670 H 854 M 610 400 V 790 M 692 385 V 805 M 774 400 V 790" stroke="#E3DED3" stroke-width="2.5"/>
+    <!-- Cane seat -->
+    <rect x="488" y="778" width="408" height="54" rx="24" fill="#C68B63" class="ink"/>
+    <!-- Ramesh's curved wooden walking stick leaning on the left of the chair -->
+    <path d="M 468 625 C 468 588 512 588 512 622" fill="none" stroke="#8D5A3B" stroke-width="14" stroke-linecap="round"/>
+    <path d="M 468 625 C 468 588 512 588 512 622" fill="none" stroke="#1B1F24" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="468" y1="625" x2="442" y2="1062" stroke="#8D5A3B" stroke-width="12" stroke-linecap="round"/>
+    <line x1="468" y1="625" x2="442" y2="1062" stroke="#1B1F24" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- RAMESH, 79 (Grandfather in white kurta with teal shawl and round steel glasses) -->
+  <g id="ramesh">
+    <!-- White cotton dhoti/pyjama legs & sandals -->
+    <path d="M 575 815 L 562 1025 L 672 1025 L 682 830 Z" fill="#FFFFFF" class="ink"/>
+    <path d="M 702 830 L 712 1025 L 822 1025 L 808 815 Z" fill="#EFECE5" class="ink"/>
+    <ellipse cx="614" cy="1044" rx="42" ry="16" fill="#8D5A3B" class="ink"/>
+    <ellipse cx="770" cy="1044" rx="42" ry="16" fill="#8D5A3B" class="ink"/>
+
+    <g class="ramesh-upper">
+      <!-- White Kurta Torso (base #FFFFFF + shade #EFECE5) -->
+      <path d="M 548 530 C 534 615 538 730 548 820 L 836 820 C 846 730 848 615 828 530 C 788 495 592 495 548 530 Z" fill="#FFFFFF" class="ink"/>
+      <path d="M 710 512 L 834 818 L 760 818 L 688 512 Z" fill="#EFECE5"/>
+      <!-- Kurta placket & buttons -->
+      <line x1="694" y1="514" x2="694" y2="655" class="ink"/>
+      <circle cx="694" cy="548" r="3" fill="#1B1F24"/>
+      <circle cx="694" cy="580" r="3" fill="#1B1F24"/>
+      <circle cx="694" cy="612" r="3" fill="#1B1F24"/>
+
+      <!-- Teal Shawl draped over his left shoulder (viewer-left) -->
+      <path d="M 554 522 C 588 504 636 508 662 524 L 642 792 L 542 778 C 538 690 542 588 554 522 Z" fill="#0F5C5A" class="ink"/>
+      <path d="M 612 514 L 642 792 L 598 786 L 588 512 Z" fill="#0B4846"/>
+      <!-- Marigold woven border stripe at the bottom of the Teal shawl -->
+      <rect x="544" y="744" width="98" height="22" transform="rotate(6 593 755)" fill="#E8A33D" class="ink"/>
+
+      <!-- Viewer-left arm & 5-fingered hand resting on his knee/chair -->
+      <path d="M 548 548 C 512 602 504 668 524 726 L 572 718 C 558 668 564 612 586 575 Z" fill="#FFFFFF" class="ink"/>
+      <g id="ramesh-left-hand" fill="#A86F4C" class="ink">
+        <path d="M 524 720 C 516 732 520 752 534 758 L 582 752 C 590 740 584 722 570 716 Z"/>
+        <rect x="522" y="746" width="11" height="26" rx="5.5"/>
+        <rect x="536" y="748" width="11" height="30" rx="5.5"/>
+        <rect x="550" y="748" width="11" height="30" rx="5.5"/>
+        <rect x="564" y="746" width="11" height="26" rx="5.5"/>
+        <rect x="576" y="732" width="12" height="22" rx="6" transform="rotate(-22 582 743)"/>
+      </g>
+
+      <!-- Neck -->
+      <path d="M 660 456 L 656 520 C 676 534 710 534 728 520 L 724 456 Z" fill="#A86F4C" class="ink"/>
+      <path d="M 692 468 L 726 518 L 724 456 Z" fill="#8E5B3B"/>
+
+      <!-- Head (Ramesh, 79: bald on top with white side hair, round steel glasses, moustache, warm smile) -->
+      <!-- White side hair tufts -->
+      <path d="M 616 402 C 602 380 608 352 626 344 C 632 365 632 388 626 408 Z" fill="#FFFFFF" class="ink"/>
+      <path d="M 768 402 C 782 380 776 352 758 344 C 752 365 752 388 758 408 Z" fill="#EFECE5" class="ink"/>
+      <!-- Ears -->
+      <ellipse cx="620" cy="412" rx="14" ry="24" fill="#A86F4C" class="ink"/>
+      <ellipse cx="764" cy="412" rx="14" ry="24" fill="#8E5B3B" class="ink"/>
+      <!-- Bald dome & warm face -->
+      <path d="M 626 368 C 626 312 758 312 758 368 C 764 434 742 480 692 484 C 642 480 620 434 626 368 Z" fill="#A86F4C" class="ink"/>
+      <path d="M 702 324 C 742 332 758 364 756 412 C 752 456 726 480 692 484 C 716 462 724 420 718 370 Z" fill="#8E5B3B"/>
+      <!-- Gentle forehead wrinkles -->
+      <path d="M 658 348 Q 692 343 726 348 M 664 358 Q 692 354 720 358" stroke="#8E5B3B" stroke-width="2" fill="none"/>
+
+      <!-- White eyebrows (rise gently when listening) -->
+      <g class="brows-rise">
+        <path d="M 648 382 Q 666 372 682 380" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" fill="none"/>
+        <path d="M 648 382 Q 666 372 682 380" class="ink" fill="none"/>
+        <path d="M 704 380 Q 720 372 738 382" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" fill="none"/>
+        <path d="M 704 380 Q 720 372 738 382" class="ink" fill="none"/>
+      </g>
+
+      <!-- Round Steel Glasses -->
+      <circle cx="666" cy="400" r="20" fill="#E3F0EE" fill-opacity="0.35" class="ink"/>
+      <circle cx="720" cy="400" r="20" fill="#E3F0EE" fill-opacity="0.35" class="ink"/>
+      <line x1="686" y1="400" x2="700" y2="400" class="ink"/>
+      <line x1="624" y1="400" x2="646" y2="400" class="ink"/>
+      <line x1="740" y1="400" x2="760" y2="400" class="ink"/>
+
+      <!-- Eyes & laugh lines -->
+      <circle cx="668" cy="400" r="4" fill="#1B1F24"/>
+      <circle cx="722" cy="400" r="4" fill="#1B1F24"/>
+      <path d="M 638 398 L 644 400 M 748 398 L 742 400" stroke="#1B1F24" stroke-width="1.8"/>
+      <!-- Nose -->
+      <path d="M 694 396 L 700 424 Q 692 430 684 425" class="ink" fill="none"/>
+      <!-- White Moustache & Speaking/Smiling Mouth -->
+      <path d="M 662 440 C 674 430 688 432 694 438 C 700 432 714 430 726 440 C 718 448 702 448 694 443 C 686 448 670 448 662 440 Z" fill="#FFFFFF" class="ink"/>
+      <ellipse cx="694" cy="450" rx="14" ry="7" fill="#8D5A3B" class="ink mouth-speak"/>
+
+      <!-- Viewer-right arm & 5-fingered palm holding phone on speaker -->
+      <path d="M 812 548 C 848 588 866 635 852 668 L 792 662 C 802 628 794 590 778 566 Z" fill="#FFFFFF" class="ink"/>
+      <g id="ramesh-right-hand">
+        <!-- Palm & 5 distinct fingers cradling the phone on speaker -->
+        <path d="M 818 646 C 838 642 898 638 914 648 C 920 660 906 676 882 678 L 822 674 Z" fill="#A86F4C" class="ink"/>
+        <!-- Thumb on left side of phone -->
+        <rect x="822" y="624" width="26" height="12" rx="6" transform="rotate(-18 835 630)" fill="#A86F4C" class="ink"/>
+        <!-- Phone on speaker in his palm -->
+        <rect x="836" y="616" width="78" height="36" rx="8" transform="rotate(-8 875 634)" fill="#1B1F24" class="ink"/>
+        <rect x="844" y="621" width="58" height="26" rx="4" transform="rotate(-8 875 634)" fill="#E3F0EE"/>
+        <!-- 4 fingers along the bottom/front edge of the phone -->
+        <g fill="#A86F4C" class="ink">
+          <rect x="846" y="646" width="12" height="22" rx="6"/>
+          <rect x="860" y="647" width="12" height="24" rx="6"/>
+          <rect x="874" y="646" width="12" height="23" rx="6"/>
+          <rect x="888" y="644" width="11" height="20" rx="5.5"/>
+        </g>
+        <!-- Softly pulsing speaker sound waves -->
+        <path d="M 862 598 Q 882 582 902 596" fill="none" stroke="#0F5C5A" stroke-width="3" stroke-linecap="round" class="wave-1"/>
+        <path d="M 850 582 Q 882 558 914 578" fill="none" stroke="#0F5C5A" stroke-width="3" stroke-linecap="round" class="wave-2"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- Speech Bubble from the phone with Telugu text and "09:00 dose call" -->
+  <g id="speech-bubble">
+    <!-- Soft flat shadow -->
+    <path d="M 898 338 H 1396 A 24 24 0 0 1 1420 362 V 468 A 24 24 0 0 1 1396 492 H 956 L 896 544 L 912 492 H 898 A 24 24 0 0 1 874 468 V 362 A 24 24 0 0 1 898 338 Z" fill="#E3DED3"/>
+    <!-- White bubble -->
+    <path d="M 890 330 H 1388 A 24 24 0 0 1 1412 354 V 460 A 24 24 0 0 1 1388 484 H 948 L 888 536 L 904 484 H 890 A 24 24 0 0 1 866 460 V 354 A 24 24 0 0 1 890 330 Z" fill="#FFFFFF" class="ink"/>
+    <!-- Telugu line: "ఉదయం మాత్రలు వేసుకున్నారా?" -->
+    <text x="904" y="396" lang="te" font-family="Noto Sans, Noto Sans Telugu, sans-serif" font-size="30" font-weight="700" fill="#1B1F24">ఉదయం మాత్రలు వేసుకున్నారా?</text>
+    <!-- Small subtitle: "09:00 dose call" -->
+    <text x="904" y="442" font-family="Noto Sans, sans-serif" font-size="22" font-weight="500" fill="#1B1F24" opacity="0.72">09:00 dose call</text>
+    <!-- Green confirmation tick -->
+    <g class="tick-appear">
+      <circle cx="1362" cy="410" r="24" fill="#1E7B4F"/>
+      <path d="M 1350 410 L 1359 419 L 1376 401" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- Subtle paper-grain texture at 5% opacity -->
+  <rect width="1600" height="1200" fill="url(#s3-grain)" opacity="0.05" pointer-events="none"/>
+</svg>

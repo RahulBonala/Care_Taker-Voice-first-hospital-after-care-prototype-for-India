@@ -1,0 +1,458 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200" role="img" aria-labelledby="s5-title s5-desc">
+  <title id="s5-title">Anita receiving a Family card confirmation at her work desk in Pune</title>
+  <desc id="s5-desc">Warm editorial illustration of Anita at a contemporary work desk in Pune with a large morning window behind her, wearing a teal kurta, marigold dupatta, and office lanyard while holding her smartphone beside a floating Family card notification reading Taken, 09:02 with a green tick.</desc>
+
+  <defs>
+    <!-- Subtle hand-made paper grain pattern (no gradients, flat editorial texture at 5% opacity) -->
+    <pattern id="paper-grain-s5" width="120" height="120" patternUnits="userSpaceOnUse">
+      <rect width="120" height="120" fill="none" />
+      <circle cx="16" cy="22" r="1.1" fill="#1B1F24" />
+      <circle cx="58" cy="14" r="0.9" fill="#1B1F24" />
+      <circle cx="94" cy="31" r="1.2" fill="#1B1F24" />
+      <circle cx="106" cy="68" r="1.0" fill="#8D5A3B" />
+      <circle cx="28" cy="58" r="1.2" fill="#1B1F24" />
+      <circle cx="76" cy="63" r="0.9" fill="#1B1F24" />
+      <circle cx="22" cy="96" r="1.1" fill="#8D5A3B" />
+      <circle cx="67" cy="105" r="1.2" fill="#1B1F24" />
+      <circle cx="102" cy="110" r="0.9" fill="#1B1F24" />
+      <path d="M12 44 L17 42 M82 22 L87 24 M46 84 L51 82 M91 88 L96 90" stroke="#1B1F24" stroke-width="0.9" stroke-linecap="round" />
+    </pattern>
+
+    <clipPath id="pune-window-clip">
+      <rect x="88" y="108" width="536" height="584" rx="14" />
+    </clipPath>
+  </defs>
+
+  <style>
+    .ink-line {
+      stroke: #1B1F24;
+      stroke-width: 2.5px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .ui-card-title {
+      font-family: "Noto Sans", sans-serif;
+      font-weight: 700;
+      font-size: 30px;
+      fill: #1B1F24;
+    }
+    .ui-card-sub {
+      font-family: "Noto Sans", sans-serif;
+      font-weight: 500;
+      font-size: 25px;
+      fill: #1B1F24;
+    }
+
+    /* 0.0s to 1.2s (0% to 15%): Phone buzzes (2 subtle vibration shakes) */
+    .phone-buzz {
+      transform-origin: 1030px 595px;
+      animation: s5PhoneBuzz 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    @keyframes s5PhoneBuzz {
+      0% { transform: translate(0px, 0px) rotate(0deg); }
+      3% { transform: translate(-3px, -1px) rotate(-2deg); }
+      6% { transform: translate(3px, 1px) rotate(2deg); }
+      9% { transform: translate(-3px, 0px) rotate(-1.5deg); }
+      12% { transform: translate(2px, 0px) rotate(1.5deg); }
+      15%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+    }
+
+    /* 0.0s to 1.2s: Anita glances towards screen; 2.6s to 5.6s: warm relaxed tilt */
+    .anita-head {
+      transform-origin: 855px 410px;
+      animation: s5AnitaHead 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    @keyframes s5AnitaHead {
+      0% { transform: rotate(0deg) translateY(0px); }
+      10%, 32.5% { transform: rotate(2.5deg) translateY(2px); }
+      50%, 90% { transform: rotate(1deg) translateY(3px); }
+      100% { transform: rotate(0deg) translateY(0px); }
+    }
+
+    /* 1.2s (15%) to 2.6s (32.5%): Floating Family card slides up smoothly from phone
+       Default static state (when animation is disabled) is opacity: 1; transform: none */
+    .family-ui-card {
+      opacity: 1;
+      transform: translateY(0px);
+      animation: s5CardSlide 8s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+    }
+    @keyframes s5CardSlide {
+      0%, 14% {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+      32.5%, 90% {
+        opacity: 1;
+        transform: translateY(0px);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+    }
+
+    /* 2.6s (32.5%) to 5.6s (70%): Anita relaxes, shoulders drop slightly (translateY(3px)) */
+    .anita-shoulders {
+      transform-origin: 855px 560px;
+      animation: s5ShouldersRelax 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    @keyframes s5ShouldersRelax {
+      0%, 32.5% { transform: translateY(0px); }
+      52%, 90% { transform: translateY(3px); }
+      100% { transform: translateY(0px); }
+    }
+
+    /* 2.6s (32.5%) to 5.6s (70%): Anita lowers her phone hand slightly toward the desk (translateY(8px)) */
+    .anita-phone-arm {
+      transform-origin: 955px 620px;
+      animation: s5PhoneArmLower 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    @keyframes s5PhoneArmLower {
+      0%, 32.5% { transform: translateY(0px); }
+      55%, 90% { transform: translateY(8px); }
+      100% { transform: translateY(0px); }
+    }
+
+    /* Constant throughout 8s: Plant leaf on the desk sways gently (rotate(-2deg) to rotate(2deg)) */
+    .plant-leaf-sway {
+      transform-origin: 1385px 710px;
+      animation: s5LeafSway 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    @keyframes s5LeafSway {
+      0% { transform: rotate(-2deg); }
+      50% { transform: rotate(2deg); }
+      100% { transform: rotate(-2deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+      }
+      .family-ui-card {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
+  </style>
+
+  <!-- ==================== BACKGROUND: CONTEMPORARY PUNE OFFICE ==================== -->
+  <!-- Paper Wall -->
+  <rect x="0" y="0" width="1600" height="790" fill="#F7F5F0" />
+  <rect x="0" y="745" width="1600" height="45" fill="#EFECE5" />
+  <line x1="0" y1="745" x2="1600" y2="745" stroke="#E3DED3" stroke-width="2.5" />
+
+  <!-- Warm morning sunlight cast from left window across wall and desk (flat editorial shapes) -->
+  <polygon points="624,115 1190,230 1340,790 624,705" fill="#FBF0DC" opacity="0.58" />
+  <polygon points="140,790 1340,790 1540,1180 280,1180" fill="#FBF0DC" opacity="0.45" />
+
+  <!-- Large Window on the Left showing Pune Morning Cityscape -->
+  <g id="pune-office-window">
+    <!-- Outer frame -->
+    <rect x="74" y="94" width="564" height="612" rx="18" fill="#EFECE5" class="ink-line" />
+    <rect x="88" y="108" width="536" height="584" rx="14" fill="#FBF0DC" class="ink-line" />
+
+    <g clip-path="url(#pune-window-clip)">
+      <!-- Morning sky -->
+      <rect x="88" y="108" width="536" height="584" fill="#FBF0DC" />
+      <!-- Flat morning sun circle -->
+      <circle cx="195" cy="195" r="46" fill="#E8A33D" opacity="0.38" />
+
+      <!-- Distant Pune hills (Vetal Tekdi / Sahyadri foothills) -->
+      <path d="M88 455 Q220 390 365 435 Q495 385 624 425 L624 692 L88 692 Z" fill="#E3F0EE" />
+
+      <!-- Pune City Buildings (Teal soft & Sand silhouettes with terracotta roofs) -->
+      <!-- Building 1 (left mid-rise) -->
+      <rect x="112" y="340" width="96" height="320" fill="#E3F0EE" class="ink-line" />
+      <rect x="172" y="340" width="36" height="320" fill="#EFECE5" />
+      <rect x="112" y="340" width="96" height="320" fill="none" class="ink-line" />
+      <rect x="128" y="366" width="22" height="28" fill="#FFFFFF" />
+      <rect x="162" y="366" width="22" height="28" fill="#FFFFFF" />
+      <rect x="128" y="412" width="22" height="28" fill="#FFFFFF" />
+      <rect x="162" y="412" width="22" height="28" fill="#FFFFFF" />
+      <rect x="128" y="458" width="22" height="28" fill="#FFFFFF" />
+      <rect x="162" y="458" width="22" height="28" fill="#FFFFFF" />
+
+      <!-- Building 2 (classic Pune pitched terracotta roof building) -->
+      <rect x="228" y="410" width="132" height="260" fill="#EFECE5" class="ink-line" />
+      <polygon points="216,410 294,358 372,410" fill="#C68B63" class="ink-line" />
+      <polygon points="294,358 372,410 294,410" fill="#AC744E" />
+      <polygon points="216,410 294,358 372,410" fill="none" class="ink-line" />
+      <rect x="252" y="438" width="28" height="42" rx="14" fill="#E3F0EE" class="ink-line" />
+      <rect x="306" y="438" width="28" height="42" rx="14" fill="#E3F0EE" class="ink-line" />
+
+      <!-- Building 3 (contemporary office tower right) -->
+      <rect x="384" y="295" width="118" height="375" fill="#E3F0EE" class="ink-line" />
+      <rect x="462" y="295" width="40" height="375" fill="#EFECE5" />
+      <rect x="384" y="295" width="118" height="375" fill="none" class="ink-line" />
+      <line x1="404" y1="335" x2="482" y2="335" stroke="#0F5C5A" stroke-width="3" />
+      <line x1="404" y1="375" x2="482" y2="375" stroke="#0F5C5A" stroke-width="3" />
+      <line x1="404" y1="415" x2="482" y2="415" stroke="#0F5C5A" stroke-width="3" />
+      <line x1="404" y1="455" x2="482" y2="455" stroke="#0F5C5A" stroke-width="3" />
+
+      <!-- Building 4 (far right) -->
+      <rect x="520" y="370" width="110" height="300" fill="#EFECE5" class="ink-line" />
+
+      <!-- Lush Pune tree canopies along street -->
+      <path d="M88 595 C125 545 195 548 232 592 C275 538 355 542 395 595 C438 548 518 545 558 592 C585 565 612 570 624 590 L624 692 L88 692 Z" fill="#0F5C5A" class="ink-line" />
+      <path d="M140 635 C195 588 275 592 320 638 C375 590 465 595 512 640 L624 640 L624 692 L88 692 Z" fill="#1E7B4F" class="ink-line" />
+    </g>
+
+    <!-- Window mullions -->
+    <line x1="356" y1="108" x2="356" y2="692" stroke="#E3DED3" stroke-width="8" />
+    <line x1="356" y1="108" x2="356" y2="692" class="ink-line" />
+    <line x1="88" y1="405" x2="624" y2="405" stroke="#E3DED3" stroke-width="8" />
+    <line x1="88" y1="405" x2="624" y2="405" class="ink-line" />
+    <!-- Window sill -->
+    <rect x="60" y="692" width="592" height="22" rx="6" fill="#EFECE5" class="ink-line" />
+    <rect x="60" y="704" width="592" height="10" rx="4" fill="#E3DED3" />
+  </g>
+
+  <!-- Subtle Geometric Wall Art on Upper Right (no text) -->
+  <g id="office-wall-panel">
+    <rect x="1198" y="138" width="260" height="165" rx="10" fill="#E3DED3" />
+    <rect x="1190" y="130" width="260" height="165" rx="10" fill="#EFECE5" class="ink-line" />
+    <circle cx="1265" cy="212" r="42" fill="#E8A33D" opacity="0.4" />
+    <path d="M1235 255 L1295 175 L1355 255 Z" fill="#0F5C5A" class="ink-line" />
+    <circle cx="1375" cy="192" r="22" fill="#E8A33D" class="ink-line" />
+  </g>
+
+  <!-- ==================== ERGONOMIC CHAIR & ANITA, 42 ==================== -->
+  <!-- Chair backrest behind Anita -->
+  <g id="office-chair">
+    <rect x="708" y="425" width="290" height="360" rx="42" fill="#1B1F24" class="ink-line" />
+    <rect x="726" y="445" width="254" height="320" rx="32" fill="#EFECE5" class="ink-line" />
+    <path d="M915 445 L948 445 C965 445 980 460 980 477 L980 733 C980 750 965 765 948 765 L915 765 Z" fill="#E3DED3" />
+    <rect x="726" y="445" width="254" height="320" rx="32" fill="none" class="ink-line" />
+  </g>
+
+  <!-- Character: Anita, 42 -->
+  <g id="character-anita">
+    <!-- Upper body & shoulders (relaxes 2.6s to 5.6s) -->
+    <g class="anita-shoulders">
+      <!-- Dark hair back layer resting on shoulders -->
+      <path d="M770 340 C745 395 748 475 765 520 L945 520 C962 475 965 395 940 340 Z" fill="#1B1F24" class="ink-line" />
+
+      <!-- Teal Kurta (#0F5C5A base, #0B4846 shade) -->
+      <path d="M715 520 C725 485 985 485 995 525 L1022 795 L688 795 Z" fill="#0F5C5A" />
+      <path d="M885 492 C945 494 988 504 995 525 L1022 795 L888 795 Z" fill="#0B4846" />
+      <path d="M715 520 C725 485 985 485 995 525 L1022 795 L688 795 Z" fill="none" class="ink-line" />
+
+      <!-- Kurta neckline -->
+      <path d="M808 492 L855 548 L902 492" fill="#A86F4C" class="ink-line" />
+
+      <!-- Marigold Dupatta (#E8A33D base, #D08B28 shade) draped over left shoulder -->
+      <path d="M728 496 L812 492 L925 795 L712 795 Z" fill="#E8A33D" />
+      <path d="M775 494 L812 492 L925 795 L845 795 Z" fill="#D08B28" />
+      <!-- Teal woven border on dupatta -->
+      <polygon points="792,493 812,492 925,795 900,795" fill="#0F5C5A" class="ink-line" />
+      <path d="M728 496 L812 492 L925 795 L712 795 Z" fill="none" class="ink-line" />
+
+      <!-- Office ID Lanyard (strap + badge with geometric icon, NO text) -->
+      <g id="anita-lanyard">
+        <path d="M804 488 L852 648 L866 648 L906 488" fill="none" stroke="#E3DED3" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M804 488 L852 648 L866 648 L906 488" fill="none" class="ink-line" />
+        <!-- Metal clip -->
+        <rect x="851" y="646" width="16" height="14" rx="3" fill="#EFECE5" class="ink-line" />
+        <!-- ID Badge Card (no text) -->
+        <rect x="825" y="658" width="68" height="90" rx="8" fill="#FFFFFF" class="ink-line" />
+        <rect x="825" y="658" width="68" height="22" rx="6" fill="#0F5C5A" class="ink-line" />
+        <circle cx="859" cy="702" r="12" fill="#E3F0EE" class="ink-line" />
+        <line x1="841" y1="726" x2="877" y2="726" stroke="#E3DED3" stroke-width="5" stroke-linecap="round" />
+        <line x1="847" y1="736" x2="871" y2="736" stroke="#E3DED3" stroke-width="4" stroke-linecap="round" />
+      </g>
+
+      <!-- Anita Neck & Head (42yo, warm South Asian skin #A86F4C / #8E5B3B, relieved smile) -->
+      <rect x="834" y="446" width="42" height="54" rx="12" fill="#8E5B3B" class="ink-line" />
+
+      <g class="anita-head">
+        <!-- Ears & Gold Stud Earrings -->
+        <ellipse cx="792" cy="392" rx="11" ry="18" fill="#A86F4C" class="ink-line" />
+        <ellipse cx="918" cy="392" rx="11" ry="18" fill="#8E5B3B" class="ink-line" />
+        <circle cx="792" cy="406" r="5.5" fill="#E8A33D" class="ink-line" />
+        <circle cx="918" cy="406" r="5.5" fill="#E8A33D" class="ink-line" />
+
+        <!-- Head base & shade -->
+        <ellipse cx="855" cy="382" rx="60" ry="70" fill="#A86F4C" />
+        <path d="M868 314 C900 322 915 350 915 382 C915 420 892 448 858 452 C880 426 882 350 868 314 Z" fill="#8E5B3B" />
+        <ellipse cx="855" cy="382" rx="60" ry="70" fill="none" class="ink-line" />
+
+        <!-- Shoulder-length dark hair crown & layered ends -->
+        <path d="M792 372 C790 322 822 298 860 300 C898 302 924 328 918 372 C902 344 880 332 854 332 C828 332 806 346 792 372 Z" fill="#1B1F24" class="ink-line" />
+        <!-- Layered side locks -->
+        <path d="M794 362 C776 398 776 452 792 485 C798 456 800 412 798 378 Z" fill="#1B1F24" class="ink-line" />
+        <path d="M916 362 C934 398 934 452 918 485 C912 456 910 412 912 378 Z" fill="#1B1F24" class="ink-line" />
+
+        <!-- Small forehead bindi -->
+        <circle cx="862" cy="356" r="3.5" fill="#1B1F24" />
+
+        <!-- Expressive eyebrows & warm eyes looking towards her phone on the right -->
+        <path d="M826 366 Q838 359 850 365" fill="none" class="ink-line" />
+        <path d="M872 365 Q884 359 896 366" fill="none" class="ink-line" />
+        <circle cx="842" cy="380" r="4.8" fill="#1B1F24" />
+        <circle cx="886" cy="380" r="4.8" fill="#1B1F24" />
+
+        <!-- Nose & tiny gold nose stud -->
+        <path d="M864 380 L871 400 L860 403" fill="none" class="ink-line" />
+        <circle cx="857" cy="397" r="2.2" fill="#E8A33D" />
+
+        <!-- Warm, relieved smile & subtle cheek laugh lines -->
+        <path d="M838 416 Q862 433 886 416" fill="none" class="ink-line" />
+        <path d="M831 412 Q826 418 830 424" fill="none" stroke="#74472D" stroke-width="2" stroke-linecap="round" />
+        <path d="M893 412 Q898 418 894 424" fill="none" stroke="#74472D" stroke-width="2" stroke-linecap="round" />
+      </g>
+    </g>
+  </g>
+
+  <!-- ==================== DESK SURFACE & DESK OBJECTS ==================== -->
+  <g id="work-desk">
+    <!-- Desk Top in Sand (#EFECE5) with front edge (#E3DED3) -->
+    <rect x="0" y="790" width="1600" height="410" fill="#EFECE5" />
+    <rect x="0" y="790" width="1600" height="28" fill="#E3DED3" />
+    <line x1="0" y1="790" x2="1600" y2="790" class="ink-line" />
+    <line x1="0" y1="818" x2="1600" y2="818" class="ink-line" />
+
+    <!-- Soft contact shadows on desk under tumbler, laptop, hands, and plant -->
+    <ellipse cx="255" cy="848" rx="58" ry="14" fill="#E3DED3" />
+    <ellipse cx="535" cy="862" rx="195" ry="22" fill="#E3DED3" />
+    <ellipse cx="755" cy="842" rx="75" ry="15" fill="#E3DED3" />
+    <ellipse cx="1015" cy="842" rx="85" ry="16" fill="#E3DED3" />
+    <ellipse cx="1385" cy="865" rx="115" ry="22" fill="#E3DED3" />
+  </g>
+
+  <!-- Steel Tumbler / Mug on Coaster (Left side of desk) -->
+  <g id="desk-tumbler">
+    <ellipse cx="255" cy="844" rx="44" ry="10" fill="#C68B63" class="ink-line" />
+    <path d="M222 732 L288 732 L280 840 L230 840 Z" fill="#EFECE5" />
+    <path d="M256 732 L288 732 L280 840 L256 840 Z" fill="#E3DED3" />
+    <path d="M222 732 L288 732 L280 840 L230 840 Z" fill="none" class="ink-line" />
+    <!-- Brass rim band -->
+    <rect x="220" y="726" width="70" height="14" rx="5" fill="#E8A33D" class="ink-line" />
+    <line x1="225" y1="762" x2="285" y2="762" class="ink-line" />
+  </g>
+
+  <!-- Open Laptop on the Desk -->
+  <g id="desk-laptop">
+    <!-- Laptop base / keyboard deck -->
+    <polygon points="445,825 695,825 735,858 405,858" fill="#EFECE5" class="ink-line" />
+    <rect x="405" y="852" width="330" height="10" rx="4" fill="#1B1F24" class="ink-line" />
+    <!-- Angled Laptop Screen -->
+    <polygon points="355,585 635,585 665,832 385,832" fill="#1B1F24" class="ink-line" />
+    <polygon points="372,600 620,600 647,818 399,818" fill="#E3F0EE" class="ink-line" />
+    <!-- Abstract UI blocks on laptop screen (zero text) -->
+    <polygon points="392,622 495,622 502,682 399,682" fill="#FFFFFF" class="ink-line" />
+    <polygon points="512,622 605,622 612,682 519,682" fill="#FBF0DC" class="ink-line" />
+    <polygon points="404,700 616,700 626,792 414,792" fill="#FFFFFF" class="ink-line" />
+    <line x1="424" y1="728" x2="585" y2="728" stroke="#0F5C5A" stroke-width="6" stroke-linecap="round" />
+    <line x1="428" y1="752" x2="545" y2="752" stroke="#E8A33D" stroke-width="6" stroke-linecap="round" />
+    <line x1="432" y1="774" x2="515" y2="774" stroke="#E3DED3" stroke-width="6" stroke-linecap="round" />
+  </g>
+
+  <!-- ==================== ANITA'S HANDS (5 DISTINCT FINGERS ON EACH HAND) ==================== -->
+  <!-- Anita Left Arm & Left Hand resting on desk near laptop (5 distinct fingers) -->
+  <g id="anita-left-arm-desk">
+    <!-- Left Teal Sleeve -->
+    <path d="M715 535 L668 695 L722 712 L755 585 Z" fill="#0F5C5A" class="ink-line" />
+    <!-- Left Forearm -->
+    <path d="M674 692 L718 815 L756 802 L718 682 Z" fill="#A86F4C" class="ink-line" />
+    <!-- Left Hand resting on desk with 5 clearly drawn fingers -->
+    <g id="anita-left-hand-5fingers" fill="#A86F4C" class="ink-line">
+      <!-- Palm -->
+      <path d="M716 802 C738 796 764 800 774 816 C772 830 752 836 722 830 Z" />
+      <!-- 1. Thumb -->
+      <path d="M742 800 L772 790 C779 788 782 796 775 800 L748 810" />
+      <!-- 2. Index finger -->
+      <path d="M764 808 L804 806 C811 806 811 814 804 815 L764 817" />
+      <!-- 3. Middle finger -->
+      <path d="M766 817 L808 818 C815 818 815 826 808 827 L765 826" />
+      <!-- 4. Ring finger -->
+      <path d="M760 826 L798 828 C805 828 804 836 797 836 L758 834" />
+      <!-- 5. Little finger -->
+      <path d="M748 833 L782 836 C788 836 787 843 781 843 L745 840" />
+    </g>
+  </g>
+
+  <!-- Anita Right Arm & Right Hand holding Smartphone (lowers slightly 2.6s to 5.6s, 5 distinct fingers) -->
+  <g class="anita-phone-arm">
+    <!-- Right Teal Sleeve & Forearm -->
+    <path d="M982 532 L1035 695 L980 715 L945 595 Z" fill="#0B4846" class="ink-line" />
+    <path d="M985 695 L1018 615 L1052 632 L1026 725 Z" fill="#A86F4C" class="ink-line" />
+    <!-- Thin gold bangle on right wrist -->
+    <ellipse cx="1024" cy="656" rx="22" ry="8" transform="rotate(24 1024 656)" fill="none" stroke="#E8A33D" stroke-width="5" />
+    <ellipse cx="1024" cy="656" rx="22" ry="8" transform="rotate(24 1024 656)" fill="none" class="ink-line" />
+
+    <!-- Smartphone + Right Hand Group (buzzes 0.0s to 1.2s) -->
+    <g class="phone-buzz">
+      <!-- Smartphone Body (#1B1F24) & Lit Screen (#E3F0EE) -->
+      <rect x="992" y="528" width="76" height="136" rx="14" fill="#1B1F24" class="ink-line" />
+      <rect x="1000" y="540" width="60" height="112" rx="8" fill="#E3F0EE" />
+      <!-- Mini confirmation card preview on phone screen (no text) -->
+      <rect x="1007" y="564" width="46" height="36" rx="6" fill="#FFFFFF" stroke="#1B1F24" stroke-width="2" />
+      <circle cx="1020" cy="582" r="7" fill="#1E7B4F" />
+      <path d="M1016 582 L1019 585 L1025 579" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" />
+      <line x1="1032" y1="578" x2="1046" y2="578" stroke="#1B1F24" stroke-width="3" stroke-linecap="round" />
+      <line x1="1032" y1="586" x2="1043" y2="586" stroke="#0F5C5A" stroke-width="2.5" stroke-linecap="round" />
+
+      <!-- Subtle vibration wave lines around phone -->
+      <path d="M978 555 Q970 575 978 595" fill="none" stroke="#E8A33D" stroke-width="2.5" stroke-linecap="round" />
+      <path d="M1082 555 Q1090 575 1082 595" fill="none" stroke="#E8A33D" stroke-width="2.5" stroke-linecap="round" />
+
+      <!-- Anita Right Hand holding phone with 5 clearly drawn fingers -->
+      <g id="anita-right-hand-5fingers" fill="#A86F4C" class="ink-line">
+        <!-- 1. Thumb on left side of phone -->
+        <path d="M982 595 C974 588 982 574 994 580 L1002 606 L988 614 Z" />
+        <!-- 2. Index finger wrapped around right edge of phone -->
+        <rect x="1058" y="564" width="20" height="12" rx="6" />
+        <!-- 3. Middle finger wrapped around right edge of phone -->
+        <rect x="1060" y="578" width="21" height="12" rx="6" />
+        <!-- 4. Ring finger wrapped around right edge of phone -->
+        <rect x="1058" y="592" width="20" height="12" rx="6" />
+        <!-- 5. Little finger wrapped around right edge of phone -->
+        <rect x="1055" y="606" width="18" height="11" rx="5.5" />
+      </g>
+    </g>
+  </g>
+
+  <!-- ==================== POTTED INDOOR PLANT ON RIGHT SIDE OF DESK ==================== -->
+  <g id="desk-potted-plant">
+    <!-- Stationary back leaves -->
+    <path d="M1365 715 C1310 660 1295 585 1325 545 C1365 575 1380 645 1365 715 Z" fill="#0F5C5A" class="ink-line" />
+    <path d="M1405 715 C1455 660 1485 595 1460 548 C1420 575 1405 645 1405 715 Z" fill="#0F5C5A" class="ink-line" />
+    <path d="M1355 725 C1295 700 1272 652 1290 620 C1325 632 1350 680 1355 725 Z" fill="#1E7B4F" class="ink-line" />
+    <path d="M1415 725 C1475 700 1502 652 1482 620 C1448 632 1422 680 1415 725 Z" fill="#1E7B4F" class="ink-line" />
+
+    <!-- Gently swaying centre leaf group (sways -2deg to 2deg over 8s) -->
+    <g class="plant-leaf-sway">
+      <path d="M1385 718 C1360 625 1372 520 1396 485 C1422 522 1412 625 1385 718 Z" fill="#1E7B4F" class="ink-line" />
+      <path d="M1388 695 L1394 525" fill="none" stroke="#E3F0EE" stroke-width="2.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Terracotta Pot (#A86F4C base, #8E5B3B shade) -->
+    <path d="M1325 712 L1445 712 L1428 855 L1342 855 Z" fill="#A86F4C" />
+    <path d="M1390 712 L1445 712 L1428 855 L1385 855 Z" fill="#8E5B3B" />
+    <path d="M1325 712 L1445 712 L1428 855 L1342 855 Z" fill="none" class="ink-line" />
+    <rect x="1315" y="696" width="140" height="20" rx="7" fill="#A86F4C" class="ink-line" />
+    <rect x="1332" y="848" width="106" height="14" rx="6" fill="#8E5B3B" class="ink-line" />
+  </g>
+
+  <!-- ==================== FLOATING UI CARD: "Family card" / "Taken, 09:02" ==================== -->
+  <g class="family-ui-card" id="floating-family-card">
+    <!-- Subtle connector line from smartphone to floating card -->
+    <path d="M1052 528 L1115 472" fill="none" stroke="#1B1F24" stroke-width="2.5" stroke-dasharray="6 6" stroke-linecap="round" />
+
+    <!-- Soft flat offset shadow -->
+    <rect x="1086" y="344" width="424" height="144" rx="20" fill="#E3DED3" />
+    <!-- Clean white UI card (#FFFFFF fill, #1B1F24 2.5px border, rx="20") -->
+    <rect x="1076" y="334" width="424" height="144" rx="20" fill="#FFFFFF" class="ink-line" />
+
+    <!-- Green ok (#1E7B4F) circle with white tick on the left -->
+    <circle cx="1146" cy="406" r="34" fill="#1E7B4F" class="ink-line" />
+    <path d="M1130 406 L1142 418 L1164 394" fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- ONLY allowed UI text in this scene: "Family card" and "Taken, 09:02" -->
+    <text x="1202" y="398" class="ui-card-title">Family card</text>
+    <text x="1202" y="438" class="ui-card-sub">Taken, 09:02</text>
+  </g>
+
+  <!-- Subtle 5% paper-grain overlay across the entire illustration -->
+  <rect x="0" y="0" width="1600" height="1200" fill="url(#paper-grain-s5)" opacity="0.05" pointer-events="none" />
+</svg>

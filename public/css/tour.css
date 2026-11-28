@@ -128,16 +128,16 @@
   animation: ct-wk-ring 260ms var(--ease-out) both;
 }
 
-/* Tooltip card */
+/* Tooltip card: sits cleanly below the preview frame so it never covers preview content */
 .ct-walk__tip {
-  position: relative; z-index: 2; width: min(22rem, calc(100% - var(--space-5) * 2));
-  margin: calc(-1 * var(--space-6)) var(--space-5) 0;
+  position: relative; z-index: 2; width: 100%;
+  margin: var(--space-2) 0 0;
   animation: ct-wk-tip 240ms var(--ease-out) both;
 }
 .ct-walk__tip[hidden] { display: none; }
-.ct-walk__tip[data-pos$="r"] { align-self: flex-end; }
-.ct-walk__tip[data-pos$="l"] { align-self: flex-start; }
-.ct-walk[data-touring="true"] .ct-walk__screen { padding-bottom: var(--space-7); }
+.ct-walk__tip[data-pos$="r"],
+.ct-walk__tip[data-pos$="l"] { align-self: stretch; }
+.ct-walk[data-touring="true"] .ct-walk__screen { padding-bottom: var(--space-5); }
 .ct-walk__tip:focus-visible { box-shadow: none; }
 .ct-walk__tip:focus-visible .ct-walk__tip-card { box-shadow: var(--focus-ring), var(--shadow-pill); }
 .ct-walk__tip-card {
@@ -393,8 +393,8 @@
   .ct-walk__title { font-size: var(--text-3xl); }
   .ct-walk__lead { font-size: var(--text-md); }
   .ct-walk__ctas .ct-btn { flex: 1 1 auto; }
-  .ct-walk__screen { padding: var(--space-4) var(--space-3); min-height: 0; }
-  .ct-walk__tip, .ct-walk__tip[data-pos] { width: auto; margin: 0; align-self: stretch; }
+  .ct-walk__screen { padding: var(--space-4); min-height: 0; }
+  .ct-walk__tip, .ct-walk__tip[data-pos] { width: auto; margin: var(--space-2) 0 0; align-self: stretch; }
   .ct-walk[data-touring="true"] .ct-walk__screen { padding-bottom: var(--space-4); }
   .ct-walk__links { grid-template-columns: minmax(0, 1fr); }
 }

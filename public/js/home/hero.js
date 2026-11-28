@@ -136,7 +136,7 @@ const ART = {
     <path class="p-green" d="M244 140 C236 126 236 116 244 108 C252 116 252 126 244 140 Z M244 140 C232 132 226 124 226 116 C236 120 242 128 244 140 Z"/>`,
 };
 
-function peopleMarkup() {
+export function peopleMarkup() {
   return `
     <section class="ct-band ct-people" aria-labelledby="people-title">
       <div class="ct-people__inner">
@@ -160,31 +160,67 @@ function peopleMarkup() {
     </section>`;
 }
 
-// Swap a drawing for a real photo when public/img/photos/<name>.webp is present.
-// manifest.json lists the names that were added, so missing files are never requested
-// (a 404 would show as a console error); each listed file is then checked with a HEAD
-// request, and the drawing stays if it is not there.
+// Swap a drawing for an animated SVG or still photo when listed in public/img/manifest.json
+// (or fallback public/img/photos/manifest.json). Under prefers-reduced-motion, prefer the
+// calm still photo (.webp) when available, falling back to the SVG (which disables animation via CSS).
 async function usePhotos(el) {
+  let slots = {};
   let names = [];
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  try {
+    const mRes = await fetch('/img/manifest.json', { cache: 'no-cache' });
+    if (mRes.ok) slots = (await mRes.json()).slots || {};
+  } catch { /* optional */ }
   try {
     const res = await fetch('/img/photos/manifest.json', { cache: 'no-cache' });
     if (res.ok) names = (await res.json()).photos || [];
-  } catch { return; }
-  el.querySelectorAll('.ct-people__fig[data-photo]').forEach(async (fig) => {
-    if (!names.includes(fig.dataset.photo)) return;
-    const src = `/img/photos/${fig.dataset.photo}.webp`;
+  } catch { /* optional */ }
+
+  // Doctor slot (S1)
+  const docSlot = slots.doctor;
+  if (docSlot) {
+    const docSrc = (!reduce && docSlot.type === 'svg') ? '/img/anim/doctor.svg' : '/img/photos/doctor.webp';
     try {
-      const res = await fetch(src, { method: 'HEAD' });
-      if (!res.ok || !(res.headers.get('content-type') || '').startsWith('image/')) return;
-      const img = new Image(1600, 1200);
-      img.className = 'ct-people__photo';
-      img.alt = fig.dataset.alt;
-      img.decoding = 'async';
-      img.loading = 'lazy';
-      img.src = src;
-      fig.querySelector('.ct-people__media').replaceChildren(img);
-      fig.classList.add('has-photo');
-    } catch { /* keep the drawing */ }
+      let head = await fetch(docSrc, { method: 'HEAD' });
+      let finalDocSrc = docSrc;
+      if (!head.ok && docSrc.endsWith('.webp')) {
+        finalDocSrc = '/img/anim/doctor.svg';
+        head = await fetch(finalDocSrc, { method: 'HEAD' });
+      }
+      if (head.ok) {
+        el.querySelectorAll('.ct-doc').forEach((svg) => {
+          const anchor = svg.querySelector('.ct-doc__anchor');
+          svg.innerHTML = `<image href="${finalDocSrc}" x="0" y="0" width="200" height="150" preserveAspectRatio="xMidYMid meet"/>`;
+          if (anchor) svg.appendChild(anchor);
+          svg.classList.add('has-scene');
+        });
+      }
+    } catch { /* keep inline doctor */ }
+  }
+
+  el.querySelectorAll('.ct-people__fig[data-photo]').forEach(async (fig) => {
+    const key = fig.dataset.photo;
+    const slot = slots[key];
+    if (!slot && !names.includes(key)) return;
+    const preferSvg = slot && slot.type === 'svg' && !reduce;
+    const candidates = preferSvg
+      ? [`/img/anim/${key}.svg`, `/img/photos/${key}.webp`]
+      : [`/img/photos/${key}.webp`, `/img/anim/${key}.svg`];
+    for (const src of candidates) {
+      try {
+        const res = await fetch(src, { method: 'HEAD' });
+        if (!res.ok || !(res.headers.get('content-type') || '').startsWith('image/')) continue;
+        const img = new Image(1600, 1200);
+        img.className = 'ct-people__photo';
+        img.alt = fig.dataset.alt;
+        img.decoding = 'async';
+        img.loading = 'lazy';
+        img.src = src;
+        fig.querySelector('.ct-people__media').replaceChildren(img);
+        fig.classList.add('has-photo');
+        break;
+      } catch { /* try next candidate */ }
+    }
   });
 }
 
@@ -212,8 +248,7 @@ export function heroMarkup() {
         <p class="visually-hidden">Animation: a doctor writes a prescription, the dose times travel to the patient's phone, Care Taker calls the patient in their language, and Care cards update for the nurse, doctor and family.</p>
       </div>
       ${flowMarkup()}
-    </section>
-    ${peopleMarkup()}`;
+    </section>`;
 }
 export function mountHero(el) { mountHeroCall(el); usePhotos(el); }
 export function unmountHero() { stopHeroCall(); }

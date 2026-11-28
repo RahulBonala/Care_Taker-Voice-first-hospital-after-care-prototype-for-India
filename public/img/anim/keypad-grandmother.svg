@@ -1,0 +1,403 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200" role="img" aria-labelledby="s2-title s2-desc">
+  <title id="s2-title">Kamala answering her dose call on a keypad phone</title>
+  <desc id="s2-desc">Kamala, 74, sits in a wooden armchair at home in India beside a sunlit window with a tulsi pot, a wall calendar and a ceiling fan. She holds a basic keypad phone to her ear and presses 1 for Yes, with a green confirmation tick.</desc>
+  <defs>
+    <pattern id="s2-grain" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="5" r="0.9" fill="#1B1F24"/>
+      <circle cx="15" cy="3" r="0.7" fill="#1B1F24"/>
+      <circle cx="9" cy="14" r="0.8" fill="#1B1F24"/>
+      <circle cx="21" cy="18" r="0.9" fill="#1B1F24"/>
+      <circle cx="5" cy="21" r="0.6" fill="#1B1F24"/>
+      <circle cx="17" cy="11" r="0.7" fill="#1B1F24"/>
+    </pattern>
+  </defs>
+  <style>
+    .ink { stroke: #1B1F24; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .no-stroke { stroke: none; }
+    .fan-spin {
+      transform-origin: 820px 128px;
+      animation: s2-fan 8s linear infinite;
+    }
+    .curtain-sway {
+      transform-origin: 430px 180px;
+      animation: s2-curtain 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    .phone-group {
+      transform-origin: 905px 510px;
+      animation: s2-phone 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    .phone-screen-lit {
+      animation: s2-screen 8s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+    }
+    .head-nod {
+      transform-origin: 785px 465px;
+      animation: s2-nod 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    .thumb-press {
+      transform-origin: 908px 548px;
+      animation: s2-thumb 8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    }
+    .bubble-group {
+      transform-origin: 1090px 410px;
+      animation: s2-bubble 8s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+    }
+    .keycap-pop {
+      transform-origin: 1036px 404px;
+      animation: s2-keycap 8s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+    }
+    .tick-pop {
+      transform-origin: 1236px 404px;
+      animation: s2-tick 8s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+    }
+    @keyframes s2-fan {
+      0% { transform: scaleX(1); }
+      25% { transform: scaleX(0.88); }
+      50% { transform: scaleX(1); }
+      75% { transform: scaleX(0.88); }
+      100% { transform: scaleX(1); }
+    }
+    @keyframes s2-curtain {
+      0%, 100% { transform: rotate(0deg) skewX(0deg); }
+      50% { transform: rotate(-1.6deg) skewX(-1.4deg); }
+    }
+    @keyframes s2-phone {
+      0% { transform: translate(0px, 6px) rotate(2deg); }
+      4% { transform: translate(-3px, 5px) rotate(0.5deg); }
+      8% { transform: translate(3px, 5px) rotate(3deg); }
+      12% { transform: translate(-2px, 5px) rotate(1deg); }
+      16% { transform: translate(2px, 5px) rotate(2.5deg); }
+      24%, 88% { transform: translate(0px, 0px) rotate(0deg); }
+      100% { transform: translate(0px, 6px) rotate(2deg); }
+    }
+    @keyframes s2-screen {
+      0%, 4% { fill: #EFECE5; }
+      8%, 92% { fill: #FBF0DC; }
+      100% { fill: #EFECE5; }
+    }
+    @keyframes s2-nod {
+      0%, 24% { transform: rotate(0deg); }
+      30% { transform: rotate(2.2deg) translateY(2px); }
+      36% { transform: rotate(0deg); }
+      42% { transform: rotate(2.2deg) translateY(2px); }
+      48%, 100% { transform: rotate(0deg); }
+    }
+    @keyframes s2-thumb {
+      0%, 46% { transform: translate(0px, 0px); }
+      52% { transform: translate(-4px, -3px); }
+      58%, 100% { transform: translate(0px, 0px); }
+    }
+    @keyframes s2-bubble {
+      0%, 46% { opacity: 0.92; transform: translateY(4px); }
+      54%, 90% { opacity: 1; transform: translateY(0px); }
+      100% { opacity: 0.92; transform: translateY(4px); }
+    }
+    @keyframes s2-keycap {
+      0%, 48% { transform: scale(0.94); }
+      55% { transform: scale(1.08); }
+      62%, 90% { transform: scale(1); }
+      100% { transform: scale(0.94); }
+    }
+    @keyframes s2-tick {
+      0%, 50% { opacity: 0; transform: scale(0.75); }
+      58%, 90% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.75); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+      .bubble-group, .tick-pop { opacity: 1 !important; transform: none !important; }
+    }
+  </style>
+
+  <!-- Warm lime-washed Indian home background -->
+  <rect width="1600" height="930" fill="#F7F5F0"/>
+  <rect y="930" width="1600" height="270" fill="#EFECE5"/>
+  <!-- Terracotta / sand floor tiles and skirting -->
+  <rect y="914" width="1600" height="18" fill="#E3DED3" class="ink"/>
+  <path d="M 0 1010 H 1600 M 0 1105 H 1600 M 260 930 L 180 1200 M 580 930 L 520 1200 M 900 930 L 880 1200 M 1220 930 L 1250 1200" stroke="#E3DED3" stroke-width="2.5"/>
+
+  <!-- Warm morning sunlight beam from left window -->
+  <polygon points="110,180 430,180 940,1200 180,1200" fill="#FBF0DC" opacity="0.65"/>
+
+  <!-- Left Window with bars and Tulsi Vrindavan pot -->
+  <g id="window">
+    <rect x="96" y="166" width="356" height="510" rx="10" fill="#EFECE5" class="ink"/>
+    <rect x="118" y="188" width="312" height="466" rx="6" fill="#E3F0EE" class="ink"/>
+    <!-- Morning sky & distant trees outside window -->
+    <circle cx="215" cy="275" r="38" fill="#FBF0DC"/>
+    <path d="M 120 510 Q 190 465 265 495 Q 345 450 428 498 L 428 652 L 120 652 Z" fill="#0F5C5A" opacity="0.22"/>
+    <!-- Traditional Indian horizontal window grille bars -->
+    <path d="M 274 188 V 654 M 118 304 H 430 M 118 420 H 430 M 118 536 H 430" class="ink"/>
+    <!-- Terracotta Tulsi pot on the sill -->
+    <g id="tulsi-pot">
+      <ellipse cx="274" cy="648" rx="66" ry="11" fill="#E3DED3"/>
+      <polygon points="222,556 326,556 308,650 240,650" fill="#A86F4C" class="ink"/>
+      <polygon points="274,556 326,556 308,650 274,650" fill="#8D5A3B"/>
+      <rect x="212" y="540" width="124" height="20" rx="5" fill="#C68B63" class="ink"/>
+      <path d="M 232 585 H 316 M 240 618 H 308" stroke="#FBF0DC" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Lush Tulsi leaves & stems -->
+      <path d="M 274 540 V 456 M 274 510 L 238 476 M 274 495 L 312 462" class="ink"/>
+      <ellipse cx="274" cy="448" rx="18" ry="26" fill="#1E7B4F" class="ink"/>
+      <ellipse cx="234" cy="472" rx="22" ry="14" transform="rotate(-24 234 472)" fill="#0F5C5A" class="ink"/>
+      <ellipse cx="314" cy="462" rx="22" ry="14" transform="rotate(24 314 462)" fill="#1E7B4F" class="ink"/>
+      <ellipse cx="250" cy="508" rx="20" ry="13" transform="rotate(-16 250 508)" fill="#1E7B4F" class="ink"/>
+      <ellipse cx="298" cy="504" rx="20" ry="13" transform="rotate(18 298 504)" fill="#0F5C5A" class="ink"/>
+    </g>
+    <!-- Window sill -->
+    <rect x="78" y="654" width="392" height="26" rx="6" fill="#EFECE5" class="ink"/>
+    <!-- Swaying cotton curtain on right edge of window -->
+    <g class="curtain-sway">
+      <path d="M 382 172 Q 442 320 426 520 Q 418 610 444 690 L 378 682 Q 366 530 374 350 Z" fill="#FBF0DC" class="ink"/>
+      <path d="M 404 176 Q 422 360 408 676" stroke="#E8A33D" stroke-width="2.5" fill="none"/>
+    </g>
+    <line x1="74" y1="170" x2="474" y2="170" class="ink"/>
+  </g>
+
+  <!-- Indian 3-blade ceiling fan -->
+  <g id="ceiling-fan">
+    <line x1="820" y1="0" x2="820" y2="108" class="ink"/>
+    <path d="M 796 98 H 844 L 836 116 H 804 Z" fill="#EFECE5" class="ink"/>
+    <g class="fan-spin">
+      <rect x="520" y="118" width="250" height="20" rx="9" fill="#EFECE5" class="ink"/>
+      <rect x="870" y="118" width="250" height="20" rx="9" fill="#EFECE5" class="ink"/>
+      <ellipse cx="820" cy="148" rx="22" ry="34" fill="#E3DED3" class="ink"/>
+      <ellipse cx="820" cy="126" rx="56" ry="16" fill="#EFECE5" class="ink"/>
+      <ellipse cx="820" cy="122" rx="34" ry="8" fill="#E8A33D"/>
+    </g>
+  </g>
+
+  <!-- Wall calendar on right wall (geometric grid only, no words/numbers) -->
+  <g id="wall-calendar" transform="translate(1240, 220)">
+    <line x1="90" y1="-28" x2="40" y2="0" class="ink"/>
+    <line x1="90" y1="-28" x2="140" y2="0" class="ink"/>
+    <circle cx="90" cy="-28" r="5" fill="#1B1F24"/>
+    <rect x="6" y="8" width="180" height="236" rx="8" fill="#E3DED3"/>
+    <rect x="0" y="0" width="180" height="236" rx="8" fill="#FFFFFF" class="ink"/>
+    <rect x="0" y="0" width="180" height="58" rx="8" fill="#0F5C5A" class="ink"/>
+    <circle cx="90" cy="29" r="14" fill="#E8A33D"/>
+    <!-- Date grid boxes -->
+    <g fill="#EFECE5" stroke="#E3DED3" stroke-width="2">
+      <rect x="18" y="76" width="24" height="20" rx="3"/>
+      <rect x="50" y="76" width="24" height="20" rx="3"/>
+      <rect x="82" y="76" width="24" height="20" rx="3"/>
+      <rect x="114" y="76" width="24" height="20" rx="3"/>
+      <rect x="142" y="76" width="20" height="20" rx="3"/>
+      <rect x="18" y="106" width="24" height="20" rx="3"/>
+      <rect x="50" y="106" width="24" height="20" rx="3" fill="#FBF0DC" stroke="#E8A33D"/>
+      <rect x="82" y="106" width="24" height="20" rx="3"/>
+      <rect x="114" y="106" width="24" height="20" rx="3"/>
+      <rect x="142" y="106" width="20" height="20" rx="3"/>
+      <rect x="18" y="136" width="24" height="20" rx="3"/>
+      <rect x="50" y="136" width="24" height="20" rx="3"/>
+      <rect x="82" y="136" width="24" height="20" rx="3"/>
+      <rect x="114" y="136" width="24" height="20" rx="3"/>
+      <rect x="142" y="136" width="20" height="20" rx="3"/>
+      <rect x="18" y="166" width="24" height="20" rx="3"/>
+      <rect x="50" y="166" width="24" height="20" rx="3"/>
+      <rect x="82" y="166" width="24" height="20" rx="3"/>
+      <rect x="114" y="166" width="24" height="20" rx="3"/>
+      <rect x="142" y="166" width="20" height="20" rx="3"/>
+    </g>
+  </g>
+
+  <!-- Contact shadows on floor -->
+  <ellipse cx="780" cy="1055" rx="270" ry="34" fill="#E3DED3"/>
+  <ellipse cx="1225" cy="1035" rx="115" ry="20" fill="#E3DED3"/>
+
+  <!-- Small wooden side table with stainless steel tumbler -->
+  <g id="side-table">
+    <rect x="1140" y="768" width="170" height="22" rx="6" fill="#8D5A3B" class="ink"/>
+    <rect x="1162" y="790" width="18" height="242" fill="#74472D" class="ink"/>
+    <rect x="1270" y="790" width="18" height="242" fill="#8D5A3B" class="ink"/>
+    <rect x="1168" y="910" width="114" height="14" fill="#74472D" class="ink"/>
+    <!-- Stainless steel tumbler -->
+    <ellipse cx="1225" cy="766" rx="24" ry="6" fill="#E3DED3"/>
+    <polygon points="1202,698 1248,698 1242,766 1208,766" fill="#EFECE5" class="ink"/>
+    <polygon points="1225,698 1248,698 1242,766 1225,766" fill="#E3DED3"/>
+    <ellipse cx="1225" cy="698" rx="25" ry="6" fill="#FFFFFF" class="ink"/>
+    <line x1="1205" y1="714" x2="1245" y2="714" stroke="#1B1F24" stroke-width="1.8"/>
+  </g>
+
+  <!-- Carved Wooden & Cane Armchair -->
+  <g id="armchair">
+    <!-- Back legs -->
+    <rect x="588" y="830" width="24" height="215" rx="6" fill="#74472D" class="ink"/>
+    <rect x="948" y="830" width="24" height="215" rx="6" fill="#74472D" class="ink"/>
+    <!-- Chair backrest frame -->
+    <rect x="576" y="365" width="408" height="450" rx="36" fill="#8D5A3B" class="ink"/>
+    <rect x="606" y="395" width="348" height="390" rx="24" fill="#EFECE5" class="ink"/>
+    <!-- Subtle cane weave lines on backrest -->
+    <path d="M 606 460 H 954 M 606 525 H 954 M 606 590 H 954 M 680 395 V 785 M 780 395 V 785 M 880 395 V 785" stroke="#E3DED3" stroke-width="2"/>
+    <!-- Cushion -->
+    <rect x="562" y="762" width="436" height="68" rx="22" fill="#FBF0DC" class="ink"/>
+  </g>
+
+  <!-- KAMALA, 74 (Grandmother in marigold cotton saree with teal border) -->
+  <g id="kamala">
+    <!-- Lower saree drape & pleats down to ankles -->
+    <path d="M 638 775 C 625 865 632 955 645 1018 L 912 1018 C 925 955 930 865 912 775 Z" fill="#E8A33D" class="ink"/>
+    <!-- Saree two-tone fold shade -->
+    <path d="M 768 780 L 748 1018 L 910 1018 C 922 950 924 865 910 780 Z" fill="#D08B28"/>
+    <!-- Pleat lines -->
+    <path d="M 730 790 L 722 1016 M 765 790 L 760 1016 M 800 790 L 802 1016 M 835 790 L 842 1016" class="ink"/>
+    <!-- Bottom Teal Saree Border -->
+    <rect x="642" y="984" width="272" height="34" rx="4" fill="#0F5C5A" class="ink"/>
+    <path d="M 646 994 H 910 M 646 1008 H 910" stroke="#FBF0DC" stroke-width="2"/>
+
+    <!-- Feet resting on a low wooden footstool / floor -->
+    <ellipse cx="715" cy="1038" rx="34" ry="15" fill="#A86F4C" class="ink"/>
+    <ellipse cx="838" cy="1038" rx="34" ry="15" fill="#A86F4C" class="ink"/>
+
+    <!-- Torso & Blouse (Teal cotton blouse under Marigold saree pallu) -->
+    <path d="M 652 548 C 646 620 648 720 656 785 L 904 785 C 912 720 916 620 898 548 C 865 516 695 516 652 548 Z" fill="#0F5C5A" class="ink"/>
+    <!-- Marigold Saree Pallu draped diagonally across chest to left shoulder -->
+    <path d="M 648 544 C 710 525 835 538 898 566 L 910 782 L 652 782 Z" fill="#E8A33D" class="ink"/>
+    <path d="M 780 546 L 908 780 L 835 780 L 718 542 Z" fill="#D08B28"/>
+    <!-- Diagonal Teal border of the pallu -->
+    <path d="M 650 548 L 892 752 L 908 724 L 676 528 Z" fill="#0F5C5A" class="ink"/>
+    <line x1="662" y1="538" x2="898" y2="736" stroke="#FBF0DC" stroke-width="2.5"/>
+
+    <!-- Armchair front armrests and front legs -->
+    <rect x="536" y="688" width="68" height="28" rx="12" fill="#8D5A3B" class="ink"/>
+    <rect x="956" y="688" width="68" height="28" rx="12" fill="#8D5A3B" class="ink"/>
+    <rect x="554" y="716" width="28" height="335" rx="6" fill="#8D5A3B" class="ink"/>
+    <rect x="978" y="716" width="28" height="335" rx="6" fill="#8D5A3B" class="ink"/>
+
+    <!-- Reading glasses hanging on a cord around her neck -->
+    <path d="M 738 498 C 726 565 734 625 752 642 M 822 498 C 834 565 826 625 808 642" stroke="#1B1F24" stroke-width="2.5" fill="none"/>
+    <rect x="744" y="636" width="30" height="20" rx="8" fill="#E3F0EE" class="ink"/>
+    <rect x="786" y="636" width="30" height="20" rx="8" fill="#E3F0EE" class="ink"/>
+    <line x1="774" y1="645" x2="786" y2="645" class="ink"/>
+
+    <!-- Viewer-left arm resting calmly on the left wooden armrest (5 distinct fingers) -->
+    <path d="M 654 558 C 618 595 592 642 582 686 L 626 692 C 638 656 658 618 682 588 Z" fill="#A86F4C" class="ink"/>
+    <path d="M 636 575 C 668 584 684 594 688 602" class="ink"/>
+    <!-- Thin gold bangles on left wrist -->
+    <ellipse cx="603" cy="676" rx="22" ry="7" fill="none" stroke="#E8A33D" stroke-width="4"/>
+    <ellipse cx="601" cy="684" rx="22" ry="7" fill="none" stroke="#1B1F24" stroke-width="2"/>
+    <!-- Left hand with 5 natural fingers resting on armchair arm -->
+    <g id="left-hand" fill="#A86F4C" class="ink">
+      <path d="M 578 684 C 566 686 558 696 564 706 L 622 706 C 628 696 624 686 612 684 Z"/>
+      <!-- 5 fingers: thumb + 4 fingers -->
+      <rect x="556" y="696" width="11" height="24" rx="5.5"/>
+      <rect x="570" y="698" width="11" height="28" rx="5.5"/>
+      <rect x="584" y="699" width="11" height="29" rx="5.5"/>
+      <rect x="598" y="698" width="11" height="26" rx="5.5"/>
+      <rect x="612" y="694" width="12" height="20" rx="6" transform="rotate(-14 618 704)"/>
+    </g>
+
+    <!-- Neck -->
+    <path d="M 754 468 L 750 534 C 768 548 796 548 814 534 L 810 468 Z" fill="#A86F4C" class="ink"/>
+    <path d="M 776 485 Q 782 512 812 522 L 810 468 Z" fill="#8E5B3B"/>
+
+    <!-- Head & Face (Kamala, 74: grey hair in a low bun, small red bindi, friendly wrinkles & laugh lines) -->
+    <g class="head-nod">
+      <!-- Low grey hair bun on the left-back of head -->
+      <circle cx="702" cy="436" r="36" fill="#EFECE5" class="ink"/>
+      <path d="M 678 424 Q 702 412 722 432 M 680 446 Q 704 436 724 450" stroke="#1B1F24" stroke-width="2" fill="none"/>
+      <!-- Gajra / marigold flower tuck in bun -->
+      <circle cx="718" cy="408" r="9" fill="#E8A33D" class="ink"/>
+
+      <!-- Ears with gold stud -->
+      <ellipse cx="714" cy="432" rx="14" ry="22" fill="#A86F4C" class="ink"/>
+      <circle cx="714" cy="446" r="5" fill="#E8A33D" class="ink"/>
+      <ellipse cx="852" cy="432" rx="14" ry="22" fill="#8E5B3B" class="ink"/>
+
+      <!-- Face oval (head height ~140px, ~1/7 body height) -->
+      <path d="M 720 388 C 720 342 846 342 846 388 C 850 448 830 492 783 496 C 736 492 716 448 720 388 Z" fill="#A86F4C" class="ink"/>
+      <!-- Warm morning light two-tone cheek shade on right -->
+      <path d="M 792 356 C 832 362 846 392 844 434 C 840 472 816 492 783 496 C 804 478 812 440 808 396 Z" fill="#8E5B3B"/>
+
+      <!-- Silver-grey hair parted neatly -->
+      <path d="M 718 408 C 714 352 752 332 786 332 C 824 332 854 356 848 408 C 834 382 812 368 784 366 C 754 368 732 384 718 408 Z" fill="#EFECE5" class="ink"/>
+      <path d="M 732 366 Q 758 348 786 350 M 786 350 Q 816 352 838 374" stroke="#1B1F24" stroke-width="2" fill="none"/>
+
+      <!-- Small red bindi -->
+      <circle cx="786" cy="390" r="5.5" fill="#B42318"/>
+
+      <!-- Expressive eyebrows, warm eyes, crow's feet, nose, and laugh lines -->
+      <path d="M 744 402 Q 760 394 774 401 M 798 401 Q 814 394 828 402" class="ink" fill="none"/>
+      <!-- Eyes -->
+      <ellipse cx="760" cy="416" rx="8" ry="5.5" fill="#FFFFFF" class="ink"/>
+      <circle cx="762" cy="416" r="3.5" fill="#1B1F24"/>
+      <ellipse cx="812" cy="416" rx="8" ry="5.5" fill="#FFFFFF" class="ink"/>
+      <circle cx="814" cy="416" r="3.5" fill="#1B1F24"/>
+      <!-- Crow's feet / gentle age wrinkles -->
+      <path d="M 738 414 L 745 416 M 739 421 L 746 420 M 834 414 L 827 416 M 833 421 L 826 420" stroke="#1B1F24" stroke-width="1.8" stroke-linecap="round"/>
+      <!-- Forehead line -->
+      <path d="M 762 378 Q 786 375 810 378" stroke="#8E5B3B" stroke-width="2" fill="none"/>
+      <!-- Nose with tiny gold nose pin -->
+      <path d="M 786 412 L 792 438 Q 785 444 778 440" class="ink" fill="none"/>
+      <circle cx="779" cy="433" r="2.5" fill="#E8A33D"/>
+      <!-- Laugh lines & warm gentle smile -->
+      <path d="M 754 444 Q 748 456 754 466 M 818 444 Q 824 456 818 466" stroke="#8E5B3B" stroke-width="2" fill="none"/>
+      <path d="M 764 456 Q 786 472 808 456" class="ink" fill="none"/>
+    </g>
+
+    <!-- Viewer-right arm raised holding basic keypad phone to her ear (with thin gold bangles & 5 fingers) -->
+    <g class="phone-group">
+      <!-- Upper & forearm -->
+      <path d="M 882 562 C 928 584 958 625 968 656 C 976 620 956 545 924 498 L 892 512 C 910 552 920 592 914 606 C 904 592 888 578 868 574 Z" fill="#A86F4C" class="ink"/>
+      <!-- Gold bangles on raised right wrist -->
+      <line x1="894" y1="528" x2="930" y2="514" stroke="#E8A33D" stroke-width="6" stroke-linecap="round"/>
+      <line x1="898" y1="538" x2="934" y2="524" stroke="#E8A33D" stroke-width="5" stroke-linecap="round"/>
+      <line x1="896" y1="533" x2="932" y2="519" stroke="#1B1F24" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Basic Keypad Phone held at ear -->
+      <rect x="862" y="402" width="66" height="142" rx="14" transform="rotate(-10 895 473)" fill="#1B1F24" class="ink"/>
+      <rect x="870" y="416" width="50" height="46" rx="6" transform="rotate(-10 895 473)" fill="#FBF0DC" class="ink phone-screen-lit"/>
+      <!-- Keypad grid buttons on phone -->
+      <g transform="rotate(-10 895 473)" fill="#EFECE5">
+        <rect x="872" y="472" width="13" height="10" rx="2"/>
+        <rect x="889" y="472" width="13" height="10" rx="2"/>
+        <rect x="906" y="472" width="13" height="10" rx="2"/>
+        <rect x="872" y="487" width="13" height="10" rx="2" fill="#0F5C5A"/>
+        <rect x="889" y="487" width="13" height="10" rx="2"/>
+        <rect x="906" y="487" width="13" height="10" rx="2"/>
+        <rect x="872" y="502" width="13" height="10" rx="2"/>
+        <rect x="889" y="502" width="13" height="10" rx="2"/>
+        <rect x="906" y="502" width="13" height="10" rx="2"/>
+        <rect x="872" y="517" width="13" height="10" rx="2"/>
+        <rect x="889" y="517" width="13" height="10" rx="2"/>
+        <rect x="906" y="517" width="13" height="10" rx="2"/>
+      </g>
+
+      <!-- Right Hand holding phone with 5 distinct fingers (4 fingers gripping edge + thumb pressing key) -->
+      <g fill="#A86F4C" class="ink">
+        <!-- 4 fingers wrapped around outer edge of phone -->
+        <rect x="916" y="446" width="24" height="11" rx="5.5" transform="rotate(-10 928 451)"/>
+        <rect x="918" y="460" width="25" height="11" rx="5.5" transform="rotate(-10 930 465)"/>
+        <rect x="919" y="474" width="24" height="11" rx="5.5" transform="rotate(-10 931 479)"/>
+        <rect x="918" y="488" width="21" height="10" rx="5" transform="rotate(-10 928 493)"/>
+        <!-- Palm side -->
+        <path d="M 902 508 C 918 504 934 496 936 482 L 932 520 L 896 526 Z"/>
+        <!-- 5th finger: Thumb pressing keypad key 1 -->
+        <g class="thumb-press">
+          <rect x="874" y="490" width="32" height="13" rx="6.5" transform="rotate(-28 890 496)"/>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- Speech Bubble near the phone reading "1  Yes" with rounded key-cap and green tick -->
+  <g class="bubble-group">
+    <!-- Flat offset shadow -->
+    <path d="M 986 352 H 1278 A 22 22 0 0 1 1300 374 V 442 A 22 22 0 0 1 1278 464 H 1004 L 958 486 L 972 454 A 22 22 0 0 1 964 442 V 374 A 22 22 0 0 1 986 352 Z" fill="#E3DED3"/>
+    <!-- White speech bubble -->
+    <path d="M 980 344 H 1272 A 22 22 0 0 1 1294 366 V 434 A 22 22 0 0 1 1272 456 H 998 L 952 478 L 966 446 A 22 22 0 0 1 958 434 V 366 A 22 22 0 0 1 980 344 Z" fill="#FFFFFF" class="ink"/>
+    <!-- Rounded Key-Cap "1" -->
+    <g class="keycap-pop">
+      <rect x="1002" y="370" width="64" height="64" rx="14" fill="#E3F0EE" stroke="#0F5C5A" stroke-width="2.5"/>
+      <text x="1034" y="415" text-anchor="middle" font-family="Noto Sans, sans-serif" font-size="36" font-weight="700" fill="#1B1F24">1</text>
+    </g>
+    <!-- "Yes" label -->
+    <text x="1090" y="415" font-family="Noto Sans, sans-serif" font-size="36" font-weight="700" fill="#1B1F24">Yes</text>
+    <!-- Green confirmation tick -->
+    <g class="tick-pop">
+      <circle cx="1236" cy="402" r="24" fill="#1E7B4F"/>
+      <path d="M 1224 402 L 1233 411 L 1250 393" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- Subtle paper-grain texture at 5% opacity -->
+  <rect width="1600" height="1200" fill="url(#s2-grain)" opacity="0.05" pointer-events="none"/>
+</svg>
