@@ -13,7 +13,7 @@
 }
 
 /* The reply line: drawn by script into the room left of the phone */
-.ct-sig__stream { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+.ct-sig__stream { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .ct-sig__room { flex: none; width: min(5em, 34vw); align-self: stretch; }
 .ct-sig__say {
   font-family: var(--font-sans); font-size: var(--text-lg); font-weight: var(--weight-medium);
@@ -21,7 +21,15 @@
 }
 .ct-sig__track { font-size: var(--text-lg); fill: none; stroke: var(--color-ink-muted); stroke-width: 0.2em; stroke-linecap: round; opacity: 0.7; }
 
-/* The phone: same geometry as public/js/logo.js, with a filled screen so dots pass behind it */
+/* The solid line: in from the left edge, and out of the phone through the wordmark to the right edge */
+.ct-sig__wire { font-size: var(--text-lg); fill: none; stroke: var(--color-ink-muted); stroke-width: 0.11em; stroke-linecap: butt; opacity: 0.55; }
+.ct-sig__wire--under { opacity: 0; }
+.ct-sig__wire--under, .ct-sig__wire--tail { stroke-dasharray: 1 1; stroke-dashoffset: 0; }
+
+/* The lines the letters unravel into; moved by script */
+.ct-sig__thread { fill: none; stroke: var(--color-primary); stroke-width: max(0.065em, calc(var(--space-1) * 0.6)); stroke-linecap: round; opacity: 0; }
+
+/* The phone: same geometry as public/js/logo.js, with a filled screen so the line passes behind it */
 .ct-sig__device { position: relative; z-index: 2; flex: none; display: block; width: 0.95em; height: 1.5em; }
 .ct-sig__phone { display: block; width: 100%; height: 100%; overflow: visible; }
 .ct-sig__frame { fill: var(--color-surface); stroke: var(--color-primary); stroke-width: 2.2; }
@@ -44,15 +52,6 @@
 .ct-sig__mark { flex: none; width: 0.6em; height: 0.6em; fill: none; stroke: var(--status-taken); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .ct-sig__mark circle, .ct-sig__mark path { stroke-dasharray: 1; stroke-dashoffset: 1; }
 .ct-sig__checked { color: var(--color-ink); clip-path: inset(0 100% 0 0); }
-
-/* Dots the letters turn into; moved by script */
-.ct-sig__dots { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.ct-sig__dot { position: absolute; left: 0; top: 0; }
-.ct-sig__dot b {
-  position: absolute; width: max(0.09em, var(--space-1)); height: max(0.09em, var(--space-1));
-  left: calc(max(0.09em, var(--space-1)) * -0.5); top: calc(max(0.09em, var(--space-1)) * -0.5);
-  border-radius: var(--radius-pill); background: var(--color-primary); opacity: 0;
-}
 
 /* ---- phases ---- */
 .ct-sig[data-phase="dissolve"] .ct-sig__glyph,
@@ -77,6 +76,14 @@
 .ct-sig[data-phase="checked"] .ct-sig__mark circle { stroke-dashoffset: 0; transition: stroke-dashoffset 520ms var(--ease-out); }
 .ct-sig[data-phase="checked"] .ct-sig__mark path { stroke-dashoffset: 0; transition: stroke-dashoffset 320ms var(--ease-out) 320ms; }
 .ct-sig[data-phase="checked"] .ct-sig__checked { clip-path: inset(0 0 0 0); transition: clip-path 640ms var(--ease-out) 140ms; }
+/* ...and the line under the label is wiped away just ahead of the words */
+.ct-sig[data-phase="checked"] .ct-sig__wire--under,
+.ct-sig[data-phase="checked"] .ct-sig__wire--tail,
+.ct-sig[data-phase="reset"] .ct-sig__wire--under { stroke-dashoffset: -1; }
+.ct-sig[data-phase="checked"] .ct-sig__wire--under,
+.ct-sig[data-phase="checked"] .ct-sig__wire--tail { transition: stroke-dashoffset 560ms var(--ease-out); }
+/* The stretch past the wordmark draws back in as "Checked in" lifts away */
+.ct-sig[data-phase="reset"] .ct-sig__wire--tail { transition: stroke-dashoffset 520ms var(--ease-out) 120ms; }
 
 /* Reset: Checked in lifts away, the badge goes, the wordmark comes back (letters by script) */
 .ct-sig[data-phase="reset"] .ct-sig__status { opacity: 0; transform: translateY(-0.08em); transition: opacity 260ms var(--ease-out), transform 260ms var(--ease-out); }
@@ -87,15 +94,16 @@
 /* Middle widths: a smaller reply line so it fits the shorter loop */
 @media (max-width: 959px) {
   .ct-sig { padding-top: 0.8em; }
-  .ct-sig__say, .ct-sig__track { font-size: var(--text-sm); }
+  .ct-sig__say, .ct-sig__track, .ct-sig__wire { font-size: var(--text-sm); }
 }
 
 /* Phones: the loop rises above the row, the lockup sits at the right, nothing overflows */
 @media (max-width: 559px) {
   .ct-sig { width: 100%; font-size: var(--text-2xl); padding: 1.4em 0 0.2em; }
   .ct-sig__room { flex: 1 1 auto; width: auto; min-width: 0; }
-  .ct-sig__say, .ct-sig__track { font-size: var(--text-xs); }
+  .ct-sig__say, .ct-sig__track, .ct-sig__wire { font-size: var(--text-xs); }
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   .ct-sig, .ct-sig * { animation: none !important; transition: none !important; }

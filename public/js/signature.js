@@ -1,32 +1,42 @@
-// Footer signature: one calm loop that tells the product.
-//   rest      the phone with a heart and the "Care Taker" wordmark; on the left a dotted reply line
-//             loops for ever, carrying "I took my tablet at 1:00 pm" in several languages
-//   dissolve  the wordmark letters turn into dots, travel left past the phone and close the gap
-//             in the dotted line right after "1:00 pm"
-//   tick      once the dots connect, the phone shows a tick
+// Footer signature: one calm loop that tells the product, drawn on one line across the footer.
+//   rest      a solid line enters from the left edge and turns into a dotted reply line that loops
+//             and runs into the phone; it leaves the phone on the right, through the "Care Taker"
+//             wordmark, and out to the right edge. The reply line carries one reply per loop:
+//             "I took my tablet at 1:00 pm", then the same reply in Telugu, Hindi or Tamil
+//   dissolve  each wordmark letter unravels into a short line on the right-hand line; the lines join
+//             end to end into one solid stroke, which flows left into the phone just as the reply
+//             reaches the phone from the other side
+//   tick      the phone shows a tick
 //   heart     the heart comes back with one soft beat
 //   checked   a check-in badge on the phone, and "Checked in" with a mark replaces the wordmark
 //   reset     back to the logo and the wordmark
-// The reply line is the clock: every loop the gap after "1:00 pm" arrives at the same spot just as
-// the dots land. Runs only while the footer is on screen. Reduced motion keeps the static logo.
+// Replies are spaced so that no two ever meet where the loop crosses itself. Runs only while the
+// footer is on screen. Reduced motion keeps the static logo.
 import { esc } from './lib.js';
 
 const LOOP = 9.6; // seconds per loop
-// Phase starts, in seconds from the moment the last dot lands in the line.
-const AT = { dissolve: -1.96, tick: 0.12, heart: 0.8, checked: 1.45, reset: 4.4, rest: 5.2 };
+// Phase starts, in seconds from the moment the stroke and the reply are both inside the phone.
+const AT = { dissolve: -2.12, tick: 0.12, heart: 0.8, checked: 1.45, reset: 4.4, rest: 5.2 };
 const ORDER = ['dissolve', 'tick', 'heart', 'checked', 'reset', 'rest'];
 const WORD = 'Care Taker';
-const DOTS = [...WORD].filter((c) => c !== ' ').length;
-const STEP = 70;    // ms between one letter leaving and the next
-const FLY = 900;    // ms a dot is in flight
-const APPEAR = 500; // ms a letter takes to become a dot before it leaves
+const STAG = 45;    // ms between one letter unravelling and the next
+const DRAW = 380;   // ms a letter takes to unravel into its line
+const JOIN = 280;   // ms the lines take to close up end to end
+const HOLD = 160;   // ms the joined stroke draws back a hair before it is pulled
+const SLIDE = 900;  // ms the stroke takes to flow into the phone
 
 const EN = 'I took my tablet at 1:00 pm';
-const OTHERS = [
+// One reply per loop, English every other loop.
+const PHRASES = [
+  ['en', EN],
   ['te', 'మాత్ర వేసుకున్నాను, 1 గంటకు'],
+  ['en', EN],
   ['hi', 'haan, ek baje dawai le li'],
+  ['en', EN],
   ['ta', 'மாத்திரை எடுத்துட்டேன்'],
 ];
+const SLOTS = PHRASES.length;
+const LETTERS = [...WORD].filter((c) => c !== ' ').length;
 
 const glyphs = [...WORD].map((ch) => `<span class="ct-sig__glyph">${ch === ' ' ? '&nbsp;' : esc(ch)}</span>`).join('');
 
@@ -37,12 +47,20 @@ function markup() {
         <defs>
           <path id="ct-sig-path" d="M0 0"/>
           <linearGradient id="ct-sig-fade" gradientUnits="userSpaceOnUse" x1="0" x2="1"><stop offset="0" stop-color="black"/><stop offset="1" stop-color="white"/></linearGradient>
-          <mask id="ct-sig-mask" maskUnits="userSpaceOnUse"><rect class="ct-sig__veil" fill="url(#ct-sig-fade)" width="1" height="1"/></mask>
+          <linearGradient id="ct-sig-hand" gradientUnits="userSpaceOnUse" x1="0" x2="1"><stop offset="0" stop-color="white"/><stop offset="1" stop-color="black"/></linearGradient>
+          <mask id="ct-sig-mask" class="ct-sig__clip" maskUnits="userSpaceOnUse"><rect class="ct-sig__veil" fill="url(#ct-sig-fade)" width="1" height="1"/></mask>
+          <mask id="ct-sig-mask-in" class="ct-sig__clip" maskUnits="userSpaceOnUse"><rect class="ct-sig__veil" fill="url(#ct-sig-hand)" width="1" height="1"/></mask>
         </defs>
+        <path class="ct-sig__wire ct-sig__wire--in" mask="url(#ct-sig-mask-in)" d="M0 0"/>
         <g mask="url(#ct-sig-mask)">
           <path class="ct-sig__track" d="M0 0"/>
           <text class="ct-sig__say"><textPath href="#ct-sig-path"></textPath></text>
         </g>
+        <path class="ct-sig__wire ct-sig__wire--near" d="M0 0"/>
+        <path class="ct-sig__wire ct-sig__wire--under" pathLength="1" d="M0 0"/>
+        <path class="ct-sig__wire ct-sig__wire--tail" pathLength="1" d="M0 0"/>
+        <path class="ct-sig__wire ct-sig__wire--out" d="M0 0"/>
+        <g class="ct-sig__threads">${'<path class="ct-sig__thread" d="M0 0"/>'.repeat(LETTERS)}</g>
       </svg>
       <span class="ct-sig__room"></span>
       <span class="ct-sig__device">
@@ -61,115 +79,213 @@ function markup() {
           <span class="ct-sig__checked">Checked in</span>
         </span>
       </span>
-      <span class="ct-sig__dots">${'<i class="ct-sig__dot"><b></b></i>'.repeat(DOTS)}</span>
     </div>`;
 }
 
 let host = null;
 let staticHtml = '';
 let root = null;
-let geo = null;          // measured geometry of the reply line
-let p = 5.6 / LOOP;      // progress in loops; a whole number is the moment the dots land
+let geo = null;          // measured geometry of the line, the replies and the stroke
+let p = 5.6 / LOOP;      // progress in loops; a whole number is the moment both reach the phone
 let phase = 'rest';
 let raf = 0;
 let last = 0;
 let visible = false;
-let anims = [];          // dot and letter animations of the current loop
+let anims = [];          // letter and stroke animations of the current loop
 let returns = [];        // letters coming back in reset
 
 const token = (name, fallback) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 const frac = (x) => x - Math.floor(x);
+const mod = (n, m) => ((n % m) + m) % m;
+const f1 = (n) => n.toFixed(1);
 
-// Builds the loop curve from the room left of the phone, lays the phrases along it with a
-// blank gap after every "1:00 pm", and draws the dots of the line between phrases.
+// ---- curve helpers: a curve is a list of cubic segments [p0, c1, c2, p3] ----
+function bez(g, t) {
+  const u = 1 - t;
+  const a = u * u * u; const b = 3 * u * u * t; const c = 3 * u * t * t; const d = t * t * t;
+  return [a * g[0][0] + b * g[1][0] + c * g[2][0] + d * g[3][0], a * g[0][1] + b * g[1][1] + c * g[2][1] + d * g[3][1]];
+}
+function sample(segs, n = 100) {
+  const pts = [{ x: segs[0][0][0], y: segs[0][0][1], L: 0, seg: 0 }];
+  let L = 0;
+  segs.forEach((g, si) => {
+    let prev = g[0];
+    for (let i = 1; i <= n; i++) {
+      const q = bez(g, i / n);
+      L += Math.hypot(q[0] - prev[0], q[1] - prev[1]);
+      prev = q;
+      pts.push({ x: q[0], y: q[1], L, seg: si });
+    }
+  });
+  return pts;
+}
+const cmds = (segs) => segs.map((g) => `C ${g.slice(1).map((q) => `${f1(q[0])} ${f1(q[1])}`).join(' ')}`).join(' ');
+const toD = (segs) => `M ${f1(segs[0][0][0])} ${f1(segs[0][0][1])} ${cmds(segs)}`;
+const hline = (y, a, b) => `M ${f1(a)} ${f1(y)} L ${f1(b)} ${f1(y)}`;
+// Where the curve crosses itself: path lengths of both passes.
+function crossing(pts) {
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i]; const b = pts[i + 1];
+    for (let j = i + 6; j < pts.length - 1; j++) {
+      const c = pts[j]; const d = pts[j + 1];
+      const den = (b.x - a.x) * (d.y - c.y) - (b.y - a.y) * (d.x - c.x);
+      if (!den) continue;
+      const t = ((c.x - a.x) * (d.y - c.y) - (c.y - a.y) * (d.x - c.x)) / den;
+      const u = ((c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x)) / den;
+      if (t >= 0 && t <= 1 && u >= 0 && u <= 1) return { L1: a.L + t * (b.L - a.L), L2: c.L + u * (d.L - c.L) };
+    }
+  }
+  return null;
+}
+
+// Builds the line across the footer: the solid lead-in from the left edge, the reply loop into the
+// phone, and the line out of the phone through the wordmark to the right edge. Replies are spaced
+// so none sits on the crossing while another passes it.
 function layout() {
   if (!root) return;
   const box = root.getBoundingClientRect();
   if (!box.width || !box.height) { geo = null; return; }
-  const svg = root.querySelector('.ct-sig__stream');
-  const path = root.querySelector('#ct-sig-path');
-  const track = root.querySelector('.ct-sig__track');
-  const tp = root.querySelector('textPath');
-  const say = root.querySelector('.ct-sig__say');
-  const frame = root.querySelector('.ct-sig__frame').getBoundingClientRect();
+  const $ = (sel) => root.querySelector(sel);
+  const svg = $('.ct-sig__stream');
+  const path = $('#ct-sig-path');
+  const track = $('.ct-sig__track');
+  const tp = $('textPath');
+  const say = $('.ct-sig__say');
+  const threads = [...root.querySelectorAll('.ct-sig__thread')];
+  const frame = $('.ct-sig__frame').getBoundingClientRect();
+  const label = $('.ct-sig__label').getBoundingClientRect();
   const W = box.width;
   const H = box.height;
   const fs = parseFloat(getComputedStyle(say).fontSize) || 16;
-  svg.setAttribute('viewBox', `0 0 ${W.toFixed(1)} ${H.toFixed(1)}`);
+  const labelFs = parseFloat(getComputedStyle(root).fontSize) || 48;
+  const edgeL = -box.left;                                         // page edges, in box space
+  const edgeR = document.documentElement.clientWidth - box.left;
+  svg.setAttribute('viewBox', `0 0 ${f1(W)} ${f1(H)}`);
 
-  // The line ends just inside the phone, a little below its middle.
-  const E = { x: frame.left - box.left + frame.width * 0.12, y: frame.top - box.top + frame.height * 0.69 };
+  // Reply lengths.
+  const uniq = [...new Set(PHRASES.map((ph) => ph[1]))];
+  tp.innerHTML = uniq.map((t) => `<tspan>${esc(t)}</tspan>`).join('');
+  const lenOf = new Map(uniq.map((t, i) => [t, tp.children[i].getComputedTextLength()]));
+  const T = PHRASES.map((ph) => lenOf.get(ph[1]));
+  const Tmax = Math.max(...T);
+  const clear = fs * 0.95; // room a reply needs on each side of the crossing
+
+  // The wordmark letters, and the height of the line: through the middle of the lowercase letters,
+  // straight through the phone.
+  const letters = [...root.querySelectorAll('.ct-sig__glyph')].filter((g) => g.textContent.trim());
+  const rects = letters.map((g) => g.getBoundingClientRect());
+  const y = rects[0].top - box.top + rects[0].height * 0.6;
+  const E = { x: frame.left - box.left + frame.width * 0.12, y };
   const lead = W < 520 ? 10 : 40;
-  const s = Math.max(0.3, Math.min((E.y - 2) / 87, (H - E.y - 2) / 26, (E.x - fs * 4.5) / (lead + 90), fs * 0.075));
-  const ax = lead * s;
-  const ay = E.y - 92 * s;
-  const X = (x) => (ax + s * (x - 60)).toFixed(1);
-  const Y = (y) => (ay + s * y).toFixed(1);
-  const bx = ax + 90 * s;
-  const by = ay + 118 * s;
-  const run = E.x - bx;
-  const d = `M ${X(60 - lead)} ${Y(98)} C ${X(60 - lead * 0.4)} ${Y(101)} ${X(92)} ${Y(95)} ${X(122)} ${Y(78)} `
-    + `C ${X(158)} ${Y(58)} ${X(166)} ${Y(22)} ${X(138)} ${Y(10)} C ${X(110)} ${Y(-2)} ${X(72)} ${Y(10)} ${X(66)} ${Y(44)} `
-    + `C ${X(60)} ${Y(78)} ${X(90)} ${Y(110)} ${X(150)} ${Y(118)} `
-    + `C ${(bx + run * 0.3).toFixed(1)} ${(by + 10 * s).toFixed(1)} ${(E.x - run * 0.35).toFixed(1)} ${(E.y + 12 * s).toFixed(1)} ${E.x.toFixed(1)} ${E.y.toFixed(1)}`;
+  const s = Math.max(0.3, Math.min((H - 4) / 116, (E.x - fs * 4.5) / (lead + 90), fs * 0.075));
+  const ay = 2 - 5 * s;
+  // Widen the loop only when a reply would not fit round it.
+  const curve = (kx) => {
+    const ax = lead * s * kx;
+    const P = (x, yy) => [ax + s * kx * (x - 60), ay + s * yy];
+    const [bx, by] = P(150, 118);
+    const run = E.x - bx;
+    const segs = [
+      [P(60 - lead, 98), P(60 - lead * 0.4, 101), P(92, 95), P(122, 78)],
+      [P(122, 78), P(158, 58), P(166, 22), P(138, 10)],
+      [P(138, 10), P(110, -2), P(72, 10), P(66, 44)],
+      [P(66, 44), P(60, 78), P(90, 110), [bx, by]],
+      [[bx, by], [bx + run * 0.35, by + 4 * s], [E.x - run * 0.4, E.y], [E.x, E.y]],
+    ];
+    const pts = sample(segs);
+    const right = Math.max(...pts.filter((q) => q.seg < 4).map((q) => q.x));
+    return { ax, segs, pts, right, cross: crossing(pts) };
+  };
+  let c = curve(1);
+  for (let kx = 1.05; kx < 1.61 && !(c.cross && Tmax <= c.cross.L2 - c.cross.L1 - 2 * clear); kx += 0.05) {
+    const next = curve(kx);
+    if (next.right > E.x - fs * 5) break;
+    c = next;
+  }
+  const d = toD(c.segs);
   path.setAttribute('d', d);
   track.setAttribute('d', d);
-  // The line fades in at its left end instead of starting on a hard edge.
-  root.querySelector('#ct-sig-fade').setAttribute('x2', Math.max(8, ax * 0.9).toFixed(1));
-  const veil = root.querySelector('.ct-sig__veil');
-  veil.setAttribute('width', W.toFixed(1));
-  veil.setAttribute('height', H.toFixed(1));
-  const P = path.getTotalLength();
-
-  // Measure one English phrase and each other phrase once, then lay out equal segments:
-  // [English][gap the dots fill][dots][other language][dots], so every loop lands the same way.
-  tp.innerHTML = [EN, ...OTHERS.map((o) => o[1])].map((t) => `<tspan>${esc(t)}</tspan>`).join('');
-  const lens = [...tp.children].map((t) => t.getComputedTextLength());
-  const enLen = lens[0];
-  const others = lens.slice(1);
-  const step = fs * 0.5;           // space between dots on the line
-  const gap = step * (DOTS + 1);   // the gap after "1:00 pm"
-  const sep = step * 4;            // dots before and after each other phrase
-  const S = enLen + gap + sep + Math.max(...others) + sep;
-  const U = S * OTHERS.length;
-  const join = P - gap - step * 3; // where "pm" ends when the dots land
-  const m0 = Math.ceil((join - enLen) / S + OTHERS.length);
-  const base0 = join - enLen - m0 * S;
-  const copies = Math.max(2, Math.ceil((P - base0) / U) + 1);
-
-  const parts = [];
-  for (let c = 0; c < copies; c++) {
-    OTHERS.forEach(([lang, text], j) => {
-      const before = c === 0 && j === 0 ? 0 : S - (enLen + gap + sep + others[(j + OTHERS.length - 1) % OTHERS.length]);
-      parts.push(`<tspan lang="en" dx="${before.toFixed(2)}">${esc(EN)}</tspan>`);
-      parts.push(`<tspan lang="${lang}" dx="${(gap + sep).toFixed(2)}">${esc(text)}</tspan>`);
-    });
-  }
-  tp.innerHTML = parts.join('');
-
-  // Dots of the line, as positions inside one unit of three segments.
-  const dots = [];
-  others.forEach((len, j) => {
-    const at = j * S;
-    for (let k = 0; k < 4; k++) dots.push(at + enLen + gap + k * step);
-    for (let q = at + enLen + gap + sep + len + step; q < at + S - step * 0.9; q += step) dots.push(q);
+  // At the left the solid line hands over to the dotted reply line: one fades out as the other fades in.
+  const hand = f1(Math.max(8, c.ax * 0.9));
+  $('#ct-sig-fade').setAttribute('x2', hand);
+  $('#ct-sig-hand').setAttribute('x2', hand);
+  root.querySelectorAll('.ct-sig__veil, .ct-sig__clip').forEach((v) => {
+    v.setAttribute('x', f1(edgeL));
+    v.setAttribute('y', '0');
+    v.setAttribute('width', f1(edgeR - edgeL));
+    v.setAttribute('height', f1(H));
   });
+  const [x0, y0] = c.segs[0][0];
+  $('.ct-sig__wire--in').setAttribute('d', `${hline(y0, edgeL, x0)} ${cmds([c.segs[0]])}`);
+  const P = path.getTotalLength();
+  const k = P / c.pts[c.pts.length - 1].L;
+  const cross = c.cross ? { L1: c.cross.L1 * k, L2: c.cross.L2 * k } : { L1: 0, L2: 0 };
+
+  // ---- the line out of the phone, and the stroke the wordmark becomes ----
+  const w0 = parseFloat(getComputedStyle(threads[0]).strokeWidth) || 4;
+  const space = labelFs * 0.12;
+  const inset = labelFs * 0.05;
+  const exit = frame.right - box.left - frame.width * 0.12;
+  // The wordmark and "Checked in" share one cell; the line stops just short of whichever is showing.
+  const lx = label.left - box.left - space;
+  const ends = [...root.querySelectorAll('.ct-sig__glyph, .ct-sig__mark, .ct-sig__checked')].map((e) => e.getBoundingClientRect().right - box.left);
+  const nx = rects[rects.length - 1].right - box.left + space;
+  const rx = Math.max(nx, ...ends.map((e) => e + space));
+  $('.ct-sig__wire--near').setAttribute('d', hline(y, exit, lx));
+  $('.ct-sig__wire--under').setAttribute('d', hline(y, lx, nx));
+  $('.ct-sig__wire--tail').setAttribute('d', hline(y, nx, Math.max(nx + 0.1, rx)));
+  $('.ct-sig__wire--out').setAttribute('d', hline(y, rx, edgeR));
+  // The stroke path runs right to left, from just past the wordmark into the middle of the phone.
+  const xs = rects[rects.length - 1].right - box.left + labelFs * 0.15;
+  const xe = frame.left - box.left + frame.width * 0.5;
+  threads.forEach((t) => t.setAttribute('d', hline(y, xs, xe)));
+  const rest = rects.map((r) => ({ s0: xs - (r.right - box.left) + w0 / 2 + inset, l0: Math.max(1, r.width - w0 - inset * 2) }));
+
+  // ---- replies along the loop ----
+  // A reply's end reaches the phone when its loop's stroke does. Replies are one loop (S) apart and
+  // the space between two replies is longer than the loop round the crossing, so the two passes of
+  // the crossing never carry text at the same time.
+  const step = fs * 0.5;
+  const K = P;
+  const delta = cross.L2 - cross.L1;
+  const S = Math.max(Tmax + delta + 2 * clear + step, Tmax + step * 8);
+  const nLo = Math.floor(-(P - K + Tmax) / S) - 1;
+  const nHi = Math.ceil(SLOTS + K / S) + 1;
+  const parts = [];
+  for (let n = nHi; n >= nLo; n--) {
+    const [lang, text] = PHRASES[mod(n, SLOTS)];
+    const dx = n === nHi ? '' : ` dx="${(S - T[mod(n, SLOTS)]).toFixed(2)}"`;
+    parts.push(`<tspan lang="${lang}"${dx}>${esc(text)}</tspan>`);
+  }
+  // A loop too small for any reply to pass the crossing alone carries dots only.
+  const fits = c.cross && Tmax <= delta - 2 * clear;
+  tp.innerHTML = fits ? parts.join('') : '';
+  const u0 = K - nHi * S - T[mod(nHi, SLOTS)];
+
+  // Dots between replies, as positions inside one cycle of all replies.
+  const dots = [];
+  for (let n = SLOTS - 1; n >= 0; n--) {
+    const from = -(n + 1) * S + step;
+    const to = fits ? -n * S - T[n] - step : -n * S - step * 0.5;
+    for (let q = from; q <= to + 0.01; q += step) dots.push(q);
+  }
+  const U = S * SLOTS;
   const dash = [];
   dots.forEach((q, i) => { dash.push(0, ((dots[i + 1] ?? dots[0] + U) - q).toFixed(2)); });
   track.setAttribute('stroke-dasharray', dash.join(' '));
 
-  const fly = root.querySelector('.ct-sig__dot b');
-  const flySize = fly.getBoundingClientRect().width || 6;
-  const lineDot = parseFloat(getComputedStyle(track).strokeWidth) || 3;
-  geo = { path, track, tp, P, S, U, enLen, step, join, base0, q0: dots[0], v: S / LOOP, shrink: Math.min(1, lineDot / flySize) };
+  geo = {
+    tp, track, threads, under: $('.ct-sig__wire--under'), S, K, u0, q0: dots[0], labelFs,
+    stroke: { rest, w0, len: xs - xe, enter: xs - exit },
+  };
   paint();
 }
 
 function paint() {
   if (!geo) return;
-  const off = geo.base0 + frac(p / OTHERS.length) * geo.U;
-  geo.tp.setAttribute('startOffset', off.toFixed(2));
-  geo.track.setAttribute('stroke-dashoffset', (-(off + geo.q0)).toFixed(2));
+  const r = frac(p / SLOTS) * SLOTS;
+  geo.tp.setAttribute('startOffset', (geo.u0 + r * geo.S).toFixed(2));
+  geo.track.setAttribute('stroke-dashoffset', (-(geo.K + r * geo.S + geo.q0)).toFixed(2));
 }
 
 function phaseAt(x) {
@@ -181,60 +297,60 @@ function phaseAt(x) {
 
 function cancel(list) { list.forEach((a) => a.cancel()); list.length = 0; }
 
-// Each letter becomes a dot, flies left past the phone, lands in its slot after "1:00 pm"
-// and rides the line into the phone.
+// Each letter unravels into a line where it stands; the lines close up end to end into one solid
+// stroke, which is pulled left along the line into the phone.
 function launch(now) {
-  const box = root.getBoundingClientRect();
   const J = now + (Math.ceil(p) - p) * LOOP * 1000;
   const inOut = token('--ease-in-out', 'ease-in-out');
   const out = token('--ease-out', 'ease-out');
+  const { rest, w0, len, enter } = geo.stroke;
   const letters = [...root.querySelectorAll('.ct-sig__glyph')].filter((g) => g.textContent.trim());
-  const dots = [...root.querySelectorAll('.ct-sig__dot')];
-  const tr = (x, y) => `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-  letters.forEach((g, i) => {
-    const r = g.getBoundingClientRect();
-    const ox = r.left - box.left + r.width / 2;
-    const oy = r.top - box.top + r.height * 0.58;
-    const arrive = J - (DOTS - 1 - i) * STEP;
-    const depart = arrive - FLY;
-    const appear = depart - APPEAR;
-    const land = geo.join + (geo.v * (arrive - J)) / 1000 + (i + 1) * geo.step;
-    const ride = Math.max(0, ((geo.P - land) / geo.v) * 1000);
-    const end = arrive + ride;
-    const total = Math.max(1, end - now);
-    const at = (t) => Math.min(1, Math.max(0, (t - now) / total));
-    const pt = (L) => geo.path.getPointAtLength(Math.min(Math.max(L, 0), geo.P));
-    const tgt = pt(land);
-    const turn = `rotate(${((Math.atan2(tgt.y - oy, tgt.x - ox) * 180) / Math.PI).toFixed(1)}deg)`;
+  const n = letters.length;
+  const pull = J - SLIDE;
+  const joined = pull - HOLD;
+  const join = joined - JOIN;
+  const total = Math.max(1, J + 60 - now);
+  const at = (t) => Math.min(1, Math.max(0, (t - now) / total));
+  const big = Math.ceil(len * 4 + 100); // gap after each dash, long enough that it never repeats
+  const ant = geo.labelFs * 0.04;
+  // Joined: the first letter stays put, the others close up behind it.
+  const tight = [];
+  let acc = rest[0].s0;
+  rest.forEach((r, i) => { if (i) acc -= r.l0; tight[i] = acc; });
+  // Pulled until the tail of the stroke has gone behind the edge of the phone.
+  const shift = enter - tight[n - 1] + w0;
 
-    const move = [
-      { offset: 0, transform: tr(ox, oy) },
-      { offset: at(depart), transform: tr(ox, oy), easing: inOut },
-      { offset: at(arrive), transform: tr(tgt.x, tgt.y), easing: 'linear' },
-    ];
-    const n = Math.max(1, Math.ceil(ride / 120));
-    for (let k = 1; k <= n; k++) {
-      const t = arrive + (ride * k) / n;
-      const q = pt(land + (geo.v * (t - arrive)) / 1000);
-      move.push({ offset: at(t), transform: tr(q.x, q.y), easing: 'linear' });
-    }
-    const look = [
-      { offset: 0, opacity: 0, transform: `${turn} scale(0.4)` },
-      { offset: at(appear), opacity: 0, transform: `${turn} scale(0.4)`, easing: out },
-      { offset: at(appear + 350), opacity: 1, transform: `${turn} scale(1)` },
-      { offset: at(depart), opacity: 1, transform: `${turn} scale(1)`, easing: inOut },
-      { offset: at(depart + FLY * 0.5), opacity: 1, transform: `${turn} scale(2.6, 0.8)`, easing: inOut },
-      { offset: at(arrive), opacity: 1, transform: `${turn} scale(${geo.shrink.toFixed(2)})` },
-      { offset: at(Math.max(arrive, end - 140)), opacity: 1, transform: `${turn} scale(${geo.shrink.toFixed(2)})` },
-      { offset: 1, opacity: 0, transform: `${turn} scale(${geo.shrink.toFixed(2)})` },
-    ];
-    anims.push(dots[i].animate(move, { duration: total, fill: 'none' }));
-    anims.push(dots[i].firstElementChild.animate(look, { duration: total, fill: 'none' }));
+  letters.forEach((g, i) => {
+    const appear = join - DRAW - (n - 1 - i) * STAG;
+    const { s0, l0 } = rest[i];
+    const kf = (t, pos, l, opacity, easing) => ({
+      offset: at(t),
+      strokeDasharray: `${l.toFixed(2)} ${big}`,
+      strokeDashoffset: (-pos).toFixed(2),
+      opacity,
+      easing,
+    });
+    anims.push(geo.threads[i].animate([
+      kf(now, s0, 0.01, 0, 'linear'),
+      kf(appear, s0, 0.01, 0, out),
+      kf(appear + DRAW, s0, l0, 1, 'linear'),
+      kf(join, s0, l0, 1, inOut),
+      kf(joined, tight[i], l0, 1, out),
+      kf(pull, tight[i] - ant, l0, 1, inOut),
+      kf(J, tight[i] + shift, l0, 1, 'linear'),
+      kf(J + 60, tight[i] + shift, l0, 0, 'linear'),
+    ], { duration: total, fill: 'none' }));
     anims.push(g.animate(
-      [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(0.5)' }],
-      { duration: 420, delay: Math.max(0, appear - now), easing: out, fill: 'both' },
+      [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(0.96, 0.1)' }],
+      { duration: DRAW, delay: Math.max(0, appear - now), easing: inOut, fill: 'both' },
     ));
   });
+  // The line under the wordmark shows through the gaps as the letters go.
+  const shade = getComputedStyle(root.querySelector('.ct-sig__wire--near')).opacity;
+  anims.push(geo.under.animate(
+    [{ opacity: 0 }, { opacity: shade }],
+    { duration: 420, delay: Math.max(0, join - DRAW * 0.4 - now), easing: out, fill: 'both' },
+  ));
 }
 
 function welcomeBack() {
@@ -294,6 +410,10 @@ export function mountSignature() {
   if (!host) return;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   staticHtml = host.innerHTML;
+  coded(reduce);
+}
+
+function coded(reduce) {
   const mount = () => {
     if (reduce.matches) return; // the static logo and wordmark stay
     host.innerHTML = markup();
@@ -308,18 +428,19 @@ export function mountSignature() {
   });
 
   let size = '';
+  const relayout = () => { settle(); layout(); };
   new ResizeObserver(() => {
     if (!root) return;
     const r = root.getBoundingClientRect();
-    const key = `${Math.round(r.width)}x${Math.round(r.height)}`;
+    const key = `${Math.round(r.width)}x${Math.round(r.height)}x${document.documentElement.clientWidth}`;
     if (key === size) return;
     size = key;
-    settle();
-    layout();
+    relayout();
   }).observe(host);
+  window.addEventListener('resize', () => { if (root) relayout(); });
   if (document.fonts) {
-    document.fonts.ready.then(() => { settle(); layout(); });
-    document.fonts.addEventListener('loadingdone', () => { settle(); layout(); });
+    document.fonts.ready.then(relayout);
+    document.fonts.addEventListener('loadingdone', relayout);
   }
   new IntersectionObserver((entries) => {
     visible = entries.some((e) => e.isIntersecting);
